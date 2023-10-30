@@ -1,0 +1,14 @@
+{
+  "development": {
+    "username": "",
+    "password": "",
+    "database": "",
+    "host": "",
+    "dialect": "",
+    "port": "",
+    "dialectOptions": {
+      "useUTC": false
+    },
+    "timezone": ""
+  }
+}
