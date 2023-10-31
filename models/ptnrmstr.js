@@ -16,6 +16,18 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'ptnrg_id',
         foreignKey: 'ptnr_ptnrg_id'
       })
+
+      PtnrMstr.hasMany(models.TConfUser, {
+        as: 'access_user',
+        sourceKey: 'ptnr_id',
+        foreignKey: 'user_ptnr_id'
+      })
+
+      PtnrMstr.hasMany(models.SoMstr, {
+        as: 'sales_order',
+        sourceKey: 'ptnr_id',
+        foreignKey: 'so_ptnr_id_sold'
+      })
     }
   }
   PtnrMstr.init({
