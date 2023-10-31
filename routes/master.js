@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const MasterController = require('../app/Controller/MasterController')
-const {authenticate} = require('../app/Middleware/Middleware')
+const {authenticate} = require('../app/Middleware/middleware')
 
 router.get('/location', [authenticate], MasterController.getLocation)
 router.get('/entity', [authenticate], MasterController.getEntity)
