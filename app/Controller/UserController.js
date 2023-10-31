@@ -28,7 +28,7 @@ class UserController {
 
 			let token = await jwt.sign(getUserAccount['dataValues'], process.env.ACCESS_TOKEN_SECRET, {expiresIn: '24h'})
 			
-			this.deleteOldToken(token, getUserAccount['dataValues']['userid'])
+			await this.deleteOldToken(token, getUserAccount['dataValues']['userid'])
 
 			res.status(200)
 				.json({
