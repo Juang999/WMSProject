@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const SalesOrderController = require('../app/Controller/SalesOrderController')
-const {authenticate} = require('../app/Middleware/Middleware')
+const {authenticate} = require('../app/Middleware/middleware')
 
 router.get('/:so_code/detail', [authenticate], SalesOrderController.detailSalesOrder)
 router.patch('/update', [authenticate], SalesOrderController.updateQtySalesOrder)
