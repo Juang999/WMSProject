@@ -16,6 +16,18 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'groupid',
         foreignKey: 'groupid'
       })
+
+      TConfUser.belongsTo(models.PtnrMstr, {
+        as: 'detail_partner',
+        targetKey: 'ptnr_id',
+        foreignKey: 'user_ptnr_id'
+      })
+
+      TConfUser.belongsTo(models.EnMstr, {
+        as: 'entity',
+        targetKey: 'en_id',
+        foreignKey: 'en_id'
+      })
     }
   }
   TConfUser.init({

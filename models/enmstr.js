@@ -11,6 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      EnMstr.hasMany(models.TConfUser, {
+        as: 'detail_user',
+        sourceKey: 'en_id',
+        foreignKey: 'en_id'
+      })
     }
   }
   EnMstr.init({
