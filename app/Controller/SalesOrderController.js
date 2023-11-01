@@ -1,7 +1,7 @@
 // module
 const {Auth, Query} = require('../../helper/helper')
 const moment = require('moment')
-const {Op} = require('Sequelize')
+const {Op} = require('sequelize')
 
 // model
 const {SoMstr, SodDet, PtMstr, Sequelize, PtnrMstr, LocMstr} = require('../../models')
@@ -17,7 +17,7 @@ class SalesOrderController {
 				['so_upd_by', 'upd_by'], 
 				['so_upd_date', 'upd_date'],
 				[Sequelize.literal('"buyer"."ptnr_name"'), 'customer'],
-				],
+			],
 			include: [
 					{
 						model: PtnrMstr,
