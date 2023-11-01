@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'ptnr_id',
         foreignKey: 'so_ptnr_id_sold'
       })
+
+      PtnrMstr.hasMany(models.SoMstr, {
+        as: 'history_purchase_order',
+        sourceKey: 'ptnr_id',
+        foreignKey: 'po_ptnr_id'
+      })
     }
   }
   PtnrMstr.init({
