@@ -5,11 +5,14 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var upload = require('express-fileupload')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var masterRouter = require('./routes/master');
-var salesOrderRouter = require('./routes/sales_order')
+var productRouter = require('./routes/product');
+var salesOrderRouter = require('./routes/sales_order');
+// var purchaseOrderRouter = require('./routes/purchase_order');
 
 var app = express();
 
@@ -22,11 +25,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(upload())
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/master', masterRouter );
+app.use('/product', productRouter);
 app.use('/sales-order', salesOrderRouter);
+// app.use('/purchase-order', purchaseOrderRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
