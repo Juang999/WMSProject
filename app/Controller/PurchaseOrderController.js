@@ -135,6 +135,7 @@ class PurchaseOrderController {
 									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_desc1"'), 'detail_pt_desec1'],
 									['pod_qty', 'detail_qty'],
 									['pod_qty_receive', 'detail_qty_receive'],
+									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_syslog_code"'), 'detail_syslog_code'],
 								],
 							include: [
 									{
