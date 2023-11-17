@@ -11,16 +11,16 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      // LocMstr.hasMany(models.SoMStr, {
-      //   as: 'sales_order',
-      //   sourceKey: 'loc_id',
-      //   foreignKey: 'so_loc_to_id'
-      // })
+      LocMstr.hasMany(models.LocsMstr, {
+        as: 'sub_location',
+        sourceKey: 'loc_id',
+        foreignKey: 'locs_loc_id'
+      })
 
       LocMstr.hasMany(models.SoMstr, {
         as: 'location_sales_order',
         sourceKey: 'loc_oid',
-        foreignKey: 'so_ptsfr_loc_to_id'
+        foreignKey: 'locs_loc_id'
       })
     }
   }
