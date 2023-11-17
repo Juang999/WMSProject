@@ -2,7 +2,12 @@
 const {Op} = require('sequelize')
 
 // model
-const {AcMstr, CodeMstr, EnMstr, LocMstr, PtnrMstr, SiMstr, PtnrgGrp, Sequelize} = require('../../models')
+const {
+	EnMstr, LocMstr, 
+	AcMstr, CodeMstr, 
+	PtnrMstr, SiMstr, 
+	PtnrgGrp, Sequelize
+} = require('../../models')
 
 class MasterController {
 	getLocation = (req, res) => {
