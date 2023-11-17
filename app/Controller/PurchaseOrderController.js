@@ -4,7 +4,12 @@ let moment = require('moment')
 let {Op} = require('sequelize')
 
 // model
-const {PoMstr, PodDet, PtMstr, Sequelize, sequelize} = require('../../models')
+const {
+	PoMstr, 
+	PodDet, PtMstr, 
+	LocMstr, LocsMstr, 
+	Sequelize, sequelize
+} = require('../../models')
 
 class PurchaseOrderController {
 	detailPurchaseOrder = (req, res) => {
