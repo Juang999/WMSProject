@@ -2,7 +2,7 @@
 const {Op} = require('sequelize')
 
 // model
-const {AcMstr, EnMstr, LocMstr, PtnrMstr, SiMstr, PtnrgGrp, Sequelize} = require('../../models')
+const {AcMstr, CodeMstr, EnMstr, LocMstr, PtnrMstr, SiMstr, PtnrgGrp, Sequelize} = require('../../models')
 
 class MasterController {
 	getLocation = (req, res) => {
@@ -135,6 +135,37 @@ class MasterController {
 				.json({
 					status: 'failed',
 					message: 'failed to get partner',
+					error: err.message
+				})
+		})
+	}
+
+	getSublocationType = (req, res) => {
+		CodeMstr.findAll({
+			attributes: ['code_id', 'code_field', 'code_name'],
+			where: {
+				code_field: 'type_sublocation',
+				code_active: {
+					[Op.not]: 'N'
+				}
+			},
+			order: [
+					['code_default', 'DESC']
+				]
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
 					error: err.message
 				})
 		})
