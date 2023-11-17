@@ -17,7 +17,12 @@ class SublocationController {
 					'locs_cap',
 					'locs_subcat_id',
 					'locs_type'
-				]
+				],
+			where: {
+				losc_id: {
+					[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
+				}
+			}
 		})
 			.then(result => {
 				res.status(200)
