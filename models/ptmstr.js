@@ -34,6 +34,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pt_id',
         foreignKey: 'riumd_pt_id'
       })
+
+      PtMstr.belongsTo(models.CodeMstr, {
+        as: 'unitmeasure',
+        targetKey: 'code_id',
+        foreignKey: 'pt_um'
+      })
     }
   }
   PtMstr.init({

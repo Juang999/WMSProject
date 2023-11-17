@@ -2,7 +2,10 @@
 const {Op} = require('sequelize')
 
 // models
-const {PtMstr, InvctTable, Sequelize} = require('../../models')
+const {
+		PtMstr, CodeMstr, 
+		InvctTable, Sequelize
+	} = require('../../models')
 
 class ProductController {
 	searchProduct = (req, res) => {
@@ -11,9 +14,10 @@ class ProductController {
 					'pt_id', 
 					'pt_code', 
 					'pt_syslog_code', 
-					'pt_desc1', 
-					'pt_color_tag',
-					[Sequelize.col('cost_product.invct_cost'), 'invct_cost']
+					'pt_desc1',
+					[Sequelize.literal("CASE WHEN pt_color_tag IS NOT NULL THEN pt_color_tag ELSE '-' END"), 'pt_color_tag'],
+					[Sequelize.col('unitmeasure.code_name'), 'pt_unitmeasure'],
+					[Sequelize.col('cost_product.invct_cost'), 'invct_cost'],
 				],
 			include: [
 					{
@@ -22,6 +26,10 @@ class ProductController {
 						attributes: [],
 						required: true,
 						duplicating: false
+					}, {
+						model: CodeMstr,
+						as: 'unitmeasure',
+						attributes: []
 					}
 				],
 			where: {
