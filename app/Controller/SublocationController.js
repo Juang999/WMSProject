@@ -21,6 +21,9 @@ class SublocationController {
 			where: {
 				losc_id: {
 					[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
+				},
+				locs_name: {
+					[Op.iLike]: (req.query.colname) ? `%${req.query.colname}%` : '%%'
 				}
 			}
 		})
