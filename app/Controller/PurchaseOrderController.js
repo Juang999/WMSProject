@@ -79,7 +79,8 @@ class PurchaseOrderController {
 					pod_pud_by: user['usernama'],
 					pod_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
 					pod_qty_receive: dataPurchaseOrder['qtyReceive'],
-					pod_loc_id: dataPurchaseOrder['locId']
+					pod_loc_id: dataPurchaseOrder['locId'],
+					pod_locs_id: dataPurchaseOrder['locsId']
 				}, {
 					where: {
 						pod_oid: dataPurchaseOrder['pod_oid']
@@ -94,6 +95,7 @@ class PurchaseOrderController {
 								$3: values[2],
 								$4: values[3],
 								$5: values[4],
+								$6: values[5],
 							}
 						})
 					}
