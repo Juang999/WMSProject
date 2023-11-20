@@ -6,6 +6,6 @@ const SublocationController = require('../app/Controller/SublocationController')
 
 router.get('/', [authenticate], SublocationController.index);
 router.post('/', [authenticate], SublocationController.store);
-// router.patch('/capacity', [authenticate], SublocationController.)
+router.patch('/:losc_id/capacity', [authenticate], SublocationController.inputCapacity)
 
 module.exports = router
