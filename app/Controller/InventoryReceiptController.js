@@ -73,7 +73,8 @@ class InventoryReceiptController {
            				riumd_sb_id: 0,
            				riumd_cc_id: 0,
            				riumd_dt: moment().format('YYYY-MM-DD'),
-           				riumd_cost_total: bodyInventoryReceipt['costTotal']
+           				riumd_cost_total: bodyInventoryReceipt['costTotal'],
+           				riumd_locs_id: bodyInventoryReceipt['locsId']
            			}
 
            			dataInventoryReceipt.push(dataBodyInventoryReceipt)
