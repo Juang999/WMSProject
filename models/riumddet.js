@@ -46,7 +46,8 @@ module.exports = (sequelize, DataTypes) => {
     riumd_sod_oid: DataTypes.UUID,
     riumd_pbd_oid: DataTypes.UUID,
     riumd_cost_total: DataTypes.INTEGER,
-    riumd_qty_shipment: DataTypes.INTEGER
+    riumd_qty_shipment: DataTypes.INTEGER,
+    riumd_locs_id: DataTypes.INTEGER
   }, {
     sequelize,
     schema: 'public',

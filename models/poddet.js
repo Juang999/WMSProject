@@ -71,7 +71,8 @@ module.exports = (sequelize, DataTypes) => {
     pod_width: DataTypes.INTEGER,
     pod_cost_film: DataTypes.INTEGER,
     pod_ppn: DataTypes.INTEGER,
-    pod_pph: DataTypes.INTEGER
+    pod_pph: DataTypes.INTEGER,
+    pod_locs_id: DataTypes.INTEGER
   }, {
     sequelize,
     schema: 'public',
