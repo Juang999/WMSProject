@@ -182,7 +182,7 @@ class SublocationController {
 								$11: values[10],
 							}
 						})
-				}
+					}
 				})
 	}
 }
