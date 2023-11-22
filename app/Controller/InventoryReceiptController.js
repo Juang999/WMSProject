@@ -88,7 +88,7 @@ class InventoryReceiptController {
         		}
         	})
 
-			await eraseData(headerInventoryReceipt['rium_oid'], 'IR')
+			await eraseData(user['userid'], 'IR')
 
            	// commit transaction
 			await transaction.commit()

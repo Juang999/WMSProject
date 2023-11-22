@@ -116,7 +116,7 @@ class SublocationController {
 			locst_oid: uuidv4(),
 			locst_locs_id: req.body.locsId,
 			locst_type: req.body.locsType,
-			locst_type_oid: req.body.locsTypeOid
+			locst_user_id: req.body.locstUserId,
 		})
 		.then(result => {
 			res.status(200)
@@ -249,11 +249,11 @@ class SublocationController {
 				})
 	}
 
-	eraseData = async (type_oid, type) => {
+	eraseData = async (user_id, type) => {
 		await LocsTemporary.destroy({
 			where: {
 				locst_type: type,
-				locst_type_oid: type_oid
+				locst_user_id: user_id
 			}
 		})
 	}

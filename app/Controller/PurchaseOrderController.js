@@ -103,7 +103,7 @@ class PurchaseOrderController {
 				})
 			}
 
-			await eraseData(req.body.po_oid, 'PO')
+			await eraseData(user['userid'], 'PO')
 
 			await transaction.commit()
 
