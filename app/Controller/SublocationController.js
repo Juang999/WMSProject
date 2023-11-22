@@ -2,52 +2,56 @@
 const {Query, Auth} = require('../../helper/helper')
 const moment = require('moment')
 const {Op} = require('sequelize')
+const {v4: uuidv4} = require('uuid')
 
 // models
-const {LocsMstr, Sequelize, sequelize} = require('../../models')
+const {
+	InvcdDet,
+	LocsMstr, LocsTemporary, 
+	Sequelize, sequelize
+} = require('../../models')
 
 class SublocationController {
-	index = (req, res) => {
-		LocsMstr.findAll({
-			attributes: [
-					'losc_id', 
-					'locs_name',
-					'locs_remarks',
-					'locs_active',
-					'locs_cap',
-					'locs_subcat_id',
-					'locs_type'
-				],
-			where: {
-				losc_id: {
-					[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
-				},
-				locs_name: {
-					[Op.iLike]: (req.query.colname) ? `%${req.query.colname}%` : '%%'
-				},
-				locs_active: 'Y'
-			},
-			order: [
-					['losc_id', 'ASC']
-				]
-		})
-			.then(result => {
-				res.status(200)
+	index = async (req, res) => {
+		try {
+			let dataLocs = await LocsMstr.findAll({
+						attributes: [
+								'losc_id', 
+								'locs_name',
+								'locs_remarks',
+								'locs_active',
+								'locs_cap',
+								'locs_subcat_id',
+								'locs_type'
+							],
+						where: {
+							losc_id: {
+								[Op.notIn]: await this.getId()
+							},
+							locs_name: {
+								[Op.iLike]: (req.query.colname) ? `%${req.query.colname}%` : '%%'
+							},
+							locs_active: 'Y'
+						},
+						order: [
+								['losc_id', 'ASC']
+							]
+					})		
+
+			res.status(200)
 					.json({
 						status: 'success',
-						data: result,
+						data: dataLocs,
 						error: null
 					})
-			})
-			.catch(err => {
-				console.log(err.stack)
-				res.status(400)
-					.json({
-						status: 'failed',
-						data: null,
-						error: err.message
-					})
-			})
+		} catch (error) {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: error.message
+				})
+		}
 	}
 
 	store = async (req, res) => {
@@ -106,6 +110,31 @@ class SublocationController {
 		}
 	}
 
+	inputTemporary = (req, res) => {
+		LocsTemporary.create({
+			locst_oid: uuidv4(),
+			locst_locs_id: req.body.locsId,
+			locst_type: req.body.locsType,
+			locst_type_oid: req.body.locsTypeOid
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
 	inputCapacity = (req, res) => {
 		LocsMstr.update({
 			locs_cap: req.body.capacity
@@ -140,6 +169,39 @@ class SublocationController {
 					error: err.message
 				})
 		})
+	}
+
+	getId = async () => {
+		let arr1 = await this.getLocsIdFromTemporaryTable()
+		let arr2 = await this.getLocsIdFromInvcdDetTable()
+
+		let concatArray = arr1.concat(arr2)
+
+		return concatArray
+	}
+
+	getLocsIdFromTemporaryTable = async () => {
+		let locsIdInLocsTemporaryTable = await LocsTemporary.findAll({attributes: ['locst_locs_id']})
+
+		let arr = []
+
+		for (let data of locsIdInLocsTemporaryTable) {
+			arr.push(data['locst_locs_id'])
+		}
+
+		return arr
+	}
+
+	getLocsIdFromInvcdDetTable = async () => {
+		let locsIdInInvcdDetTable = await InvcdDet.findAll({attributes: ['invcd_locs_id']})
+
+		let arr = []
+
+		for (let data of locsIdInInvcdDetTable) {
+			arr.push(data['locst_locs_id'])
+		}
+
+		return arr
 	}
 
 	generateLocsId = async (users) => {
@@ -185,6 +247,15 @@ class SublocationController {
 					}
 				})
 	}
+
+	eraseData = async (type_oid, type) => {
+		await LocsTemporary.destroy({
+			where: {
+				locst_type: type,
+				locst_type_oid: type_oid
+			}
+		})
+	}
 }
-	
+
 module.exports = new SublocationController()
