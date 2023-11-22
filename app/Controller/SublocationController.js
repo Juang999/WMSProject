@@ -31,7 +31,8 @@ class SublocationController {
 							locs_name: {
 								[Op.iLike]: (req.query.colname) ? `%${req.query.colname}%` : '%%'
 							},
-							locs_active: 'Y'
+							locs_active: 'Y',
+							locs_loc_id: req.params.loc
 						},
 						order: [
 								['losc_id', 'ASC']
