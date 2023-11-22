@@ -3,6 +3,7 @@ let {Op} = require('sequelize')
 let moment = require('moment')
 let {v4: uuidv4} = require('uuid')
 let {Auth, Query} = require('../../helper/helper')
+let {eraseData} = require('./SublocationController')
 
 // model
 const {
@@ -54,38 +55,40 @@ class InventoryReceiptController {
             	}
             })
 
-           	let bulkBodyInventoryReceipt = JSON.parse(req.body.products)
-           	let dataInventoryReceipt = []
+        	let bulkBodyInventoryReceipt = JSON.parse(req.body.products)
+        	let dataInventoryReceipt = []
 
-           	for (let bodyInventoryReceipt of bulkBodyInventoryReceipt) {
-           			let dataBodyInventoryReceipt = {
-           				riumd_oid: uuidv4(),
-           				riumd_rium_oid: headerInventoryReceipt['rium_oid'],
-           				riumd_pt_id: bodyInventoryReceipt['ptId'],
-           				riumd_qty: bodyInventoryReceipt['qty'],
-           				riumd_um: bodyInventoryReceipt['um'],
-           				riumd_um_conv: 1,
-           				riumd_qty_real: bodyInventoryReceipt['qty']/1,
-           				riumd_si_id: 992,
-           				riumd_loc_id: bodyInventoryReceipt['locId'],
-           				riumd_cost: bodyInventoryReceipt['cost'],
-           				riumd_ac_id: bodyInventoryReceipt['acId'],
-           				riumd_sb_id: 0,
-           				riumd_cc_id: 0,
-           				riumd_dt: moment().format('YYYY-MM-DD'),
-           				riumd_cost_total: bodyInventoryReceipt['costTotal'],
-           				riumd_locs_id: bodyInventoryReceipt['locsId']
-           			}
+        	for (let bodyInventoryReceipt of bulkBodyInventoryReceipt) {
+        			let dataBodyInventoryReceipt = {
+        				riumd_oid: uuidv4(),
+        				riumd_rium_oid: headerInventoryReceipt['rium_oid'],
+        				riumd_pt_id: bodyInventoryReceipt['ptId'],
+        				riumd_qty: bodyInventoryReceipt['qty'],
+        				riumd_um: bodyInventoryReceipt['um'],
+        				riumd_um_conv: 1,
+        				riumd_qty_real: bodyInventoryReceipt['qty']/1,
+        				riumd_si_id: 992,
+        				riumd_loc_id: bodyInventoryReceipt['locId'],
+        				riumd_cost: bodyInventoryReceipt['cost'],
+        				riumd_ac_id: bodyInventoryReceipt['acId'],
+        				riumd_sb_id: 0,
+        				riumd_cc_id: 0,
+        				riumd_dt: moment().format('YYYY-MM-DD'),
+        				riumd_cost_total: bodyInventoryReceipt['costTotal'],
+        				riumd_locs_id: bodyInventoryReceipt['locsId']
+        			}
 
-           			dataInventoryReceipt.push(dataBodyInventoryReceipt)
-           	}
+        			dataInventoryReceipt.push(dataBodyInventoryReceipt)
+        	}
 
            	// create bulk body inventory receipt
-           	await RiumdDet.bulkCreate(dataInventoryReceipt, {
-           		logging: (sql) => {
-           			Query.queryBulkCreate(sql)
-           		}
-           	})
+        	await RiumdDet.bulkCreate(dataInventoryReceipt, {
+        		logging: (sql) => {
+        			Query.queryBulkCreate(sql)
+        		}
+        	})
+
+			await eraseData(headerInventoryReceipt['rium_oid'], 'IR')
 
            	// commit transaction
 			await transaction.commit()

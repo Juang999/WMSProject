@@ -2,6 +2,7 @@
 let {Auth, Query} = require('../../helper/helper')
 let moment = require('moment')
 let {Op} = require('sequelize')
+let {eraseData} = require('./SublocationController')
 
 // model
 const {
@@ -101,6 +102,8 @@ class PurchaseOrderController {
 					}
 				})
 			}
+
+			await eraseData(req.body.po_oid, 'PO')
 
 			await transaction.commit()
 
