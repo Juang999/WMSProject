@@ -111,29 +111,31 @@ class SublocationController {
 		}
 	}
 
-	inputTemporary = (req, res) => {
-		LocsTemporary.create({
-			locst_oid: uuidv4(),
-			locst_locs_id: req.body.locsId,
-			locst_type: req.body.locsType,
-			locst_user_id: req.body.locstUserId,
-		})
-		.then(result => {
+	inputTemporary = async (req, res) => {
+		try {
+			let user = await Auth(req.headers['authorization'])
+
+			let result = await LocsTemporary.create({
+				locst_oid: uuidv4(),
+				locst_locs_id: req.body.locsId,
+				locst_type: req.body.locsType,
+				locst_user_id: user['userid'],
+			})
+
 			res.status(200)
 				.json({
 					status: 'success',
 					data: result,
 					error: null
 				})
-		})
-		.catch(err => {
+		} catch (error) {
 			res.status(400)
 				.json({
 					status: 'failed',
 					data: null,
-					error: err.message
+					error: error.message
 				})
-		})
+		}
 	}
 
 	inputCapacity = (req, res) => {
