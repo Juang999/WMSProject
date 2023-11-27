@@ -2,7 +2,7 @@
 const {Op} = require('sequelize')
 const {v4: uuidv4} = require('uuid')
 const moment = require('moment')
-const {Auth} = require('../../helper/helper')
+const {Auth, Query} = require('../../helper/helper')
 
 // models
 const {
@@ -213,6 +213,26 @@ class ProductController {
 				invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
 				invcd_add_by: user['usernama'],
 				invcd_weight: 0
+			}, {
+				logging: async (sql, queryCommand) => {
+					let value = queryCommand.bind;
+
+					await Query.insert(sql, {
+						bind: {
+							$1: value[0],
+							$2: value[1],
+							$3: value[2],
+							$4: value[3],
+							$5: value[4],
+							$6: value[5],
+							$7: value[6],
+							$8: value[7],
+							$9: value[8],
+							$10: value[9],
+							$11: value[10],
+						}
+					})
+				}
 			});
 
 			res.status(200)
@@ -244,6 +264,17 @@ class ProductController {
 						[Op.eq]: req.params.sublId
 					})
 				]
+			},
+			logging: async (sql, queryCommand) => {
+				let value = queryCommand.bind;
+
+				await Query.insert(sql, {
+					bind: {
+						$1: value[0],
+						$2: value[1],
+						$3: value[2]
+					}
+				})
 			}
 		})
 		.then(result => {
