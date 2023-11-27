@@ -40,6 +40,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'code_id',
         foreignKey: 'pt_um'
       })
+
+      PtMstr.hasMany(models.InvcdDet, {
+        as: 'data_sublocation',
+        sourceKey: 'pt_id',
+        foreignKey: 'invcd_pt_id'
+      })
     }
   }
   PtMstr.init({

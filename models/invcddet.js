@@ -11,6 +11,17 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      InvcdDet.belongsTo(models.LocsMstr, {
+        as: 'sublocation',
+        targetKey: 'losc_id',
+        foreignKey: 'invcd_locs_id'
+      })
+
+      InvcdDet.belongsTo(models.PtMstr, {
+        as: 'product',
+        targetKey: 'pt_id',
+        foreignKey: 'invcd_pt_id'
+      })
     }
   }
   InvcdDet.init({

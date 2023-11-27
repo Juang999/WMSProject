@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'loc_id',
         foreignKey: 'locs_loc_id'
       })
+
+      LocsMstr.hasMany(models.InvcdDet, {
+        as: 'data_product',
+        sourceKey: 'losc_id',
+        foreignKey: 'invcd_locs_id'
+      })
     }
   }
   LocsMstr.init({
