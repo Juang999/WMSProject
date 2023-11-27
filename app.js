@@ -13,6 +13,7 @@ var masterRouter = require('./routes/master');
 var productRouter = require('./routes/product');
 var salesOrderRouter = require('./routes/sales_order');
 var subLocationRouter = require('./routes/sublocation');
+var setLocationRouter = require('./routes/set_location');
 var purchaseOrderRouter = require('./routes/purchase_order');
 var inventoryReceiptRouter = require('./routes/inventory_receipt');
 
@@ -35,6 +36,7 @@ app.use('/master', masterRouter );
 app.use('/product', productRouter);
 app.use('/sales-order', salesOrderRouter);
 app.use('/sublocation', subLocationRouter);
+app.use('/set-location', setLocationRouter);
 app.use('/purchase-order', purchaseOrderRouter);
 app.use('/inventory-receipt', inventoryReceiptRouter);
 

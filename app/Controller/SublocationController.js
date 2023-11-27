@@ -6,7 +6,7 @@ const {v4: uuidv4} = require('uuid')
 
 // models
 const {
-	InvcdDet,
+	PtMstr, InvcdDet,
 	LocsMstr, LocsTemporary, 
 	Sequelize, sequelize
 } = require('../../models')
@@ -266,6 +266,23 @@ class SublocationController {
 				['losc_id', 'locs_id'],
 				'locs_name',
 				'locs_cap'
+			],
+			include: [
+				{
+					model: InvcdDet,
+					as: 'data_product',
+					attributes: [
+						[Sequelize.literal(`"data_product->product"."pt_desc1"`), 'pt_desc1'],
+						['invcd_qty', 'pt_qty']
+					],
+					include: [
+						{
+							model: PtMstr,
+							as: 'product',
+							attributes: []
+						}
+					]
+				}
 			],
 			where: {
 				locs_name: req.params.sublName
