@@ -259,6 +259,35 @@ class SublocationController {
 			}
 		})
 	}
+
+	show = (req, res) => {
+		LocsMstr.findOne({
+			attributes: [
+				['losc_id', 'locs_id'],
+				'locs_name',
+				'locs_cap'
+			],
+			where: {
+				locs_name: req.params.sublName
+			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
 }
 
 module.exports = new SublocationController()
