@@ -6,6 +6,7 @@ const {Auth, Query} = require('../../helper/helper')
 
 // models
 const {
+		CcremMstr,
 		PtMstr, CodeMstr, 
 		LocsMstr,InvcdDet,
 		InvctTable, Sequelize
@@ -147,10 +148,15 @@ class SetLocationController {
 
 	updateProductWIthSublocation = async (req, res) => {
 		try {
+			let user = await Auth(req.headers['authorization']);
+			let sublocation = await LocsMstr.findOne({attributes: ['losc_id'], where: {locs_name: req.params.sublName}});
+
 			if (req.query.isUpdate == 'Y') {
 				await InvcdDet.update({
 					invcd_qty: req.body.qty,
-					invcd_type: 'R'
+					invcd_upd_by: user['usernama'],
+					invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+					invcd_type: 'R',
 				}, {
 					where: {
 						[Op.and]: [
@@ -169,16 +175,25 @@ class SetLocationController {
 							bind: {
 								$1: value[0],
 								$2: value[1],
-								$3: value[2]
+								$3: value[2],
+								$4: value[3],
+								$5: value[4],
+								$6: value[5],
 							}
 						})
 					}
 				})
+
+				let request = {
+					ptCode: req.params.ptCode,
+					locId: sublocation['locs_loc_id'],
+					locsId: sublocation['losc_id'],
+					qty: req.body.qty
+				}
+
+				await this.createDataCcremMstr(user, request)
 			} else {
-				let user = await Auth(req.headers['authorization']);
-	
 				let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: req.params.ptCode}});
-				let sublocation = await LocsMstr.findOne({attributes: ['losc_id'], where: {locs_name: req.params.sublName}});
 		
 				let createProductWithSublocation = await InvcdDet.create({
 					invcd_oid: uuidv4(),
@@ -214,6 +229,15 @@ class SetLocationController {
 						})
 					}
 				});
+
+				let request = {
+					ptCode: req.params.ptCode,
+					locId: sublocation['locs_loc_id'],
+					locsId: sublocation['losc_id'],
+					qty: req.body.qty
+				}
+
+				await this.createDataCcremMstr(user, request)
 			}
 
 			res.status(200)
@@ -230,6 +254,70 @@ class SetLocationController {
 					error: error.message
 				})
 		}
+	}
+
+	createDataCcremMstr = async (user, request) => {
+		// find data
+		let dataCcrem = await CcremMstr.findOne({
+			where: {
+				ccrem_pt_id: {
+					[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_id = '${request['ptCode']}')`)
+				},
+				ccrem_locs_id: request['loscId']
+			},
+			order: [
+				['ccrem_add_date', 'DESC']
+			]
+		})
+
+		// create data in ccrem_mstr
+		await CcremMstr.create({
+			ccrem_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+			ccrem_add_by: user['usernama'],
+			ccrem_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+			ccrem_type: (dataCcrem == null) ? 'I' : 'R',
+			ccrem_pt_id: ptId,
+			ccrem_si_id: 1,
+			ccrem_loc_id: request['locId'],
+			ccrem_locs_id: request['locsId'],
+			ccrem_lot_serial: '-',
+			ccrem_qty: request['qty'],
+			ccrem_um_id: null,
+			ccrem_um_conv: null,
+			ccrem_qty_real: request['qty'],
+			ccrem_cost: null,
+			ccrem_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+			ccrem_en_id: request['enId'],
+			ccrem_oid: uuidv4(),
+			ccrem_qty_old: (dataCcrem == null) ? 0 : dataCcrem['qty']
+		}, {
+			logging: async (sql, queryCommand) => {
+				let value = queryCommand.bind
+
+				await Query.insert(sql, {
+					bind: {
+						$1: value[0],
+						$2: value[1],
+						$3: value[2],
+						$4: value[3],
+						$5: value[4],
+						$6: value[5],
+						$7: value[6],
+						$8: value[7],
+						$9: value[8],
+						$10: value[9],
+						$11: value[10],
+						$12: value[11],
+						$13: value[12],
+						$14: value[13],
+						$15: value[14],
+						$16: value[15],
+						$17: value[16],
+						$18: value[17],
+					}
+				})
+			}
+		})
 	}
 }
 
