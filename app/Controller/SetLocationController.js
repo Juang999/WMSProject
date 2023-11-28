@@ -145,53 +145,83 @@ class SetLocationController {
 		})
 	}
 
-	inputProductAndSublocation = async (req, res) => {
+	updateProductWIthSublocation = async (req, res) => {
 		try {
-			let user = await Auth(req.headers['authorization']);
-
-			let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: req.body.ptCode}});
-			let sublocation = await LocsMstr.findOne({attributes: ['losc_id'], where: {locs_name: req.body.locsName}});
+			if (req.query.isUpdate == 'Y') {
+				await InvcdDet.update({
+					invcd_qty: req.body.qty,
+					invcd_type: 'R'
+				}, {
+					where: {
+						[Op.and]: [
+							Sequelize.where(Sequelize.col('invcd_pt_id'), {
+								[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${req.params.ptCode}')`)
+							}),
+							Sequelize.where(Sequelize.col('invcd_locs_id'), {
+								[Op.eq]: req.params.sublId
+							})
+						]
+					},
+					logging: async (sql, queryCommand) => {
+						let value = queryCommand.bind;
+		
+						await Query.insert(sql, {
+							bind: {
+								$1: value[0],
+								$2: value[1],
+								$3: value[2]
+							}
+						})
+					}
+				})
+			} else {
+				let user = await Auth(req.headers['authorization']);
 	
-			let createProductWithSublocation = await InvcdDet.create({
-				invcd_oid: uuidv4(),
-				invcd_en_id: req.body.enId,
-				invcd_pt_id: product['pt_id'],
-				invcd_qty: req.body.qty,
-				invcd_rfid: (req.body.rfId) ? req.body.rfId : null,
-				invcd_locs_id: sublocation['losc_id'],
-				invcd_color_code: '-',
-				invcd_remarks: req.body.remarks,
-				invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-				invcd_add_by: user['usernama'],
-				invcd_weight: 0
-			}, {
-				logging: async (sql, queryCommand) => {
-					let value = queryCommand.bind;
-
-					await Query.insert(sql, {
-						bind: {
-							$1: value[0],
-							$2: value[1],
-							$3: value[2],
-							$4: value[3],
-							$5: value[4],
-							$6: value[5],
-							$7: value[6],
-							$8: value[7],
-							$9: value[8],
-							$10: value[9],
-							$11: value[10],
-						}
-					})
-				}
-			});
+				let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: req.body.ptCode}});
+				let sublocation = await LocsMstr.findOne({attributes: ['losc_id'], where: {locs_name: req.body.locsName}});
+		
+				let createProductWithSublocation = await InvcdDet.create({
+					invcd_oid: uuidv4(),
+					invcd_en_id: req.body.enId,
+					invcd_pt_id: product['pt_id'],
+					invcd_qty: req.body.qty,
+					invcd_rfid: (req.body.rfId) ? req.body.rfId : null,
+					invcd_locs_id: sublocation['losc_id'],
+					invcd_color_code: '-',
+					invcd_remarks: req.body.remarks,
+					invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+					invcd_add_by: user['usernama'],
+					invcd_weight: 0,
+					invcd_type: 'I'
+				}, {
+					logging: async (sql, queryCommand) => {
+						let value = queryCommand.bind;
+	
+						await Query.insert(sql, {
+							bind: {
+								$1: value[0],
+								$2: value[1],
+								$3: value[2],
+								$4: value[3],
+								$5: value[4],
+								$6: value[5],
+								$7: value[6],
+								$8: value[7],
+								$9: value[8],
+								$10: value[9],
+								$11: value[10],
+							}
+						})
+					}
+				});
+			}
 
 			res.status(200)
 				.json({
 					status: 'success',
-					data: createProductWithSublocation,
+					data: [1],
 					error: null
-				});
+				})
 		} catch (error) {
 			res.status(400)
 				.json({
@@ -200,50 +230,6 @@ class SetLocationController {
 					error: error.message
 				})
 		}
-	}
-
-	updateProductWIthSublocation = (req, res) => {
-		InvcdDet.update({
-			invcd_qty: req.body.qty
-		}, {
-			where: {
-				[Op.and]: [
-					Sequelize.where(Sequelize.col('invcd_pt_id'), {
-						[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${req.params.ptCode}')`)
-					}),
-					Sequelize.where(Sequelize.col('invcd_locs_id'), {
-						[Op.eq]: req.params.sublId
-					})
-				]
-			},
-			logging: async (sql, queryCommand) => {
-				let value = queryCommand.bind;
-
-				await Query.insert(sql, {
-					bind: {
-						$1: value[0],
-						$2: value[1],
-						$3: value[2]
-					}
-				})
-			}
-		})
-		.then(result => {
-			res.status(200)
-				.json({
-					status: 'success',
-					data: result,
-					error: null
-				})
-		})
-		.catch(err => {
-			res.status(400)
-				.json({
-					status: 'failed',
-					data: null,
-					error: err.message
-				})
-		})
 	}
 }
 
