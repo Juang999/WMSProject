@@ -158,7 +158,7 @@ class SetLocationController {
 								[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${req.params.ptCode}')`)
 							}),
 							Sequelize.where(Sequelize.col('invcd_locs_id'), {
-								[Op.eq]: req.params.sublId
+								[Op.eq]: Sequelize.literal(`(SELECT losc_id FROM public.locs_mstr WHERE locs_name = '${req.params.sublName}')`)
 							})
 						]
 					},
