@@ -273,7 +273,8 @@ class SublocationController {
 					as: 'data_product',
 					attributes: [
 						[Sequelize.literal(`"data_product->product"."pt_desc1"`), 'pt_desc1'],
-						['invcd_qty', 'pt_qty']
+						[Sequelize.literal(`"data_product->product"."pt_en_id"`), 'pt_en_id'],
+						['invcd_qty', 'pt_qty'],
 					],
 					include: [
 						{
