@@ -16,6 +16,7 @@ class ProductController {
 		PtMstr.findOne({
 			attributes: [
 					'pt_id', 
+					'pt_en_id',
 					'pt_code', 
 					'pt_syslog_code', 
 					'pt_desc1',

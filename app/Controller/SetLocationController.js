@@ -149,7 +149,7 @@ class SetLocationController {
 	updateProductWIthSublocation = async (req, res) => {
 		try {
 			let user = await Auth(req.headers['authorization']);
-			let sublocation = await LocsMstr.findOne({attributes: ['losc_id'], where: {locs_name: req.params.sublName}});
+			let sublocation = await LocsMstr.findOne({attributes: ['locs_loc_id', 'losc_id'], where: {locs_name: req.params.sublName}});
 
 			if (req.query.isUpdate == 'Y') {
 				await InvcdDet.update({
@@ -258,12 +258,13 @@ class SetLocationController {
 
 	createDataCcremMstr = async (user, request) => {
 		// find data
+		let dataProduct = PtMstr.findOne({where: {pt_code: request['ptCode']}})
 		let dataCcrem = await CcremMstr.findOne({
 			where: {
 				ccrem_pt_id: {
-					[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_id = '${request['ptCode']}')`)
+					[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${request['ptCode']}')`)
 				},
-				ccrem_locs_id: request['loscId']
+				ccrem_locs_id: request['locsId']
 			},
 			order: [
 				['ccrem_add_date', 'DESC']
@@ -276,8 +277,8 @@ class SetLocationController {
 			ccrem_add_by: user['usernama'],
 			ccrem_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
 			ccrem_type: (dataCcrem == null) ? 'I' : 'R',
-			ccrem_pt_id: ptId,
-			ccrem_si_id: 1,
+			ccrem_pt_id: dataProduct['pt_id'],
+			ccrem_si_id: 992,
 			ccrem_loc_id: request['locId'],
 			ccrem_locs_id: request['locsId'],
 			ccrem_lot_serial: '-',
