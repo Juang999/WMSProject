@@ -177,8 +177,8 @@ class SetLocationController {
 			} else {
 				let user = await Auth(req.headers['authorization']);
 	
-				let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: req.body.ptCode}});
-				let sublocation = await LocsMstr.findOne({attributes: ['losc_id'], where: {locs_name: req.body.locsName}});
+				let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: req.params.ptCode}});
+				let sublocation = await LocsMstr.findOne({attributes: ['losc_id'], where: {locs_name: req.params.sublName}});
 		
 				let createProductWithSublocation = await InvcdDet.create({
 					invcd_oid: uuidv4(),
