@@ -26,17 +26,18 @@ class Query {
         await TSqlOut.create({
             sql_uid: uuidv4(),
             seq: 1,
-            command: sql,
+            sql_command: sql,
             waktu: moment().format('YYYY-MM-DD HH:mm:ss'),
             mili_second: 100
         })
     }
 
     queryBulkCreate = async (sql) => {
+        let sqlCommand = sql.replace("Executing (default): ", "")
         await TSqlOut.create({
             sql_uid: uuidv4(),
             seq: 1,
-            command: sql,
+            sql_command: sqlCommand,
             waktu: moment().format('YYYY-MM-DD HH:mm:ss'),
             mili_second: 100
         })

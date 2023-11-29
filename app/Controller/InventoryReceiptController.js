@@ -7,7 +7,7 @@ let {eraseData} = require('./SublocationController')
 
 // model
 const {
-	PtMstr,
+	PtMstr, InvcdDet,
 	RiumMstr, RiumdDet, 
 	Sequelize, sequelize
 } = require('../../models')
@@ -77,6 +77,15 @@ class InventoryReceiptController {
         				riumd_cost_total: bodyInventoryReceipt['costTotal'],
         				riumd_locs_id: bodyInventoryReceipt['locsId']
         			}
+
+					let request = {
+						enId: req.body.enId,
+						qty: dataBodyInventoryReceipt['riumd_qty'],
+						ptId: dataBodyInventoryReceipt['riumd_pt_id'],
+						locsId: dataBodyInventoryReceipt['riumd_locs_id']
+					}
+
+					await this.inputIntoInvcdDet(user, request)
 
         			dataInventoryReceipt.push(dataBodyInventoryReceipt)
         	}
@@ -284,6 +293,63 @@ class InventoryReceiptController {
 			let resultCode = `IRM0${enId}${moment().format('YYMM')}00001${combineCode}`
 
 			return resultCode
+	}
+
+	inputIntoInvcdDet = async (user, request) => {
+		let showResultData = await InvcdDet.findOne({where: {invcd_pt_id: request['ptId'], invcd_locs_id: request['locsId']}})
+
+		let qtyTotal = parseInt(request['qty']) + parseInt(showResultData['invcd_qty'])
+		if (showResultData) {
+			await InvcdDet.update({
+				invcd_upd_by: user['usernama'],
+				invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+				invcd_qty: qtyTotal
+			}, {
+				where: {
+					invcd_pt_id: request['ptId'],
+					invcd_locs_id: request['locsId'],
+				},
+				logging: (sql, queryCommand) => {
+					let value = queryCommand.bind
+
+					Query.insert(sql, {
+						bind: {
+							$1: value[0],
+							$2: value[1],
+							$3: value[2],
+							$4: value[3],
+							$5: value[4]
+						}
+					})
+				}
+			})
+		} else {
+			await InvcdDet.create({
+				invcd_oid: uuidv4(),
+				invcd_en_id: request['enId'],
+				invcd_qty: request['qty'],
+				invcd_pt_id: request['ptId'],
+				invcd_locs_id: request['locsId'],
+				invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+				invcd_add_by: user['usernama']
+			}, {
+				logging: (sql, queryCommand) => {
+					let value = queryCommand.bind
+
+					Query.insert(sql, {
+						bind: {
+							$1: value[0],
+							$2: value[1],
+							$3: value[2],
+							$4: value[3],
+							$5: value[4],
+							$6: value[5],
+							$7: value[6],
+						}
+					})
+				}
+			})
+		}
 	}
 }
 
