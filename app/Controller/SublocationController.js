@@ -62,8 +62,9 @@ class SublocationController {
 			let generateLocsId = await this.generateLocsId(user)
 
 			let createSubLocation = await LocsMstr.create({
+				locs_oid: uuidv4(),
 				locs_en_id: req.body.entityId,
-				losc_id: generateLocsId['dataValues']['losc_id'] + 1,
+				locs_id: generateLocsId['dataValues']['losc_id'] + 1,
 				locs_loc_id: req.body.locId,
 				locs_add_by: user['usernama'],
 				locs_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -90,6 +91,7 @@ class SublocationController {
 								$9: values[8],
 								$10: values[9],
 								$11: values[10],
+								$12: values[11],
 							}
 						})
 				}

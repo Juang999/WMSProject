@@ -19,16 +19,20 @@ module.exports = (sequelize, DataTypes) => {
 
       LocsMstr.hasMany(models.InvcdDet, {
         as: 'data_product',
-        sourceKey: 'losc_id',
+        sourceKey: 'locs_id',
         foreignKey: 'invcd_locs_id'
       })
     }
   }
   LocsMstr.init({
-    locs_en_id: DataTypes.INTEGER,
-    losc_id: {
-      type: DataTypes.INTEGER,
+    locs_oid: {
+      type: DataTypes.UUID,
       primaryKey: true
+    },
+    locs_en_id: DataTypes.INTEGER,
+    locs_id: {
+      type: DataTypes.INTEGER,
+      unique: true
     },
     locs_loc_id: DataTypes.INTEGER,
     locs_add_date: DataTypes.DATE,
@@ -36,11 +40,17 @@ module.exports = (sequelize, DataTypes) => {
     locs_upd_date: DataTypes.DATE,
     locs_upd_by: DataTypes.STRING,
     locs_name: DataTypes.STRING,
+    locs_floor_id: DataTypes.INTEGER,
+    locs_block_code: DataTypes.STRING,
+    locs_rack_no: DataTypes.INTEGER,
+    locs_row_no: DataTypes.INTEGER,
+    locs_column_no: DataTypes.INTEGER,
+    locs_shelf_id: DataTypes.INTEGER,
+    locs_subcat_id: DataTypes.INTEGER,
+    locs_cap: DataTypes.INTEGER,
     locs_remarks: DataTypes.STRING,
     locs_active: DataTypes.STRING,
-    locs_cap: DataTypes.INTEGER,
-    locs_subcat_id: DataTypes.INTEGER,
-    locs_type: DataTypes.INTEGER
+    locs_admit_inv: DataTypes.STRING
   }, {
     sequelize,
     schema: 'public',

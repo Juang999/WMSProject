@@ -9,10 +9,13 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      locs_oid: {
+        type: Sequelize.UUID
+      },
       locs_en_id: {
         type: Sequelize.INTEGER
       },
-      losc_id: {
+      locs_id: {
         type: Sequelize.INTEGER
       },
       locs_loc_id: {
@@ -33,20 +36,38 @@ module.exports = {
       locs_name: {
         type: Sequelize.STRING
       },
+      locs_floor_id: {
+        type: Sequelize.INTEGER
+      },
+      locs_block_code: {
+        type: Sequelize.STRING
+      },
+      locs_rack_no: {
+        type: Sequelize.INTEGER
+      },
+      locs_row_no: {
+        type: Sequelize.INTEGER
+      },
+      locs_column_no: {
+        type: Sequelize.INTEGER
+      },
+      locs_shelf_id: {
+        type: Sequelize.INTEGER
+      },
+      locs_subcat_id: {
+        type: Sequelize.INTEGER
+      },
+      locs_cap: {
+        type: Sequelize.INTEGER
+      },
       locs_remarks: {
         type: Sequelize.STRING
       },
       locs_active: {
         type: Sequelize.STRING
       },
-      locs_cap: {
-        type: Sequelize.INTEGER
-      },
-      locs_subcat_id: {
-        type: Sequelize.INTEGER
-      },
-      locs_type: {
-        type: Sequelize.INTEGER
+      locs_admit_inv: {
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
