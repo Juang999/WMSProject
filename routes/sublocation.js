@@ -7,7 +7,7 @@ const SublocationController = require('../app/Controller/SublocationController')
 router.get('/', [authenticate], SublocationController.index);
 router.post('/', [authenticate], SublocationController.store);
 router.get('/:sublName/detail', [authenticate], SublocationController.show);
-router.patch('/:losc_id/capacity', [authenticate], SublocationController.inputCapacity);
+router.patch('/:locs_id/capacity', [authenticate], SublocationController.inputCapacity);
 router.post('/temporary-sublocation', [authenticate], SublocationController.inputTemporary);
 
 module.exports = router

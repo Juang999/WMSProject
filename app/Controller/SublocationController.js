@@ -16,7 +16,7 @@ class SublocationController {
 		try {
 			let dataLocs = await LocsMstr.findAll({
 						attributes: [
-								'losc_id', 
+								'locs_id', 
 								'locs_name',
 								'locs_remarks',
 								'locs_active',
@@ -25,7 +25,7 @@ class SublocationController {
 								'locs_type'
 							],
 						where: {
-							losc_id: {
+							locs_id: {
 								[Op.notIn]: await this.getId()
 							},
 							locs_name: {
@@ -35,7 +35,7 @@ class SublocationController {
 							locs_loc_id: req.query.loc
 						},
 						order: [
-								['losc_id', 'ASC']
+								['locs_id', 'ASC']
 							]
 					})		
 
@@ -64,7 +64,7 @@ class SublocationController {
 			let createSubLocation = await LocsMstr.create({
 				locs_oid: uuidv4(),
 				locs_en_id: req.body.entityId,
-				locs_id: generateLocsId['dataValues']['losc_id'] + 1,
+				locs_id: generateLocsId['dataValues']['locs_id'] + 1,
 				locs_loc_id: req.body.locId,
 				locs_add_by: user['usernama'],
 				locs_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -145,7 +145,7 @@ class SublocationController {
 			locs_cap: req.body.capacity
 		}, {
 			where: {
-				losc_id: req.params.losc_id
+				locs_id: req.params.locs_id
 			},
 			logging: async (sql, queryCommand) => {
 				let values = queryCommand.bind 
@@ -212,7 +212,7 @@ class SublocationController {
 	generateLocsId = async (users) => {
 		let getSubLocation = await LocsMstr.findOne({
 			order: [
-					['losc_id', 'DESC']
+					['locs_id', 'DESC']
 				]
 		})
 
@@ -220,7 +220,7 @@ class SublocationController {
 				? getSubLocation 
 				: await LocsMstr.create({
 					locs_en_id: 1,
-					losc_id: 1,
+					locs_id: 1,
 					locs_loc_id: 10001,
 					locs_add_by: users['usernama'],
 					locs_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -265,7 +265,7 @@ class SublocationController {
 	show = (req, res) => {
 		LocsMstr.findOne({
 			attributes: [
-				['losc_id', 'locs_id'],
+				'locs_id',
 				'locs_name',
 				'locs_cap'
 			],
@@ -290,6 +290,32 @@ class SublocationController {
 			],
 			where: {
 				locs_name: req.params.sublName
+			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	updateSublocation (req, res) {
+		LocsTemporary.update({
+			locst_locs_id: req.body.locsId
+		}, {
+			where: {
+				locs_oid: req.params.locstOid
 			}
 		})
 		.then(result => {
