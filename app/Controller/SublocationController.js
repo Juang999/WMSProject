@@ -217,6 +217,7 @@ class SublocationController {
 		return (getSubLocation) 
 				? getSubLocation 
 				: await LocsMstr.create({
+					locs_oid: uuidv4(),
 					locs_en_id: 1,
 					locs_id: 1,
 					locs_loc_id: 10001,
