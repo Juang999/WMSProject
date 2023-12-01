@@ -72,7 +72,6 @@ class SublocationController {
 				locs_active: 'Y',
 				locs_cap: req.body.capacity,
 				locs_subcat_id: req.body.subCategory,
-				locs_type: req.body.type
 			}, {
 				logging: async (sql, queryCommand) => {
 					let values = queryCommand.bind 
@@ -227,8 +226,7 @@ class SublocationController {
 					locs_remarks: '-',
 					locs_active: 'N',
 					locs_cap: 0,
-					locs_subcat_id: 99258,
-					locs_type: 991388
+					locs_subcat_id: 99258
 				}, {
 					logging: async (sql, queryCommand) => {
 						let values = queryCommand.bind 
