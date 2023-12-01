@@ -119,7 +119,7 @@ class SetLocationController {
 						[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${req.params.ptCode}')`)
 					}),
 					Sequelize.where(Sequelize.col('invcd_locs_id'), {
-						[Op.eq]: Sequelize.literal(`(SELECT losc_id FROM public.locs_mstr WHERE locs_name = '${req.params.sublName}')`)
+						[Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${req.params.sublName}')`)
 					})
 				]
 			}
@@ -149,7 +149,7 @@ class SetLocationController {
 	updateProductWIthSublocation = async (req, res) => {
 		try {
 			let user = await Auth(req.headers['authorization']);
-			let sublocation = await LocsMstr.findOne({attributes: ['locs_loc_id', 'losc_id'], where: {locs_name: req.params.sublName}});
+			let sublocation = await LocsMstr.findOne({attributes: ['locs_loc_id', 'locs_id'], where: {locs_name: req.params.sublName}});
 
 			if (req.query.isUpdate == 'Y') {
 				await InvcdDet.update({
@@ -164,7 +164,7 @@ class SetLocationController {
 								[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${req.params.ptCode}')`)
 							}),
 							Sequelize.where(Sequelize.col('invcd_locs_id'), {
-								[Op.eq]: Sequelize.literal(`(SELECT losc_id FROM public.locs_mstr WHERE locs_name = '${req.params.sublName}')`)
+								[Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${req.params.sublName}')`)
 							})
 						]
 					},
@@ -187,7 +187,7 @@ class SetLocationController {
 				let request = {
 					ptCode: req.params.ptCode,
 					locId: sublocation['locs_loc_id'],
-					locsId: sublocation['losc_id'],
+					locsId: sublocation['locs_id'],
 					qty: req.body.qty
 				}
 
@@ -201,7 +201,7 @@ class SetLocationController {
 					invcd_pt_id: product['pt_id'],
 					invcd_qty: req.body.qty,
 					invcd_rfid: (req.body.rfId) ? req.body.rfId : null,
-					invcd_locs_id: sublocation['losc_id'],
+					invcd_locs_id: sublocation['locs_id'],
 					invcd_color_code: '-',
 					invcd_remarks: req.body.remarks,
 					invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -233,7 +233,7 @@ class SetLocationController {
 				let request = {
 					ptCode: req.params.ptCode,
 					locId: sublocation['locs_loc_id'],
-					locsId: sublocation['losc_id'],
+					locsId: sublocation['locs_id'],
 					qty: req.body.qty
 				}
 
