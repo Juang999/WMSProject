@@ -7,6 +7,7 @@ let {eraseData} = require('./SublocationController')
 
 // model
 const {
+	RiuMstr, RiudDet,
 	PtMstr, InvcdDet,
 	RiumMstr, RiumdDet, 
 	Sequelize, sequelize
@@ -18,68 +19,34 @@ class InventoryReceiptController {
 		let transaction = await sequelize.transaction()
 
 		// get data user
-		let user = await Auth(req.headers['authorization'])
 		try {
-			// generate code
-			let code = await this.generateCode(req.body.enId)
+			let user = await Auth(req.headers['authorization'])
 
-			// create header inventory receipt
-            let headerInventoryReceipt = await RiumMstr.create({
-            	rium_oid: uuidv4(),
-            	rium_dom_id: 1,
-            	rium_en_id: req.body.enId,
-            	rium_add_by: user['usernama'],
-            	rium_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-            	rium_type2: code,
-            	rium_date: moment().format('YYYY-MM-DD'),
-            	rium_type: req.body.type,
-            	rium_remarks: req.body.remarks,
-            	rium_pack_cend: req.body.vendorCode
-            }, {
-            	logging: (sql, queryCommand) => {
-            		let values = queryCommand.bind
-            		Query.insert(sql, {
-            			bind: {
-            				$1: values[0],
-            				$2: values[1],
-            				$3: values[2],
-            				$4: values[3],
-            				$5: values[4],
-            				$6: values[5],
-            				$7: values[6],
-            				$8: values[7],
-            				$9: values[8],
-            				$10: values[9],
-            			}
-            		})
-            	}
-            })
+			let bulkBodyInventoryReceipt = JSON.parse(req.body.products)
+			let dataInventoryReceipt = []
 
-        	let bulkBodyInventoryReceipt = JSON.parse(req.body.products)
-        	let dataInventoryReceipt = []
-
-        	for (let bodyInventoryReceipt of bulkBodyInventoryReceipt) {
-        			let dataBodyInventoryReceipt = {
-        				riumd_oid: uuidv4(),
-        				riumd_rium_oid: headerInventoryReceipt['rium_oid'],
-        				riumd_pt_id: bodyInventoryReceipt['ptId'],
-        				riumd_qty: bodyInventoryReceipt['qty'],
-        				riumd_um: bodyInventoryReceipt['um'],
-        				riumd_um_conv: 1,
-        				riumd_qty_real: bodyInventoryReceipt['qty']/1,
-        				riumd_si_id: 992,
-        				riumd_loc_id: bodyInventoryReceipt['locId'],
-        				riumd_cost: bodyInventoryReceipt['cost'],
-        				riumd_ac_id: bodyInventoryReceipt['acId'],
-        				riumd_sb_id: 0,
-        				riumd_cc_id: 0,
-        				riumd_dt: moment().format('YYYY-MM-DD'),
-        				riumd_cost_total: bodyInventoryReceipt['costTotal'],
-        				riumd_locs_id: bodyInventoryReceipt['locsId']
-        			}
+			for (let bodyInventoryReceipt of bulkBodyInventoryReceipt) {
+					let dataBodyInventoryReceipt = {
+						riumd_oid: uuidv4(),
+						riumd_rium_oid: bodyInventoryReceipt['rium_oid'],
+						riumd_pt_id: bodyInventoryReceipt['ptId'],
+						riumd_qty: bodyInventoryReceipt['qty'],
+						riumd_um: bodyInventoryReceipt['um'],
+						riumd_um_conv: 1,
+						riumd_qty_real: bodyInventoryReceipt['qty']/1,
+						riumd_si_id: 992,
+						riumd_loc_id: bodyInventoryReceipt['locId'],
+						riumd_cost: bodyInventoryReceipt['cost'],
+						riumd_ac_id: bodyInventoryReceipt['acId'],
+						riumd_sb_id: 0,
+						riumd_cc_id: 0,
+						riumd_dt: moment().format('YYYY-MM-DD'),
+						riumd_cost_total: bodyInventoryReceipt['costTotal'],
+						riumd_locs_id: bodyInventoryReceipt['locsId']
+					}
 
 					let request = {
-						enId: req.body.enId,
+						enId: bodyInventoryReceipt['en_id'],
 						qty: dataBodyInventoryReceipt['riumd_qty'],
 						ptId: dataBodyInventoryReceipt['riumd_pt_id'],
 						locsId: dataBodyInventoryReceipt['riumd_locs_id']
@@ -87,15 +54,15 @@ class InventoryReceiptController {
 
 					await this.inputIntoInvcdDet(user, request)
 
-        			dataInventoryReceipt.push(dataBodyInventoryReceipt)
-        	}
+					dataInventoryReceipt.push(dataBodyInventoryReceipt)
+			}
 
            	// create bulk body inventory receipt
-        	await RiumdDet.bulkCreate(dataInventoryReceipt, {
-        		logging: (sql) => {
-        			Query.queryBulkCreate(sql)
-        		}
-        	})
+			await RiumdDet.bulkCreate(dataInventoryReceipt, {
+				logging: (sql) => {
+					Query.queryBulkCreate(sql)
+				}
+			})
 
 			await eraseData(user['userid'], 'IR')
 
@@ -295,6 +262,60 @@ class InventoryReceiptController {
 			return resultCode
 	}
 
+	async createHeader (req, res) {
+		try {
+			// get data user
+			let user = await Auth(req.headers['authorization'])
+
+			let code = await this.generateCode(req.body.enId)
+
+			let dataHeader = await RiumMstr.create({
+				rium_oid: uuidv4(),
+				rium_dom_id: 1,
+				rium_en_id: req.body.enId,
+				rium_add_by: user['usernama'],
+				rium_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+				rium_type2: code,
+				rium_date: moment().format('YYYY-MM-DD'),
+				rium_type: req.body.type,
+				rium_remarks: req.body.remarks,
+				rium_pack_cend: req.body.vendorCode
+			}, {
+				logging: (sql, queryCommand) => {
+					let values = queryCommand.bind
+					Query.insert(sql, {
+						bind: {
+							$1: values[0],
+							$2: values[1],
+							$3: values[2],
+							$4: values[3],
+							$5: values[4],
+							$6: values[5],
+							$7: values[6],
+							$8: values[7],
+							$9: values[8],
+							$10: values[9],
+						}
+					})
+				}
+			})
+
+			res.status(200)
+				.json({
+					status: 'success',
+					data: dataHeader,
+					error: null
+				})
+		} catch (error) {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: error.message
+				})
+		}
+	}
+
 	inputIntoInvcdDet = async (user, request) => {
 		let showResultData = await InvcdDet.findOne({where: {invcd_pt_id: request['ptId'], invcd_locs_id: request['locsId']}})
 
@@ -350,6 +371,82 @@ class InventoryReceiptController {
 				}
 			})
 		}
+	}
+
+	getInventoryReceiptFromExapro (req, res) {
+		let startDate = (req.query.start_date) ? moment(req.query.start_date).format('YYYY-MM-DD 00:00:00') : moment().startOf('months').format('YYYY-MM-DD 00:00:00')
+		let endDate = (req.query.end_date) ? moment(req.query.end_date).format('YYYY-MM-DD 23:59:59') : moment().endOf('months').format('YYYY-MM-DD 23:59:59')
+
+		RiuMstr.findAll({
+			attributes: ['riu_oid', 'riu_code'],
+			where: {
+				riu_add_date: {
+					[Op.and]: [startDate, endDate]
+				}
+			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	getDetailInventoryReceiptFromExapro (req, res) {
+		RiuMstr.findOne({
+			attributes: ['riu_oid', 'riu_code'],
+			include: [
+				{
+					model: RiudDet,
+					as: 'detail_receive_inventory',
+					attributes: [
+						'riud_oid', 
+						'riud_riu_oid', 
+						'riud_pt_id', 
+						[Sequelize.literal(`"detail_receive_inventory->detail_product"."pt_desc1"`), 'riud_proudct_name'],
+						'riud_qty', 
+						'riud_qty_real'
+					],
+					include: [
+						{
+							model: PtMstr,
+							as: 'detail_product',
+							attributes: []
+						}
+					]
+				}
+			],
+			where: {
+				riu_oid: req.params.riu_oid
+			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
 	}
 }
 
