@@ -22,7 +22,6 @@ class SublocationController {
 								'locs_active',
 								'locs_cap',
 								'locs_subcat_id',
-								'locs_type'
 							],
 						where: {
 							locs_id: {
