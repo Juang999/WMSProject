@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
     invcd_upd_date: DataTypes.DATE,
     invcd_upd_by: DataTypes.STRING,
     invcd_weight: DataTypes.INTEGER,
-    invcd_type: DataTypes.STRING,
+    invcd_um: DataTypes.INTEGER,
   }, {
     sequelize,
     schema: 'public',

@@ -23,7 +23,9 @@ module.exports = (sequelize, DataTypes) => {
       unique: true
     },
     locst_type: DataTypes.STRING,
-    locst_user_id: DataTypes.INTEGER,
+    locst_header_oid: DataTypes.UUID,
+    locst_pt_id: DataTypes.INTEGER,
+    locst_pt_qty: DataTypes.INTEGER
   }, {
     sequelize,
     schema: 'public',

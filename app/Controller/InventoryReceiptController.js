@@ -10,7 +10,8 @@ const {
 	RiuMstr, RiudDet,
 	PtMstr, InvcdDet,
 	RiumMstr, RiumdDet, 
-	Sequelize, sequelize
+	Sequelize, sequelize,
+	LocsMstr, LocsTemporary,
 } = require('../../models')
 
 class InventoryReceiptController {
@@ -378,7 +379,7 @@ class InventoryReceiptController {
 		let endDate = (req.query.end_date) ? moment(req.query.end_date).format('YYYY-MM-DD 23:59:59') : moment().endOf('months').format('YYYY-MM-DD 23:59:59')
 
 		RiuMstr.findAll({
-			attributes: ['riu_oid', 'riu_code'],
+			attributes: ['riu_oid', 'riu_type2'],
 			where: {
 				riu_add_date: {
 					[Op.and]: [startDate, endDate]
@@ -447,6 +448,56 @@ class InventoryReceiptController {
 					error: err.message
 				})
 		})
+	}
+
+	async inputIntoTemporary (req, res) {
+		try {
+			let totalSublocationNeed = Math.ceil(req.body.qty / req.body.qtyPerSublocation)
+
+			let dataSubLocation = await LocsMstr.findAll({
+				attributes: ['locs_id'],
+				where: {
+					[Op.or]: {
+						locs_id: {
+							[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
+						},
+						locs_id: {
+							[Op.notIn]: Sequelize.literal(`(SELECT locst_locs_id FROM public.locs_temporary)`)
+						}
+					}
+				},
+				limit: totalSublocationNeed
+			})
+
+			let dataSetToInsertIntoThelocsTemporaryTable = []
+
+			for (const subLocation of dataSubLocation) {
+				dataSetToInsertIntoThelocsTemporaryTable.push({
+					locst_oid: uuidv4(),
+					locst_locs_id: subLocation.locs_id,
+					locst_type: 'IR',
+					locst_header_oid: req.body.headerOid,
+					locst_pt_id: req.body.ptId,
+					locst_pt_qty: req.body.qty
+				})
+			}
+
+			console.log(dataSetToInsertIntoThelocsTemporaryTable)
+
+			res.status(200)
+				.json({
+					status: 'success',
+					data: dataSubLocation,
+					error: null
+				})
+		} catch (error) {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: error.message
+				})
+		}
 	}
 }
 
