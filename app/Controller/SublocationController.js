@@ -25,7 +25,14 @@ class SublocationController {
 							],
 						where: {
 							locs_id: {
-								[Op.notIn]: await this.getId()
+								[Op.or]: [
+									{
+										[Op.notIn]: Sequelize.literal(`(SELECT locst_locs_id FROM public.locs_temporary)`)
+									},
+									{
+										[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
+									}
+								]
 							},
 							locs_name: {
 								[Op.iLike]: (req.query.colname) ? `%${req.query.colname}%` : '%%'
@@ -172,39 +179,6 @@ class SublocationController {
 					error: err.message
 				})
 		})
-	}
-
-	getId = async () => {
-		let arr1 = await this.getLocsIdFromTemporaryTable()
-		let arr2 = await this.getLocsIdFromInvcdDetTable()
-
-		let concatArray = arr1.concat(arr2)
-
-		return concatArray
-	}
-
-	getLocsIdFromTemporaryTable = async () => {
-		let locsIdInLocsTemporaryTable = await LocsTemporary.findAll({attributes: ['locst_locs_id']})
-
-		let arr = []
-
-		for (let data of locsIdInLocsTemporaryTable) {
-			arr.push(data['locst_locs_id'])
-		}
-
-		return arr
-	}
-
-	getLocsIdFromInvcdDetTable = async () => {
-		let locsIdInInvcdDetTable = await InvcdDet.findAll({attributes: ['invcd_locs_id']})
-
-		let arr = []
-
-		for (let data of locsIdInInvcdDetTable) {
-			arr.push(data['locst_locs_id'])
-		}
-
-		return arr
 	}
 
 	generateLocsId = async (users) => {

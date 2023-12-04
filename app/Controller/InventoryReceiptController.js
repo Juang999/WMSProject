@@ -263,7 +263,7 @@ class InventoryReceiptController {
 			return resultCode
 	}
 
-	async createHeader (req, res) {
+	createHeader = async (req, res) => {
 		try {
 			// get data user
 			let user = await Auth(req.headers['authorization'])
@@ -280,7 +280,7 @@ class InventoryReceiptController {
 				rium_date: moment().format('YYYY-MM-DD'),
 				rium_type: req.body.type,
 				rium_remarks: req.body.remarks,
-				rium_pack_cend: req.body.vendorCode
+				rium_pack_vend: req.body.vendorCode
 			}, {
 				logging: (sql, queryCommand) => {
 					let values = queryCommand.bind
@@ -455,17 +455,23 @@ class InventoryReceiptController {
 			let totalSublocationNeed = Math.ceil(req.body.qty / req.body.qtyPerSublocation)
 
 			let dataSubLocation = await LocsMstr.findAll({
-				attributes: ['locs_id'],
+				attributes: [
+					'locs_id', 
+					'locs_name',
+					'locs_active'
+				],
 				where: {
-					[Op.or]: {
-						locs_id: {
+					[Op.and]: [
+						Sequelize.where(Sequelize.col('locs_id'), {
 							[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
-						},
-						locs_id: {
+						}),
+						Sequelize.where(Sequelize.col('locs_id'), {
 							[Op.notIn]: Sequelize.literal(`(SELECT locst_locs_id FROM public.locs_temporary)`)
-						}
-					}
+						})
+					],
+					locs_active: 'Y'
 				},
+				order: [['locs_id', `ASC`]],
 				limit: totalSublocationNeed
 			})
 
@@ -478,16 +484,16 @@ class InventoryReceiptController {
 					locst_type: 'IR',
 					locst_header_oid: req.body.headerOid,
 					locst_pt_id: req.body.ptId,
-					locst_pt_qty: req.body.qty
+					locst_pt_qty: req.body.qtyPerSublocation
 				})
 			}
 
-			console.log(dataSetToInsertIntoThelocsTemporaryTable)
+			let inputIntoTemporaryTable = await LocsTemporary.bulkCreate(dataSetToInsertIntoThelocsTemporaryTable)
 
 			res.status(200)
 				.json({
 					status: 'success',
-					data: dataSubLocation,
+					data: inputIntoTemporaryTable,
 					error: null
 				})
 		} catch (error) {
@@ -498,6 +504,92 @@ class InventoryReceiptController {
 					error: error.message
 				})
 		}
+	}
+
+	getDataTemporary (req, res) {
+		LocsTemporary.findAll({
+			attributes: [
+				'locst_oid',
+				'locst_pt_qty',
+				[Sequelize.col('data_sublocation.locs_name'), 'locst_locs_name']
+			],
+			include: [
+				{
+					model: LocsMstr,
+					as: 'data_sublocation',
+					attributes: []
+				}
+			],
+			where: {
+				locst_header_oid: req.query.header_oid,
+				locst_pt_id: req.query.pt_id
+			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	updateDataTemporary (req, res) {
+		LocsTemporary.update({
+			locst_locs_id: req.body.locsId,
+			locst_pt_qty: req.body.ptQty
+		}, {
+			locst_oid: req.params.locstOid
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	deleteDataTemporary (req, res) {
+		LocsTemporary.destroy({
+			where: {
+				locst_oid: req.params.locstOid
+			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
 	}
 }
 

@@ -11,6 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      LocsTemporary.belongsTo(models.LocsMstr, {
+        as: 'data_sublocation',
+        targetKey: 'locs_id',
+        foreignKey: 'locst_locs_id'
+      })
     }
   }
   LocsTemporary.init({
