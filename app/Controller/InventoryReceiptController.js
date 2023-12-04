@@ -406,7 +406,7 @@ class InventoryReceiptController {
 
 	getDetailInventoryReceiptFromExapro (req, res) {
 		RiuMstr.findOne({
-			attributes: ['riu_oid', 'riu_code'],
+			attributes: ['riu_oid', 'riu_type2'],
 			include: [
 				{
 					model: RiudDet,
