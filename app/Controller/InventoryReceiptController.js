@@ -377,12 +377,12 @@ class InventoryReceiptController {
 	getInventoryReceiptFromExapro (req, res) {
 		let startDate = (req.query.start_date) ? moment(req.query.start_date).format('YYYY-MM-DD 00:00:00') : moment().startOf('months').format('YYYY-MM-DD 00:00:00')
 		let endDate = (req.query.end_date) ? moment(req.query.end_date).format('YYYY-MM-DD 23:59:59') : moment().endOf('months').format('YYYY-MM-DD 23:59:59')
-
+		
 		RiuMstr.findAll({
 			attributes: ['riu_oid', 'riu_type2'],
 			where: {
 				riu_add_date: {
-					[Op.and]: [startDate, endDate]
+					[Op.between]: [startDate, endDate]
 				}
 			}
 		})
