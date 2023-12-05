@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'riu_oid',
         foreignKey: 'riud_riu_oid'
       })
+
+      RiuMstr.belongsTo(models.EnMstr, {
+        as: 'data_entity',
+        targetKey: 'en_id',
+        foreignKey: 'riu_en_id'
+      })
     }
   }
   RiuMstr.init({

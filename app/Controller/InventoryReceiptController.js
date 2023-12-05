@@ -7,6 +7,7 @@ let {eraseData} = require('./SublocationController')
 
 // model
 const {
+	EnMstr,
 	RiuMstr, RiudDet,
 	PtMstr, InvcdDet,
 	RiumMstr, RiumdDet, 
@@ -406,7 +407,12 @@ class InventoryReceiptController {
 
 	getDetailInventoryReceiptFromExapro (req, res) {
 		RiuMstr.findOne({
-			attributes: ['riu_oid', 'riu_type2'],
+			attributes: [
+				'riu_oid', 
+				'riu_type2',
+				'riu_type',
+				[Sequelize.col('data_entity.en_desc'), 'en_desc']
+			],
 			include: [
 				{
 					model: RiudDet,
@@ -426,6 +432,11 @@ class InventoryReceiptController {
 							attributes: []
 						}
 					]
+				},
+				{
+					model: EnMstr,
+					as: 'data_entity',
+					attributes: []
 				}
 			],
 			where: {

@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'en_id',
         foreignKey: 'en_id'
       })
+
+      EnMstr.hasMany(models.RiuMstr, {
+        as: 'inventory_receipt',
+        sourceKey: 'en_id',
+        foreignKey: 'riu_en_id'
+      })
     }
   }
   EnMstr.init({
