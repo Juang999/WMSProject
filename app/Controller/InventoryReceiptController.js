@@ -477,10 +477,11 @@ class InventoryReceiptController {
 
 			let dataSetToInsertIntoThelocsTemporaryTable = []
 
-			for (const subLocation of dataSubLocation) {
+			for (let index = 0; index < totalSublocationNeed; index++) {
+
 				dataSetToInsertIntoThelocsTemporaryTable.push({
 					locst_oid: uuidv4(),
-					locst_locs_id: subLocation.locs_id,
+					locst_locs_id: (dataSubLocation[index] != null) ? dataSubLocation[index]['locs_id'] : null,
 					locst_type: 'IR',
 					locst_header_oid: req.body.headerOid,
 					locst_pt_id: req.body.ptId,
