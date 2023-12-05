@@ -7,7 +7,8 @@ let {eraseData} = require('./SublocationController')
 
 // model
 const {
-	EnMstr,
+	LocMstr,
+	EnMstr, AcMstr,
 	RiuMstr, RiudDet,
 	PtMstr, InvcdDet,
 	RiumMstr, RiumdDet, 
@@ -279,6 +280,7 @@ class InventoryReceiptController {
 				rium_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
 				rium_type2: code,
 				rium_date: moment().format('YYYY-MM-DD'),
+				rium_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
 				rium_type: req.body.type,
 				rium_remarks: req.body.remarks,
 				rium_pack_vend: req.body.vendorCode
@@ -412,7 +414,10 @@ class InventoryReceiptController {
 				'riu_type2',
 				'riu_type',
 				'riu_en_id',
-				[Sequelize.col('data_entity.en_desc'), 'en_desc']
+				[Sequelize.col('data_entity.en_desc'), 'en_desc'],
+				'riu_cost_total',
+				[Sequelize.literal(`(SELECT SUM(riud_cost * riud_qty) FROM public.riud_det WHERE riud_riu_oid = riu_oid)`), 'cost_total'],
+				[Sequelize.literal(`(SELECT SUM(riud_qty) FROM public.riud_det WHERE riud_riu_oid = riu_oid)`), 'qty_total'],
 			],
 			include: [
 				{
@@ -422,14 +427,38 @@ class InventoryReceiptController {
 						'riud_oid', 
 						'riud_riu_oid', 
 						'riud_pt_id', 
+						'riud_um',
+						'riud_loc_id',
+						'riud_ac_id',
 						[Sequelize.literal(`"detail_receive_inventory->detail_product"."pt_desc1"`), 'riud_proudct_name'],
-						'riud_qty', 
-						'riud_qty_real'
+						'riud_qty',
+						'riud_qty_real',
+						'riud_cost',
+						[Sequelize.literal(`riud_cost * riud_qty`), 'cost_total'],
+						[Sequelize.literal(`"detail_receive_inventory->detail_data_location"."loc_desc"`), 'riud_loc_desc'],
+						'riud_locs_id',
+						[Sequelize.literal(`CASE WHEN "detail_receive_inventory->detail_data_sublocation"."locs_name" IS NULL THEN '-' ELSE "detail_receive_inventory->detail_data_sublocation"."locs_name" END`), 'riud_locs_desc'],
+						[Sequelize.literal(`"detail_receive_inventory->detail_data_account"."ac_name"`), 'riud_ac_desc']
 					],
 					include: [
 						{
 							model: PtMstr,
 							as: 'detail_product',
+							attributes: []
+						},
+						{
+							model: AcMstr,
+							as: 'detail_data_account',
+							attributes: []
+						},
+						{
+							model: LocMstr,
+							as: 'detail_data_location',
+							attributes: []
+						},
+						{
+							model: LocsMstr,
+							as: 'detail_data_sublocation',
 							attributes: []
 						}
 					]
@@ -497,7 +526,12 @@ class InventoryReceiptController {
 					locst_type: 'IR',
 					locst_header_oid: req.body.headerOid,
 					locst_pt_id: req.body.ptId,
-					locst_pt_qty: req.body.qtyPerSublocation
+					locst_pt_qty: req.body.qtyPerSublocation,
+					locst_um: req.body.um,
+					locst_qty_real: req.body.qtyReal,
+					locst_loc_id: req.body.locId,
+					locst_ac_id: req.body.acId,
+					locst_cost_total: req.body.costTotal
 				})
 			}
 

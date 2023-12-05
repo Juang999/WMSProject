@@ -22,6 +22,24 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'pt_id',
         foreignKey: 'riud_pt_id'
       })
+
+      RiudDet.belongsTo(models.LocsMstr, {
+        as: 'detail_data_sublocation',
+        targetKey: 'locs_id',
+        foreignKey: 'riud_locs_id'
+      })
+
+      RiudDet.belongsTo(models.AcMstr, {
+        as: 'detail_data_account',
+        targetKey: 'ac_id',
+        foreignKey: 'riud_ac_id'
+      })
+
+      RiudDet.belongsTo(models.LocMstr, {
+        as: 'detail_data_location',
+        targetKey: 'loc_id',
+        foreignKey: 'riud_loc_id'
+      })
     }
   }
   RiudDet.init({

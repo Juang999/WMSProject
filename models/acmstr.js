@@ -11,6 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      AcMstr.hasMany(models.RiudDet, {
+        as: 'detail_data_inventory_receipt',
+        sourceKey: 'ac_id',
+        foreignKey: 'riud_ac_id'
+      })
     }
   }
   AcMstr.init({

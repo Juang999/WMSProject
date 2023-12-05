@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'locs_id',
         foreignKey: 'locst_locs_id'
       })
+
+      LocsMstr.hasMany(models.RiudDet, {
+        as: 'detail_data_inventory_receipt',
+        sourceKey: 'locs_id',
+        foreignKey: 'riud_locs_id'
+      })
     }
   }
   LocsMstr.init({

@@ -30,7 +30,12 @@ module.exports = (sequelize, DataTypes) => {
     locst_type: DataTypes.STRING,
     locst_header_oid: DataTypes.UUID,
     locst_pt_id: DataTypes.INTEGER,
-    locst_pt_qty: DataTypes.INTEGER
+    locst_pt_qty: DataTypes.INTEGER,
+    locst_um: DataTypes.INTEGER,
+    locst_qty_real: DataTypes.INTEGER,
+    locst_loc_id: DataTypes.INTEGER,
+    locst_ac_id: DataTypes.INTEGER,
+    locst_cost_total: DataTypes.INTEGER
   }, {
     sequelize,
     schema: 'public',
