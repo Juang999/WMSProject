@@ -411,6 +411,7 @@ class InventoryReceiptController {
 				'riu_oid', 
 				'riu_type2',
 				'riu_type',
+				'riu_en_id',
 				[Sequelize.col('data_entity.en_desc'), 'en_desc']
 			],
 			include: [
