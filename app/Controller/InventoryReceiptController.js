@@ -254,7 +254,7 @@ class InventoryReceiptController {
 				}
 			})
 
-			let totalData = (countData == 0) ? 1 : countData
+			let totalData = (countData == 0) ? 1 : countData + 1
 			let baseCode = '0000'
 			let splitBaseCode = baseCode.slice(0, -totalData.toString().length)
 			let combineCode = splitBaseCode+totalData
