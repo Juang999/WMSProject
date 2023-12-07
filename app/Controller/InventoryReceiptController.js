@@ -559,6 +559,7 @@ class InventoryReceiptController {
 			attributes: [
 				'locst_oid',
 				'locst_pt_qty',
+				'locst_loc_id',
 				[Sequelize.col('data_sublocation.locs_name'), 'locst_locs_name']
 			],
 			include: [

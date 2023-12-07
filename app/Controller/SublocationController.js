@@ -25,7 +25,7 @@ class SublocationController {
 							],
 						where: {
 							locs_id: {
-								[Op.or]: [
+								[Op.and]: [
 									{
 										[Op.notIn]: Sequelize.literal(`(SELECT locst_locs_id FROM public.locs_temporary)`)
 									},
