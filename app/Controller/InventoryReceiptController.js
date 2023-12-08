@@ -604,7 +604,9 @@ class InventoryReceiptController {
 			locst_locs_id: req.body.locsId,
 			locst_pt_qty: req.body.ptQty
 		}, {
-			locst_oid: req.params.locstOid
+			where: {
+				locst_oid: req.params.locstOid
+			}
 		})
 		.then(result => {
 			res.status(200)
