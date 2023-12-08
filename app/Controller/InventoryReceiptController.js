@@ -532,11 +532,16 @@ class InventoryReceiptController {
 					locst_qty_real: req.body.qtyReal,
 					locst_loc_id: req.body.locId,
 					locst_ac_id: req.body.acId,
+					locst_cost: req.body.cost,
 					locst_cost_total: req.body.costTotal
 				})
 			}
 
-			let inputIntoTemporaryTable = await LocsTemporary.bulkCreate(dataSetToInsertIntoThelocsTemporaryTable)
+			let inputIntoTemporaryTable = await LocsTemporary.bulkCreate(dataSetToInsertIntoThelocsTemporaryTable, {
+				logging: (sql) => {
+					Query.bulkCreate(sql)
+				}
+			})
 
 			res.status(200)
 				.json({
@@ -558,9 +563,15 @@ class InventoryReceiptController {
 		LocsTemporary.findAll({
 			attributes: [
 				'locst_oid',
+				'locst_header_oid',
+				'locst_pt_id',
 				'locst_pt_qty',
+				'locst_um',
 				'locst_loc_id',
 				'locst_locs_id',
+				'locst_ac_id',
+				'locst_cost',
+				[Sequelize.literal(`"data_product->data_entity"."en_id"`), 'locst_en_id'],
 				[Sequelize.col('data_location.loc_desc'), 'locst_loc_name'],
 				[Sequelize.col('data_sublocation.locs_name'), 'locst_locs_name'],
 			],
@@ -574,6 +585,18 @@ class InventoryReceiptController {
 					model: LocMstr,
 					as: 'data_location',
 					attributes: []
+				},
+				{
+					model: PtMstr,
+					as: 'data_product',
+					attributes: [],
+					include: [
+						{
+							model: EnMstr,
+							as: 'data_entity',
+							attributes: []
+						}
+					]
 				}
 			],
 			where: {

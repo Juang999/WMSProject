@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'en_id',
         foreignKey: 'riu_en_id'
       })
+
+      EnMstr.hasMany(models.PtMstr, {
+        as: 'data_product',
+        sourceKey: 'en_id',
+        foreignKey: 'pt_en_id'
+      })
     }
   }
   EnMstr.init({

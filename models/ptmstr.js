@@ -52,6 +52,18 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pt_id',
         foreignKey: 'riud_pt_id'
       })
+
+      PtMstr.hasMany(models.LocsTemporary, {
+        as: 'data_temporary',
+        sourceKey: 'pt_id',
+        foreignKey: 'locst_pt_id'
+      })
+
+      PtMstr.belongsTo(models.EnMstr, {
+        as: 'data_entity',
+        targetKey: 'en_id',
+        foreignKey: 'pt_en_id'
+      })
     }
   }
   PtMstr.init({
