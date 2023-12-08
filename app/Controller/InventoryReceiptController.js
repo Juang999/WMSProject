@@ -537,11 +537,7 @@ class InventoryReceiptController {
 				})
 			}
 
-			let inputIntoTemporaryTable = await LocsTemporary.bulkCreate(dataSetToInsertIntoThelocsTemporaryTable, {
-				logging: (sql) => {
-					Query.bulkCreate(sql)
-				}
-			})
+			let inputIntoTemporaryTable = await LocsTemporary.bulkCreate(dataSetToInsertIntoThelocsTemporaryTable)
 
 			res.status(200)
 				.json({
