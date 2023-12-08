@@ -47,7 +47,8 @@ module.exports = (sequelize, DataTypes) => {
     locst_qty_real: DataTypes.INTEGER,
     locst_loc_id: DataTypes.INTEGER,
     locst_ac_id: DataTypes.INTEGER,
-    locst_cost_total: DataTypes.INTEGER
+    locst_cost_total: DataTypes.INTEGER,
+    locst_cost: DataTypes.INTEGER
   }, {
     sequelize,
     schema: 'public',
