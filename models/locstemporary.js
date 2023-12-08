@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'locs_id',
         foreignKey: 'locst_locs_id'
       })
+
+      LocsTemporary.belongsTo(models.LocMstr, {
+        as: 'data_location',
+        targetKey: 'loc_id',
+        foreignKey: 'locst_loc_id'
+      })
     }
   }
   LocsTemporary.init({

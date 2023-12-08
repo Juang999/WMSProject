@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'loc_id',
         foreignKey: 'riud_loc_id'
       })
+
+      LocMstr.hasMany(models.LocsTemporary, {
+        as: 'data_temporary',
+        sourceKey: 'loc_id',
+        foreignKey: 'locst_loc_id'
+      })
     }
   }
   LocMstr.init({

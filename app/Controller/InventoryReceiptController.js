@@ -560,12 +560,19 @@ class InventoryReceiptController {
 				'locst_oid',
 				'locst_pt_qty',
 				'locst_loc_id',
-				[Sequelize.col('data_sublocation.locs_name'), 'locst_locs_name']
+				'locst_locs_id',
+				[Sequelize.col('data_location.loc_desc'), 'locst_loc_name'],
+				[Sequelize.col('data_sublocation.locs_name'), 'locst_locs_name'],
 			],
 			include: [
 				{
 					model: LocsMstr,
 					as: 'data_sublocation',
+					attributes: []
+				},
+				{
+					model: LocMstr,
+					as: 'data_location',
 					attributes: []
 				}
 			],
