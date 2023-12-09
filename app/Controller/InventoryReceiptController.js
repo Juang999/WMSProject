@@ -67,7 +67,7 @@ class InventoryReceiptController {
 				}
 			})
 
-			await eraseData(user['userid'], 'IR')
+			await eraseData(bulkBodyInventoryReceipt[0]['rium_oid'])
 
            	// commit transaction
 			await transaction.commit()
@@ -323,8 +323,9 @@ class InventoryReceiptController {
 	inputIntoInvcdDet = async (user, request) => {
 		let showResultData = await InvcdDet.findOne({where: {invcd_pt_id: request['ptId'], invcd_locs_id: request['locsId']}})
 
-		let qtyTotal = parseInt(request['qty']) + parseInt(showResultData['invcd_qty'])
 		if (showResultData) {
+			let qtyTotal = parseInt(request['qty']) + parseInt(showResultData['invcd_qty'])
+
 			await InvcdDet.update({
 				invcd_upd_by: user['usernama'],
 				invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),

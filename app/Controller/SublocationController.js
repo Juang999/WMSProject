@@ -225,11 +225,10 @@ class SublocationController {
 				})
 	}
 
-	eraseData = async (user_id, type) => {
+	eraseData = async (headerOid) => {
 		await LocsTemporary.destroy({
 			where: {
-				locst_type: type,
-				locst_user_id: user_id
+				locst_header_oid: headerOid,
 			}
 		})
 	}
