@@ -1,11 +1,12 @@
 // packages
-const {Query, Auth} = require('../../helper/helper')
+const {Query, Auth, Page} = require('../../helper/helper')
 const moment = require('moment')
 const {Op} = require('sequelize')
 const {v4: uuidv4} = require('uuid')
 
 // models
 const {
+	LocMstr,
 	PtMstr, InvcdDet,
 	LocsMstr, LocsTemporary, 
 	Sequelize, sequelize
@@ -288,6 +289,75 @@ class SublocationController {
 			where: {
 				locs_oid: req.params.locstOid
 			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	getAllSublocation (req, res) {
+		let checkQueryParamPage = (req.query.page) ? req.query.page : 1
+
+		let {limit: limitPage, offset: offsetPage} = Page(checkQueryParamPage, 10)
+
+		let locsName = (req.query.locs_name) ? `%${req.query.locs_name}%` : `%%`
+
+		LocsMstr.findAll({
+			attributes: [
+				'locs_id',
+				[Sequelize.col('location.loc_desc'), 'locs_loc_desc'],
+				'locs_name',
+				"locs_remarks",
+				"locs_active",
+				"locs_cap",
+				"locs_subcat_id",
+			],
+			include: [
+				{
+					model: LocMstr,
+					as: 'location',
+					required: true,
+					attributes: []
+				},
+				{
+					model: InvcdDet,
+					as: 'data_product',
+					attributes: [
+						'invcd_oid',
+						[Sequelize.literal(`"data_product->product"."pt_id"`), 'invcd_pt_id'],
+						[Sequelize.literal(`"data_product->product"."pt_desc1"`), 'invcd_pt_desc'],
+						[Sequelize.literal(`"data_product->product"."pt_code"`), 'invcd_pt_code'],
+						'invcd_qty'
+					],
+					include: [
+						{
+							model: PtMstr,
+							as: 'product',
+							attributes: []
+						}
+					]
+				}
+			],
+			where: {
+				locs_name: {
+					[Op.iLike]: locsName
+				}
+			},
+			limit: limitPage,
+			offset: offsetPage
 		})
 		.then(result => {
 			res.status(200)

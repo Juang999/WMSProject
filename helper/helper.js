@@ -2,7 +2,8 @@ class Helper {
 	constructor () {
 		return {
 			Auth: require('./auth'),
-			Query: require('./Query')
+			Query: require('./Query'),
+			Page: require('./page')
 		}
 	}
 }
