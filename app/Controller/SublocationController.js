@@ -311,8 +311,6 @@ class SublocationController {
 	getAllSublocation (req, res) {
 		let checkQueryParamPage = (req.query.page) ? req.query.page : 1
 
-		let {limit: limitPage, offset: offsetPage} = Page(checkQueryParamPage, 10)
-
 		let locsName = (req.query.locs_name) ? `%${req.query.locs_name}%` : `%%`
 
 		LocsMstr.findAll({
@@ -355,9 +353,32 @@ class SublocationController {
 				locs_name: {
 					[Op.iLike]: locsName
 				}
-			},
-			limit: limitPage,
-			offset: offsetPage
+			}
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	getAllGITSublocation (req, res) {
+		LocsMstr.findAll({
+			attributes: ['locs_id', 'locs_name'],
+			where: {
+				locs_loc_id: 1000282
+			}
 		})
 		.then(result => {
 			res.status(200)

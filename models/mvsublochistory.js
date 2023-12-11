@@ -14,7 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   MvSublocHistory.init({
-    mvsubloc_oid: DataTypes.UUID,
+    mvsubloc_oid: {
+      type: DataTypes.UUID,
+      primaryKey: true
+    },
     mvsubloc_add_by: DataTypes.STRING,
     mvsubloc_add_date: DataTypes.DATE,
     mvsubloc_upd_by: DataTypes.STRING,
@@ -29,7 +32,10 @@ module.exports = (sequelize, DataTypes) => {
     mvsubloc_locs_to: DataTypes.INTEGER
   }, {
     sequelize,
+    schema: 'public',
+    tableName: 'mvsubloc_history',
     modelName: 'MvSublocHistory',
+    timestamps: false
   });
   return MvSublocHistory;
 };
