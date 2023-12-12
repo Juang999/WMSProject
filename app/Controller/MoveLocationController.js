@@ -13,25 +13,22 @@ class MoveLocationController {
     moveToDestinationLocation = async (req, res) => {
         try {
             // console.log(JSON.parse(req.body.bulkData))
-            let bulkRequests = req.body.bulkData
-            
+            let bulkRequests = JSON.parse(req.body.bulkData)
+
             let {usernama} = await Auth(req.headers['authorization'])
 
             var arrayHistory = []
 
             for (let bulkRequest of bulkRequests) {
-                // parse bulk request into json
-                let parsedRequest = JSON.parse(bulkRequest)
-
                 // create new object to update or create data
                 let objectParameterUpdate = {
-                    prevQty: parsedRequest['prevQty'],
-                    qtyToMove: parsedRequest['qtyToMove'],
+                    prevQty: bulkRequest['prevQty'],
+                    qtyToMove: bulkRequest['qtyToMove'],
                     username: usernama,
-                    ptId: parsedRequest['ptId'],
-                    enId: parsedRequest['enId'],
-                    startSublocation: parsedRequest['startingSublocation'],
-                    sublocationDestination: parsedRequest['destinationSublocation']
+                    ptId: bulkRequest['ptId'],
+                    enId: bulkRequest['enId'],
+                    startSublocation: bulkRequest['startingSublocation'],
+                    sublocationDestination: bulkRequest['destinationSublocation']
                 }
 
                 await this.updateQtyProduct(objectParameterUpdate)
@@ -41,14 +38,14 @@ class MoveLocationController {
                             mvsubloc_oid: uuidv4(),
                             mvsubloc_add_by: usernama,
                             mvsubloc_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-                            mvsubloc_summary: parsedRequest['summary'],
-                            mvsubloc_desc: parsedRequest['desc'],
-                            mvsubloc_use_git: parsedRequest['isGit'],
-                            mvsubloc_pt_id: parsedRequest['ptId'],
-                            mvsubloc_qty: parsedRequest['qtyToMove'],
-                            mvsubloc_locs_from: parsedRequest['startingSublocation'],
-                            mvsubloc_locs_git: (parsedRequest['isGit'] == 'Y') ? parsedRequest['idGit'] : null,
-                            mvsubloc_locs_to: parsedRequest['destinationSublocation']
+                            mvsubloc_summary: bulkRequest['summary'],
+                            mvsubloc_desc: bulkRequest['desc'],
+                            mvsubloc_use_git: bulkRequest['isGit'],
+                            mvsubloc_pt_id: bulkRequest['ptId'],
+                            mvsubloc_qty: bulkRequest['qtyToMove'],
+                            mvsubloc_locs_from: bulkRequest['startingSublocation'],
+                            mvsubloc_locs_git: (bulkRequest['isGit'] == 'Y') ? bulkRequest['idGit'] : null,
+                            mvsubloc_locs_to: bulkRequest['destinationSublocation']
                         })
             }
 
@@ -67,14 +64,14 @@ class MoveLocationController {
         } catch (error) {
             res.status(200)
                 .json({
-                    status: 'success',
+                    status: 'failed',
                     data: null,
                     error: error.message
                 })
         }
     }
 
-     updateQtyProduct = async (objectParameter) => {
+    updateQtyProduct = async (objectParameter) => {
         // get previous qty in sublocation destination
         let {invcd_oid: invcdOid, invcd_qty: preminilaryQty} = await InvcdDet.findOne({attributes: ['invcd_oid', 'invcd_qty'], where: {invcd_pt_id: objectParameter['ptId'], invcd_locs_id: objectParameter['sublocationDestination']}})
 
@@ -107,10 +104,9 @@ class MoveLocationController {
 
         // update qty in sublocation after
         let AdditionQty = (preminilaryQty) ? parseInt(preminilaryQty) + parseInt(objectParameter['qtyToMove']) : parseInt(objectParameter['qtyToMove'])
-        let updateOrCreateData
 
         if (invcdOid == null) {
-            updateOrCreateData = await InvcdDet.create({
+            await InvcdDet.create({
                 invcd_oid: uuidv4(),
                 invcd_en_id: objectParameter['enId'],
                 invcd_pt_id: objectParameter['ptId'],
@@ -136,7 +132,7 @@ class MoveLocationController {
             }
             })
         } else {
-            updateOrCreateData = await InvcdDet.update({
+            await InvcdDet.update({
                 invcd_qty: AdditionQty,
                 invcd_upd_by: objectParameter['username'],
                 invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
