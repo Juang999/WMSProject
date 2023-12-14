@@ -1,7 +1,7 @@
 // package
 const {v4: uuidv4}  = require('uuid')
 const moment = require('moment')
-const {Auth} = require('../../helper/helper')
+const {Auth, Query} = require('../../helper/helper')
 const {Op} = require('sequelize')
 
 // model
@@ -108,6 +108,18 @@ class PickingListController {
             }, {
                 where: {
                     invcd_oid: oidStartSublocation
+                },
+                logging: (sql, queryCommand) => {
+                    let bind = queryCommand['bind']
+                    
+                    Query.insert(sql, {
+                        bind: {
+                            $1: bind[0],
+                            $2: bind[1],
+                            $3: bind[2],
+                            $4: bind[3],
+                        }
+                    })
                 }
             })
 
@@ -120,6 +132,22 @@ class PickingListController {
                 invcd_locs_id: sublocationDestination,
                 invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
                 invcd_add_by: usernama
+            }, {
+                logging: (sql, queryCommand) => {
+                    let bind = queryCommand['bind']
+
+                    Query.insert(sql, {
+                        bind: {
+                            $1: bind[0],
+                            $2: bind[1],
+                            $3: bind[2],
+                            $4: bind[3],
+                            $5: bind[4],
+                            $6: bind[5],
+                            $7: bind[6],
+                        }
+                    })
+                }
             })
 
             // update table sod_det
@@ -131,6 +159,19 @@ class PickingListController {
                 where: {
                     sod_so_oid: req.body.soOid,
                     sod_pt_id: req.body.ptId
+                },
+                logging: (sql, queryCommand) => {
+                    let bind = queryCommand['bind']
+
+                    Query.insert(sql, {
+                        bind: {
+                            $1: bind[0],
+                            $2: bind[1],
+                            $3: bind[2],
+                            $4: bind[3],
+                            $5: bind[4]
+                        }
+                    })
                 }
             })
 
