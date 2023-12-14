@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'pt_id',
         foreignKey: 'sod_pt_id'
       })
+
+      SodDet.hasOne(models.PcklsdDet, {
+        as: 'detail_sublocation',
+        sourceKey: 'sod_oid',
+        foreignKey: 'pcklsd_sod_oid'
+      })
     }
   }
   SodDet.init({
