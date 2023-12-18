@@ -7,7 +7,7 @@ const {v4: uuidv4} = require('uuid')
 const {
     sequelize,
     MvSublocHistory,
-    InvcdDet,LocsMstr
+    InvcdDet,LocsMstr, Sequelize
 } = require('../../models')
 
 class MoveLocationController {
@@ -79,7 +79,7 @@ class MoveLocationController {
 
     updateQtyProduct = async (objectParameter) => {
         // get previous qty in sublocation destination
-        let startDataSublocation = await InvcdDet.findOne({attributes: [['invcd_oid', 'invcdOid'], ['invcd_qty', 'preminilaryQty']], where: {invcd_pt_id: objectParameter['ptId'], invcd_locs_id: objectParameter['sublocationDestination']}})
+        let startDataSublocation = await InvcdDet.findOne({attributes: [['invcd_oid', 'invcdOid'], ['invcd_qty', 'preminilaryQty']], where: {invcd_pt_id: objectParameter['ptId'], invcd_locs_id: {[Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${objectParameter['sublocationDestination']}')`)}}})
 
         // update qty in invcd_det table 
         // update qty in previous sublocation
