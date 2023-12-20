@@ -90,8 +90,8 @@ class PickingListController {
             let {locs_id: sublocationDestination} = await LocsMstr.findOne({attributes: ['locs_id'], where: {locs_name: req.body.sublocationDestination}})
 
             // get qty from original sublocation
-            let {invcd_oid: oidStartSublocation, invcd_qty: qtyStartSublocation} = await InvcdDet.findOne({
-                attributes: ['invcd_oid', 'invcd_qty'], 
+            let originalSublocation = await InvcdDet.findOne({
+                attributes: [['invcd_oid', 'oidStartSublocation'], ['invcd_qty', 'qtyStartSublocation']], 
                 where: {
                     invcd_pt_id: req.body.ptId, 
                     invcd_locs_id: {
@@ -102,12 +102,12 @@ class PickingListController {
 
             // update qty from original sublocation
             let updateQtyOriginalSublocation = InvcdDet.update({
-                invcd_qty: parseInt(qtyStartSublocation) - parseInt(req.body.qty),
+                invcd_qty: parseInt(originalSublocation['dataValues']['qtyStartSublocation']) - parseInt(req.body.qty),
                 invcd_upd_by: usernama,
                 invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
                 where: {
-                    invcd_oid: oidStartSublocation
+                    invcd_oid: originalSublocation['dataValues']['oidStartSublocation']
                 },
                 logging: (sql, queryCommand) => {
                     let bind = queryCommand['bind']

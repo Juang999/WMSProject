@@ -239,7 +239,8 @@ class SublocationController {
 			attributes: [
 				'locs_id',
 				'locs_name',
-				'locs_cap'
+				'locs_cap',
+				'locs_active'
 			],
 			include: [
 				{
