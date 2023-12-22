@@ -379,7 +379,7 @@ class SublocationController {
 			attributes: ['locs_id', 'locs_name'],
 			where: {
 				locs_loc_id: {
-					[Op.in]: Sequelize.literal(`SELECT loc_id FROM public.loc_mstr WHERE loc_desc ILIKE '%TRANSFER%'`)
+					[Op.in]: Sequelize.literal(`(SELECT loc_id FROM public.loc_mstr WHERE loc_desc ILIKE '%TRANSFER%')`)
 				}
 			}
 		})
