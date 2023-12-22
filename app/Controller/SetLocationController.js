@@ -125,7 +125,6 @@ class SetLocationController {
 			}
 		})
 		.then(result => {
-			console.log(result)
 			let code = (result == null) ? 404 : 200
 			let status = (result == null) ? 'not found!' : 'success'
 			

@@ -103,8 +103,6 @@ class PurchaseOrderController {
 				})
 			}
 
-			await eraseData(user['userid'], 'PO')
-
 			await transaction.commit()
 
 			res.status(200)
