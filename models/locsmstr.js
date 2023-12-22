@@ -34,6 +34,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'locs_id',
         foreignKey: 'riud_locs_id'
       })
+
+      LocsMstr.hasMany(models.PcklsdDet, {
+        as: 'detail_order',
+        sourceKey: 'locs_id',
+        foreignKey: 'pcklsd_open'
+      })
     }
   }
   LocsMstr.init({

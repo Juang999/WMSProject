@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'sod_oid',
         foreignKey: 'pcklsd_sod_oid'
       })
+      
+      PcklsdDet.belongsTo(models.LocsMstr, {
+        as: 'sublocation_detail',
+        targetKey: 'locs_id',
+        foreignKey: 'pcklsd_open'
+      })
     }
   }
   PcklsdDet.init({

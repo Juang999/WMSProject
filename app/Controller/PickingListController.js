@@ -27,13 +27,14 @@ class PickingListController {
                     model: SodDet,
                     as: 'detail_sales_order',
                     attributes: [
-                        'sod_oid',
-                        'sod_pt_id',
-                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_en_id"`), 'sod_pt_en_id'],
-                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`), 'sod_pt_code'],
-                        [Sequelize.literal(`"detail_sales_order->detail_product->data_entity"."en_desc"`), 'sod_en_desc'],
-                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`), 'sod_pt_desc1'],
-                        [Sequelize.literal(`"detail_sales_order->detail_sublocation"."pcklsd_sod_qty"`), 'sod_qty'],
+                        ['sod_oid', 'oid'],
+                        ['sod_pt_id', 'pt_id'],
+                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_en_id"`), 'en_id'],
+                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`), 'pt_code'],
+                        [Sequelize.literal(`"detail_sales_order->detail_product->data_entity"."en_desc"`), 'en_desc'],
+                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`), 'pt_desc1'],
+                        [Sequelize.literal(`"detail_sales_order->detail_sublocation"."pcklsd_sod_qty"`), 'qty'],
+                        [Sequelize.literal(`"detail_sales_order->detail_sublocation->sublocation_detail"."locs_name"`), 'locs_name'],
                         'sod_qty_picked'
                     ],
                     include: [
@@ -52,7 +53,14 @@ class PickingListController {
                         {
                             model: PcklsdDet,
                             as: 'detail_sublocation',
-                            attributes: []
+                            attributes: [],
+                            include: [
+                                {
+                                    model: LocsMstr,
+                                    as: 'sublocation_detail',
+                                    attributes: []
+                                }
+                            ]
                         }
                     ]
                 }
