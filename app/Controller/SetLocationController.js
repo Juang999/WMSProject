@@ -276,7 +276,7 @@ class SetLocationController {
 			ccrem_add_by: user['usernama'],
 			ccrem_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
 			ccrem_type: (dataCcrem == null) ? 'I' : 'R',
-			ccrem_pt_id: dataProduct['pt_id'],
+			ccrem_pt_id: dataProduct['dataValues']['pt_id'],
 			ccrem_si_id: 992,
 			ccrem_loc_id: request['locId'],
 			ccrem_locs_id: request['locsId'],

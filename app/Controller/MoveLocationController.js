@@ -44,13 +44,13 @@ class MoveLocationController {
                             mvsubloc_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
                             mvsubloc_summary: bulkRequest['summary'],
                             mvsubloc_desc: bulkRequest['desc'],
-                            mvsubloc_use_git: bulkRequest['isGit'],
+                            mvsubloc_use_git: bulkRequest['useGit'],
                             mvsubloc_pt_id: bulkRequest['ptId'],
                             mvsubloc_qty: bulkRequest['qtyToMove'],
                             mvsubloc_locs_from: bulkRequest['startingSublocation'],
-                            mvsubloc_locs_git: (bulkRequest['isGit'] == 'Y') ? bulkRequest['idGit'] : null,
+                            mvsubloc_locs_git: (bulkRequest['useGit'] == 'Y') ? bulkRequest['idGit'] : null,
                             mvsubloc_locs_to: bulkRequest['destinationSublocation']
-                        })
+                        })  
             }
 
             let result = await MvSublocHistory.bulkCreate(arrayHistory, {
