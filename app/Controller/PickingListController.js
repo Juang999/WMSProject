@@ -96,14 +96,14 @@ class PickingListController {
             let {usernama} = await Auth(req.headers['authorization'])
 
             // get start sublocation & sublocation destination
-            let {locs_id: sublocationDestination} = await LocsMstr.findOne({attributes: ['locs_id'], where: {locs_name: req.body.sublocationDestination}})
+            let {locs_id: sublocationDestination} = await LocsMstr.findOne({attributes: ['locs_id'], where: {locs_name: parseInt(req.body.sublocationDestination)}})
 
             // get qty from original sublocation
             let originalSublocation = await InvcdDet.findOne({
                 attributes: [['invcd_oid', 'oidStartSublocation'], ['invcd_qty', 'qtyStartSublocation']], 
                 where: {
                     invcd_pt_id: req.body.ptId, 
-                    invcd_locs_id: req.body.startingSublocation
+                    invcd_locs_id: parseInt(req.body.startingSublocation)
                 }
             })
 
