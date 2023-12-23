@@ -34,6 +34,7 @@ class PickingListController {
                         [Sequelize.literal(`"detail_sales_order->detail_product->data_entity"."en_desc"`), 'en_desc'],
                         [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`), 'pt_desc1'],
                         [Sequelize.literal(`"detail_sales_order->detail_sublocation"."pcklsd_sod_qty"`), 'qty'],
+                        [Sequelize.literal(`"detail_sales_order->detail_sublocation"."pcklsd_open"`), 'open'],
                         [Sequelize.literal(`"detail_sales_order->detail_sublocation->sublocation_detail"."locs_name"`), 'locs_name'],
                         ['sod_qty_picked', 'qty_picked']
                     ],
