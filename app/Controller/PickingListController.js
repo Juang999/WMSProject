@@ -102,9 +102,7 @@ class PickingListController {
                 attributes: [['invcd_oid', 'oidStartSublocation'], ['invcd_qty', 'qtyStartSublocation']], 
                 where: {
                     invcd_pt_id: req.body.ptId, 
-                    invcd_locs_id: {
-                        [Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${req.body.startingSublocation}')`)
-                    }
+                    invcd_locs_id: req.body.startingSublocation
                 }
             })
 
