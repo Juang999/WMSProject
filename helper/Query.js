@@ -9,7 +9,7 @@ class Query {
         query = query.replace("Executing (default): ", '')
 
         for (const key of keys) {
-            let value = (typeof bind.bind[key] === "string") ? `"${bind.bind[key]}"` : `${bind.bind[key]}`
+            let value = (typeof bind.bind[key] === "string") ? `'${bind.bind[key]}'` : `${bind.bind[key]}`
             query = query.replace(key, value)
         }
 
