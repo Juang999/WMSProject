@@ -12,114 +12,75 @@ const {
 	Sequelize, sequelize
 } = require('../../models')
 
-class SublocationController {
-	index = async (req, res) => {
-		try {
-			let dataLocs = await LocsMstr.findAll({
-						attributes: [
-								'locs_id', 
-								'locs_name',
-								'locs_remarks',
-								'locs_active',
-								'locs_cap',
-								'locs_subcat_id',
-							],
-						where: {
-							locs_id: {
-								[Op.and]: [
-									{
-										[Op.notIn]: Sequelize.literal(`(SELECT locst_locs_id FROM public.locs_temporary)`)
-									},
-									{
-										[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
-									}
-								]
-							},
-							locs_name: {
-								[Op.iLike]: (req.query.colname) ? `%${req.query.colname}%` : '%%'
-							},
-							locs_active: 'Y',
-							locs_loc_id: req.query.loc
-						},
-						order: [
-								['locs_id', 'ASC']
-							]
-					})		
+/*
+* next developer maybe mave a question that ask about "why should Juang (creator this system) create this controller?"
+* I will say "to make it modular and usable in every features in need". most features in WMSProject 
+* need this controller, instead of me create function in every single controller that need this 
+* function, it's better for me to create a seperate class
+*/
 
-			res.status(200)
-					.json({
-						status: 'success',
-						data: dataLocs,
-						error: null
-					})
-		} catch (error) {
-			res.status(400)
-				.json({
-					status: 'failed',
-					data: null,
-					error: error.message
-				})
-		}
+class SublocationController {
+	/*
+	* this method used for erase data from table public.locs_temporary
+	* the method used in InventoryReceiptController
+	*/ 
+	async eraseData (headerOid) {
+		await LocsTemporary.destroy({
+			where: {
+				locst_header_oid: headerOid,
+			}
+		})
 	}
 
-	store = async (req, res) => {
-		try {
-			let user = await Auth(req.headers['authorization'])
-
-			let generateLocsId = await this.generateLocsId(user)
-
-			let createSubLocation = await LocsMstr.create({
-				locs_oid: uuidv4(),
-				locs_en_id: req.body.entityId,
-				locs_id: generateLocsId['dataValues']['locs_id'] + 1,
-				locs_loc_id: req.body.locId,
-				locs_add_by: user['usernama'],
-				locs_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-				locs_name: req.body.subLocationName,
-				locs_remarks: req.body.subLocationRemarks,
+	/*
+	* this method used to get active and not used sublocation
+	*/ 
+	getActiveSublocation (req, res) {
+		LocsMstr.findAll({
+			attributes: [
+					'locs_id', 
+					'locs_name',
+					'locs_remarks',
+					'locs_active',
+					'locs_cap',
+					'locs_subcat_id',
+				],
+			where: {
+				locs_id: {
+					[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det id WHERE invcd_locs_id IS NOT NULL UNION SELECT locst_locs_id FROM public.locs_temporary lt WHERE locst_locs_id IS NOT NULL)`)
+				},
+				locs_name: {
+					[Op.iLike]: (req.query.colname) ? `%${req.query.colname}%` : '%%'
+				},
 				locs_active: 'Y',
-				locs_cap: req.body.capacity,
-				locs_subcat_id: req.body.subCategory,
-			}, {
-				logging: async (sql, queryCommand) => {
-					let values = queryCommand.bind 
-
-						await Query.insert(sql, {
-							bind: {
-								$1: values[0],
-								$2: values[1],
-								$3: values[2],
-								$4: values[3],
-								$5: values[4],
-								$6: values[5],
-								$7: values[6],
-								$8: values[7],
-								$9: values[8],
-								$10: values[9],
-								$11: values[10],
-								$12: values[11],
-							}
-						})
-				}
-			})
-
+				locs_loc_id: req.query.loc
+			},
+			order: [
+					['locs_id', 'ASC']
+				]
+		})
+		.then(result => {
 			res.status(200)
 				.json({
 					status: 'success',
-					data: createSubLocation,
+					data: result,
 					error: null
 				})
-		} catch (error) {
+		})
+		.catch(err => {
 			res.status(400)
 				.json({
 					status: 'failed',
 					data: null,
-					error: error.message
+					error: err.message
 				})
-		}
+		})
 	}
 
-	inputTemporary = async (req, res) => {
+	/*
+	* as you can read here, this method used for booking sublocation
+	*/ 
+	async inputIntoTemporaryTable (req, res) {
 		try {
 			let user = await Auth(req.headers['authorization'])
 
@@ -146,7 +107,10 @@ class SublocationController {
 		}
 	}
 
-	inputCapacity = (req, res) => {
+	/*
+	* method to update sublocation's capacity
+	*/
+	updateCapacitySublocation (req, res) {
 		LocsMstr.update({
 			locs_cap: req.body.capacity
 		}, {
@@ -182,59 +146,10 @@ class SublocationController {
 		})
 	}
 
-	generateLocsId = async (users) => {
-		let getSubLocation = await LocsMstr.findOne({
-			order: [
-					['locs_id', 'DESC']
-				]
-		})
-
-		return (getSubLocation) 
-				? getSubLocation 
-				: await LocsMstr.create({
-					locs_oid: uuidv4(),
-					locs_en_id: 1,
-					locs_id: 1,
-					locs_loc_id: 10001,
-					locs_add_by: users['usernama'],
-					locs_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-					locs_name: '-',
-					locs_remarks: '-',
-					locs_active: 'N',
-					locs_cap: 0,
-					locs_subcat_id: 99258
-				}, {
-					logging: async (sql, queryCommand) => {
-						let values = queryCommand.bind 
-
-						await Query.insert(sql, {
-							bind: {
-								$1: values[0],
-								$2: values[1],
-								$3: values[2],
-								$4: values[3],
-								$5: values[4],
-								$6: values[5],
-								$7: values[6],
-								$8: values[7],
-								$9: values[8],
-								$10: values[9],
-								$11: values[10],
-							}
-						})
-					}
-				})
-	}
-
-	eraseData = async (headerOid) => {
-		await LocsTemporary.destroy({
-			where: {
-				locst_header_oid: headerOid,
-			}
-		})
-	}
-
-	show = (req, res) => {
+	/*
+	* this method used to get data sublocation with the products
+	*/
+	getDetailSublocationWithProducts (req, res) {
 		LocsMstr.findOne({
 			attributes: [
 				'locs_id',
@@ -283,7 +198,10 @@ class SublocationController {
 		})
 	}
 
-	updateSublocation (req, res) {
+	/*
+	* Operator can update recommended sublocation with another sublocation
+	*/ 
+	updateTemporarySublocation (req, res) {
 		LocsTemporary.update({
 			locst_locs_id: req.body.locsId
 		}, {
@@ -309,8 +227,15 @@ class SublocationController {
 		})
 	}
 
+	/*
+	* this method is similar with getActiveSublocation, but the different between both method is
+	* the method get all sublocation and the other is not
+	* this method used in MoveLocation feature
+	*/
 	getAllSublocation (req, res) {
 		let checkQueryParamPage = (req.query.page) ? req.query.page : 1
+
+		let {limit, offset} = Page(checkQueryParamPage, 10)
 
 		let locsName = (req.query.locs_name) ? `%${req.query.locs_name}%` : `%%`
 
@@ -374,6 +299,9 @@ class SublocationController {
 		})
 	}
 
+	/*
+	* just read the method name ^-^
+	*/
 	getAllGITSublocation (req, res) {
 		LocsMstr.findAll({
 			attributes: ['locs_id', 'locs_name'],
@@ -399,6 +327,110 @@ class SublocationController {
 					error: err.message
 				})
 		})
+	}
+
+	/*
+	* below method isn't used
+	*/
+	async #generateLocsId (users) {
+		let getSubLocation = await LocsMstr.findOne({
+			order: [
+					['locs_id', 'DESC']
+				]
+		})
+
+		return (getSubLocation) 
+				? getSubLocation 
+				: await LocsMstr.create({
+					locs_oid: uuidv4(),
+					locs_en_id: 1,
+					locs_id: 1,
+					locs_loc_id: 10001,
+					locs_add_by: users['usernama'],
+					locs_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+					locs_name: '-',
+					locs_remarks: '-',
+					locs_active: 'N',
+					locs_cap: 0,
+					locs_subcat_id: 99258
+				}, {
+					logging: async (sql, queryCommand) => {
+						let values = queryCommand.bind 
+
+						await Query.insert(sql, {
+							bind: {
+								$1: values[0],
+								$2: values[1],
+								$3: values[2],
+								$4: values[3],
+								$5: values[4],
+								$6: values[5],
+								$7: values[6],
+								$8: values[7],
+								$9: values[8],
+								$10: values[9],
+								$11: values[10],
+							}
+						})
+					}
+				})
+	}
+
+	async #store (req, res) {
+		try {
+			let user = await Auth(req.headers['authorization'])
+
+			let generateLocsId = await this.generateLocsId(user)
+
+			let createSubLocation = await LocsMstr.create({
+				locs_oid: uuidv4(),
+				locs_en_id: req.body.entityId,
+				locs_id: generateLocsId['dataValues']['locs_id'] + 1,
+				locs_loc_id: req.body.locId,
+				locs_add_by: user['usernama'],
+				locs_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+				locs_name: req.body.subLocationName,
+				locs_remarks: req.body.subLocationRemarks,
+				locs_active: 'Y',
+				locs_cap: req.body.capacity,
+				locs_subcat_id: req.body.subCategory,
+			}, {
+				logging: async (sql, queryCommand) => {
+					let values = queryCommand.bind 
+
+						await Query.insert(sql, {
+							bind: {
+								$1: values[0],
+								$2: values[1],
+								$3: values[2],
+								$4: values[3],
+								$5: values[4],
+								$6: values[5],
+								$7: values[6],
+								$8: values[7],
+								$9: values[8],
+								$10: values[9],
+								$11: values[10],
+								$12: values[11],
+							}
+						})
+				}
+			})
+
+			res.status(200)
+				.json({
+					status: 'success',
+					data: createSubLocation,
+					error: null
+				})
+		} catch (error) {
+			res.status(400)
+				.json({
+					status: 'failed',
+					data: null,
+					error: error.message
+				})
+		}
 	}
 }
 
