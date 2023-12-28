@@ -11,6 +11,10 @@ const {
     InvcdDet,LocsMstr, Sequelize
 } = require('../../models')
 
+/*
+* MoveLocationController only accomodate two methods, and only one method that used for API
+*/
+
 class MoveLocationController {
     moveToDestinationLocation = async (req, res) => {
         let transaction = await sequelize.transaction();
@@ -80,72 +84,106 @@ class MoveLocationController {
 
     updateQtyProduct = async (objectParameter) => {
         // get previous qty in sublocation destination
-        let startDataSublocation = await InvcdDet.findOne({attributes: [['invcd_oid', 'invcdOid'], ['invcd_qty', 'preminilaryQty']], where: {invcd_pt_id: objectParameter['ptId'], invcd_locs_id: objectParameter['sublocationDestination']}})
+        let dataSublocationDestination = await this.#getDataSublocationDestination(objectParameter)
+        let {qty_after_substraction, qty_after_addition} = this.#getQty(objectParameter, dataSublocationDestination)
 
-        // update qty in invcd_det table 
-        // update qty in previous sublocation
-        let qtyAfterReduced = parseInt(objectParameter['prevQty']) - parseInt(objectParameter['qtyToMove'])
-        let updateQtyPrevSubloc = await InvcdDet.update({
-            invcd_qty: qtyAfterReduced,
-            invcd_upd_by: objectParameter['username'],
-            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
-        }, {
-            where: {
-                invcd_pt_id: objectParameter['ptId'],
-                invcd_locs_id: objectParameter['startSublocation']
-            },
-            logging: (sql, queryCommand) => {
-                let bind = queryCommand.bind
-
-                Query.insert(sql, {
-                    bind: {
-                        $1: bind[0],
-                        $2: bind[1],
-                        $3: bind[2],
-                        $4: bind[3],
-                        $5: bind[4],
-                    }
-                })
-            }
-        })
-
-        // update qty in sublocation after
-        let AdditionQty = (startDataSublocation) ? parseInt(startDataSublocation['dataValues']['preminilaryQty']) + parseInt(objectParameter['qtyToMove']) : parseInt(objectParameter['qtyToMove'])
-
-        if (startDataSublocation == null) {
-            await InvcdDet.create({
-                invcd_oid: uuidv4(),
-                invcd_en_id: objectParameter['enId'],
-                invcd_pt_id: objectParameter['ptId'],
-                invcd_qty: AdditionQty,
-                invcd_locs_id: objectParameter['sublocationDestination'],
-                invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-                invcd_add_by: objectParameter['username']
-            }, {
-                logging: (sql, queryCommand) => {
-                let bind = queryCommand.bind
-
-                Query.insert(sql, {
-                    bind: {
-                        $1: bind[0],
-                        $2: bind[1],
-                        $3: bind[2],
-                        $4: bind[3],
-                        $5: bind[4],
-                        $6: bind[5],
-                        $7: bind[6],
-                    }
-                })
-            }
-            })
-        } else {
-            await InvcdDet.update({
-                invcd_qty: AdditionQty,
+        // promise to run all query
+        await Promise.all([
+            InvcdDet.update({
+                invcd_qty: qty_after_substraction,
                 invcd_upd_by: objectParameter['username'],
                 invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
                 where: {
-                    invcd_oid: startDataSublocation['dataValues']['invcdOid']
+                    invcd_pt_id: objectParameter['ptId'],
+                    invcd_locs_id: objectParameter['startSublocation']
+                },
+                logging: (sql, queryCommand) => {
+                    let bind = queryCommand.bind
+    
+                    Query.insert(sql, {
+                        bind: {
+                            $1: bind[0],
+                            $2: bind[1],
+                            $3: bind[2],
+                            $4: bind[3],
+                            $5: bind[4],
+                        }
+                    })
+                }
+            }), 
+            this.#CHECK_CONDITION_EXISTANCE_DATA({
+                sublocatioN_quantity: qty_after_addition,
+                sublocation_object_parameter: objectParameter,
+                sublocation_destination: dataSublocationDestination,
+            })
+        ])
+
+        return
+    }
+
+    #getQty (objectParameter, DATA_START_SUBLOCATION) {
+        let QTY_AFTER_SUBSTRACTION = parseInt(objectParameter['prevQty']) - parseInt(objectParameter['qtyToMove'])
+        let QTY_AFTER_ADDITION = (DATA_START_SUBLOCATION) 
+                            ? parseInt(DATA_START_SUBLOCATION.dataValues.preminilaryQty) + parseInt(objectParameter.qtyToMove) 
+                            : parseInt(objectParameter.qtyToMove)
+
+        return {
+            qty_after_substraction: QTY_AFTER_SUBSTRACTION,
+            qty_after_addition: QTY_AFTER_ADDITION
+        }
+    }
+
+    async #getDataSublocationDestination (PTID_AND_SUBLOCATION_DESTINATION) {
+        let startSublocation = await InvcdDet.findOne({
+            attributes: [
+                ['invcd_oid', 'invcdOid'], 
+                ['invcd_qty', 'preminilaryQty']
+            ], 
+            where: {
+                invcd_pt_id: PTID_AND_SUBLOCATION_DESTINATION['ptId'],
+                invcd_locs_id: PTID_AND_SUBLOCATION_DESTINATION['sublocationDestination']
+            }
+        })
+
+        return startSublocation
+    }
+
+    async #CHECK_CONDITION_EXISTANCE_DATA (parameter) {
+        if (parameter['sublocation_destination'] == null) {
+            await InvcdDet.create({
+                    invcd_oid: uuidv4(),
+                    invcd_en_id: parameter['sublocation_object_parameter']['enId'],
+                    invcd_pt_id: parameter['sublocation_object_parameter']['ptId'],
+                    invcd_qty: parameter['sublocatioN_quantity'],
+                    invcd_locs_id: parameter['sublocation_object_parameter']['sublocationDestination'],
+                    invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+                    invcd_add_by: parameter['sublocation_object_parameter']['username']
+                }, {
+                    logging: (sql, queryCommand) => {
+                    let bind = queryCommand.bind
+
+                    Query.insert(sql, {
+                        bind: {
+                            $1: bind[0],
+                            $2: bind[1],
+                            $3: bind[2],
+                            $4: bind[3],
+                            $5: bind[4],
+                            $6: bind[5],
+                            $7: bind[6],
+                        }
+                    })
+                }
+            })
+        } else {
+            await InvcdDet.update({
+                invcd_qty: parameter['sublocatioN_quantity'],
+                invcd_upd_by: parameter['sublocation_object_parameter']['username'],
+                invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            }, {
+                where: {
+                    invcd_oid: parameter['sublocation_destination']['dataValues']['invcdOid']
                 },
                 logging: (sql, queryCommand) => {
                     let bind = queryCommand.bind
@@ -161,8 +199,6 @@ class MoveLocationController {
                 }
             })
         }
-
-        return
     }
 }
 

@@ -9,6 +9,14 @@ const {
 	PtnrgGrp, Sequelize
 } = require('../../models')
 
+/*
+* MasterController is simillar with SublocationController, the different is
+* MasterController only accomodate method that don't need CREATE, UPDATE,
+* and DELETE Method.
+
+* function name is very clear, so I thought that you don't need any explain ^-^
+*/
+
 class MasterController {
 	getLocation = (req, res) => {
 		LocMstr.findAll({
