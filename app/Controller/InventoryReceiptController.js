@@ -320,7 +320,7 @@ class InventoryReceiptController {
 		}
 	}
 
-	inputIntoInvcdDet = async (user, request) => {
+	async inputIntoInvcdDet (user, request) {
 		let showResultData = await InvcdDet.findOne({where: {invcd_pt_id: request['ptId'], invcd_locs_id: request['locsId']}})
 
 		if (showResultData) {
