@@ -69,9 +69,9 @@ class PurchaseOrderController {
 	}
 
 	updatePurchaseOrder = async (req, res) => {
-		try {
-			let transaction = await sequelize.transaction()
+		let transaction = await sequelize.transaction()
 
+		try {
 			let user = await Auth(req.headers['authorization'])
 			let bulkDataPurchaseOrder = JSON.parse(req.body.products)
 
@@ -112,6 +112,8 @@ class PurchaseOrderController {
 					data: 1
 				})
 		} catch (err) {
+			await transaction.rollback()
+
 			res.status(400)
 				.json({
 					status: 'failed',

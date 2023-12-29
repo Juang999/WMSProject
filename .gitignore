@@ -1,3 +1,6 @@
 node_modules
 .env
 config/config.json
+app/Controller/TestController.js
+app/Controller/Controller.js
+helper/AuthV2.js

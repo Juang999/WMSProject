@@ -147,96 +147,41 @@ class SetLocationController {
 
 	updateProductWIthSublocation = async (req, res) => {
 		try {
-			let user = await Auth(req.headers['authorization']);
+			let {usernama} = await Auth(req.headers['authorization']);
 			let sublocation = await LocsMstr.findOne({attributes: ['locs_loc_id', 'locs_id'], where: {locs_name: req.params.sublName}});
 
 			if (req.query.isUpdate == 'Y') {
-				await InvcdDet.update({
-					invcd_qty: req.body.qty,
-					invcd_upd_by: user['usernama'],
-					invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-					invcd_type: 'R',
-				}, {
-					where: {
-						[Op.and]: [
-							Sequelize.where(Sequelize.col('invcd_pt_id'), {
-								[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${req.params.ptCode}')`)
-							}),
-							Sequelize.where(Sequelize.col('invcd_locs_id'), {
-								[Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${req.params.sublName}')`)
-							})
-						]
-					},
-					logging: async (sql, queryCommand) => {
-						let value = queryCommand.bind;
-		
-						await Query.insert(sql, {
-							bind: {
-								$1: value[0],
-								$2: value[1],
-								$3: value[2],
-								$4: value[3],
-								$5: value[4],
-								$6: value[5],
-							}
-						})
-					}
-				})
-
-				let request = {
-					ptCode: req.params.ptCode,
-					locId: sublocation['locs_loc_id'],
-					locsId: sublocation['locs_id'],
-					qty: req.body.qty
-				}
-
-				await this.createDataCcremMstr(user, request)
+				await Promise.all([
+					this.updateQuantityProduct({
+						updateinvcd_usernama: usernama,
+						updateinvcd_qty: req['body']['qty'],
+						updateinvcd_ptcode: req['params']['ptCode'],
+						updateinvcd_sublname: req['params']['sublName']
+					}),
+					this.createDataCcremMstr({
+						ccrem_qty: req.body.qty,
+						ccrem_usernama: usernama,
+						ccrem_ptcode: req.params.ptCode,
+						ccrem_locsid: sublocation['locs_id'],
+						ccrem_locid: sublocation['locs_loc_id'],
+					})
+				]);
 			} else {
-				let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: req.params.ptCode}});
-		
-				let createProductWithSublocation = await InvcdDet.create({
-					invcd_oid: uuidv4(),
-					invcd_en_id: req.body.enId,
-					invcd_pt_id: product['pt_id'],
-					invcd_qty: req.body.qty,
-					invcd_rfid: (req.body.rfId) ? req.body.rfId : null,
-					invcd_locs_id: sublocation['locs_id'],
-					invcd_color_code: '-',
-					invcd_remarks: req.body.remarks,
-					invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-					invcd_add_by: user['usernama'],
-					invcd_weight: 0,
-					invcd_type: 'I'
-				}, {
-					logging: async (sql, queryCommand) => {
-						let value = queryCommand.bind;
-	
-						await Query.insert(sql, {
-							bind: {
-								$1: value[0],
-								$2: value[1],
-								$3: value[2],
-								$4: value[3],
-								$5: value[4],
-								$6: value[5],
-								$7: value[6],
-								$8: value[7],
-								$9: value[8],
-								$10: value[9],
-								$11: value[10],
-							}
-						})
-					}
-				});
-
-				let request = {
-					ptCode: req.params.ptCode,
-					locId: sublocation['locs_loc_id'],
-					locsId: sublocation['locs_id'],
-					qty: req.body.qty
-				}
-
-				await this.createDataCcremMstr(user, request)
+				await Promise.all([
+					this.createProductWithSublocation({
+						inputproduct_request: req.body,
+						inputproduct_usernama: usernama,
+						inputproduct_ptcode: req.params.ptCode,
+						inputproduct_locsid: sublocation['locs_id']
+					}),
+					this.createDataCcremMstr({
+						ccrem_qty: req.body.qty,
+						ccrem_usernama: usernama,
+						ccrem_ptcode: req.params.ptCode,
+						ccrem_locsid: sublocation['locs_id'],
+						ccrem_locid: sublocation['locs_loc_id'],
+					})
+				]);
 			}
 
 			res.status(200)
@@ -255,39 +200,104 @@ class SetLocationController {
 		}
 	}
 
-	createDataCcremMstr = async (user, request) => {
-		// find data
-		let dataProduct = await PtMstr.findOne({where: {pt_code: request['ptCode']}})
-		let dataCcrem = await CcremMstr.findOne({
+	createProductWithSublocation = async (parameter) => {
+		let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: parameter['inputproduct_ptcode']}});
+
+		await InvcdDet.create({
+			invcd_oid: uuidv4(),
+			invcd_en_id: parameter['inputproduct_request']['enId'],
+			invcd_pt_id: product['dataValues']['ptId'],
+			invcd_qty: parameter['inputproduct_request']['qty'],
+			invcd_rfid: (parameter['inputproduct_request']['rfId']) ? parameter['inputproduct_request']['rfId'] : null,
+			invcd_locs_id: parameter['inputproduct_locsid'],
+			invcd_color_code: '-',
+			invcd_remarks: parameter['inputproduct_request']['remarks'],
+			invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+			invcd_add_by: parameter['inputproduct_usernama'],
+			invcd_weight: 0,
+			invcd_type: 'I'
+		}, {
+			logging: async (sql, queryCommand) => {
+				let value = queryCommand.bind;
+
+				await Query.insert(sql, {
+					bind: {
+						$1: value[0],
+						$2: value[1],
+						$3: value[2],
+						$4: value[3],
+						$5: value[4],
+						$6: value[5],
+						$7: value[6],
+						$8: value[7],
+						$9: value[8],
+						$10: value[9],
+						$11: value[10],
+					}
+				})
+			}
+		});
+	}
+
+	updateQuantityProduct = async (parameter) => {
+		await InvcdDet.update({
+			invcd_qty: parameter['updateinvcd_qty'],
+			invcd_upd_by: parameter['updateinvcd_usernama'],
+			invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+			invcd_type: 'R',
+		}, {
 			where: {
-				ccrem_pt_id: {
-					[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${request['ptCode']}')`)
-				},
-				ccrem_locs_id: request['locsId']
+				[Op.and]: [
+					Sequelize.where(Sequelize.col('invcd_pt_id'), {
+						[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${parameter['updateinvcd_ptcode']}')`)
+					}),
+					Sequelize.where(Sequelize.col('invcd_locs_id'), {
+						[Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${parameter['updateinvcd_sublname']}')`)
+					})
+				]
 			},
-			order: [
-				['ccrem_add_date', 'DESC']
-			]
+			logging: async (sql, queryCommand) => {
+				let value = queryCommand.bind;
+
+				await Query.insert(sql, {
+					bind: {
+						$1: value[0],
+						$2: value[1],
+						$3: value[2],
+						$4: value[3],
+						$5: value[4],
+						$6: value[5],
+					}
+				})
+			}
+		})
+	}
+
+	createDataCcremMstr = async (parameter) => {
+		// find data
+		let {data_product: dataProduct, data_ccrem: dataCcrem} = await this.GET_DATA_PRODUCT_AND_CCREM({
+			ccrem_ptcode: parameter['ccrem_ptcode'],
+			ccrem_locsid: parameter['ccrem_locsid']
 		})
 
 		// create data in ccrem_mstr
 		await CcremMstr.create({
 			ccrem_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-			ccrem_add_by: user['usernama'],
+			ccrem_add_by: parameter['ccrem_usernama'],
 			ccrem_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
 			ccrem_type: (dataCcrem == null) ? 'I' : 'R',
 			ccrem_pt_id: dataProduct['pt_id'],
 			ccrem_si_id: 992,
-			ccrem_loc_id: request['locId'],
-			ccrem_locs_id: request['locsId'],
+			ccrem_loc_id: parameter['ccrem_locid'],
+			ccrem_locs_id: parameter['ccrem_locsid'],
 			ccrem_lot_serial: '-',
-			ccrem_qty: request['qty'],
+			ccrem_qty: parameter['ccrem_qty'],
 			ccrem_um_id: null,
 			ccrem_um_conv: null,
-			ccrem_qty_real: request['qty'],
+			ccrem_qty_real: parameter['ccrem_qty'],
 			ccrem_cost: null,
 			ccrem_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
-			ccrem_en_id: request['enId'],
+			ccrem_en_id: dataProduct['dataValues']['pt_en_id'],
 			ccrem_oid: uuidv4(),
 			ccrem_qty_old: (dataCcrem == null) ? 0 : dataCcrem['qty']
 		}, {
@@ -318,6 +328,24 @@ class SetLocationController {
 				})
 			}
 		})
+	}
+
+	GET_DATA_PRODUCT_AND_CCREM = async (parameter) => {
+		let dataProduct = await PtMstr.findOne({where: {pt_code: parameter['ccrem_ptcode']}})
+		let dataCcrem = await CcremMstr.findOne({
+			where: {
+				ccrem_pt_id: dataProduct['dataValues']['pt_id'],
+				ccrem_locs_id: parameter['ccrem_locsid']
+			},
+			order: [
+				['ccrem_add_date', 'DESC']
+			]
+		})
+		
+		return {
+			data_product: dataProduct,
+			data_ccrem: dataCcrem
+		}
 	}
 }
 

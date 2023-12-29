@@ -20,26 +20,17 @@ class MoveLocationController {
         let transaction = await sequelize.transaction();
 
         try {
-            // console.log(JSON.parse(req.body.bulkData))
+            // parse bulk requests into JSON
             let bulkRequests = JSON.parse(req.body.bulkData)
-
+            // GET data username from user
             let {usernama} = await Auth(req.headers['authorization'])
-
+            // empty array to accomodate data history move sublocation
             var arrayHistory = []
 
             for (let bulkRequest of bulkRequests) {
-                // create new object to update or create data
-                let objectParameterUpdate = {
-                    prevQty: bulkRequest['prevQty'],
-                    qtyToMove: bulkRequest['qtyToMove'],
-                    username: usernama,
-                    ptId: bulkRequest['ptId'],
-                    enId: bulkRequest['enId'],
-                    startSublocation: bulkRequest['startingSublocation'],
-                    sublocationDestination: bulkRequest['destinationSublocation']
-                }
-
-                await this.updateQtyProduct(objectParameterUpdate)
+                // method to update or create data quantity sublocation
+                bulkRequest['username'] = usernama
+                await this.updateQtyProduct(bulkRequest)
 
                 // push parsed bulk request into array to create history
                 arrayHistory.push({
@@ -54,10 +45,10 @@ class MoveLocationController {
                             mvsubloc_locs_from: bulkRequest['startingSublocation'],
                             mvsubloc_locs_git: (bulkRequest['useGit'] == 'Y') ? bulkRequest['idGit'] : null,
                             mvsubloc_locs_to: bulkRequest['destinationSublocation']
-                        })  
+                        });
             }
 
-            let result = await MvSublocHistory.bulkCreate(arrayHistory, {
+            let CREATE_HISTORY_MOVE_SUBLOCATION = await MvSublocHistory.bulkCreate(arrayHistory, {
                 logging: (sql) => {
                     Query.queryBulkCreate(sql)
                 }
@@ -68,7 +59,7 @@ class MoveLocationController {
             res.status(200)
                 .json({
                     status: 'success',
-                    data: result,
+                    data: CREATE_HISTORY_MOVE_SUBLOCATION,
                     error: null
                 })
         } catch (error) {
@@ -84,36 +75,17 @@ class MoveLocationController {
 
     updateQtyProduct = async (objectParameter) => {
         // get previous qty in sublocation destination
-        let dataSublocationDestination = await this.#getDataSublocationDestination(objectParameter)
+        let dataSublocationDestination = await this.#GET_DATA_SUBLOCATION_DESTINATION(objectParameter)
         let {qty_after_substraction, qty_after_addition} = this.#getQty(objectParameter, dataSublocationDestination)
 
         // promise to run all query
         await Promise.all([
-            InvcdDet.update({
-                invcd_qty: qty_after_substraction,
-                invcd_upd_by: objectParameter['username'],
-                invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
-            }, {
-                where: {
-                    invcd_pt_id: objectParameter['ptId'],
-                    invcd_locs_id: objectParameter['startSublocation']
-                },
-                logging: (sql, queryCommand) => {
-                    let bind = queryCommand.bind
-    
-                    Query.insert(sql, {
-                        bind: {
-                            $1: bind[0],
-                            $2: bind[1],
-                            $3: bind[2],
-                            $4: bind[3],
-                            $5: bind[4],
-                        }
-                    })
-                }
+            this.#UPDATE_DATA_STARTING_SUBLOCATION({
+                sublocation_object_parameter: objectParameter,
+                sublocation_quantity_substraction: qty_after_substraction,
             }), 
-            this.#CHECK_CONDITION_EXISTANCE_DATA({
-                sublocatioN_quantity: qty_after_addition,
+            this.#UPDATE_DATA_SUBLOCATION_DESTINATION({
+                sublocation_quantity: qty_after_addition,
                 sublocation_object_parameter: objectParameter,
                 sublocation_destination: dataSublocationDestination,
             })
@@ -125,8 +97,8 @@ class MoveLocationController {
     #getQty (objectParameter, DATA_START_SUBLOCATION) {
         let QTY_AFTER_SUBSTRACTION = parseInt(objectParameter['prevQty']) - parseInt(objectParameter['qtyToMove'])
         let QTY_AFTER_ADDITION = (DATA_START_SUBLOCATION) 
-                            ? parseInt(DATA_START_SUBLOCATION.dataValues.preminilaryQty) + parseInt(objectParameter.qtyToMove) 
-                            : parseInt(objectParameter.qtyToMove)
+                            ? parseInt(DATA_START_SUBLOCATION['dataValues']['preminilaryQty']) + parseInt(objectParameter['qtyToMove']) 
+                            : parseInt(objectParameter['qtyToMove'])
 
         return {
             qty_after_substraction: QTY_AFTER_SUBSTRACTION,
@@ -134,7 +106,7 @@ class MoveLocationController {
         }
     }
 
-    async #getDataSublocationDestination (PTID_AND_SUBLOCATION_DESTINATION) {
+    async #GET_DATA_SUBLOCATION_DESTINATION (PTID_AND_SUBLOCATION_DESTINATION) {
         let startSublocation = await InvcdDet.findOne({
             attributes: [
                 ['invcd_oid', 'invcdOid'], 
@@ -142,21 +114,21 @@ class MoveLocationController {
             ], 
             where: {
                 invcd_pt_id: PTID_AND_SUBLOCATION_DESTINATION['ptId'],
-                invcd_locs_id: PTID_AND_SUBLOCATION_DESTINATION['sublocationDestination']
+                invcd_locs_id: PTID_AND_SUBLOCATION_DESTINATION['destinationSublocation']
             }
         })
 
         return startSublocation
     }
 
-    async #CHECK_CONDITION_EXISTANCE_DATA (parameter) {
+    async #UPDATE_DATA_SUBLOCATION_DESTINATION (parameter) {
         if (parameter['sublocation_destination'] == null) {
             await InvcdDet.create({
                     invcd_oid: uuidv4(),
                     invcd_en_id: parameter['sublocation_object_parameter']['enId'],
                     invcd_pt_id: parameter['sublocation_object_parameter']['ptId'],
-                    invcd_qty: parameter['sublocatioN_quantity'],
-                    invcd_locs_id: parameter['sublocation_object_parameter']['sublocationDestination'],
+                    invcd_qty: parameter['sublocation_quantity'],
+                    invcd_locs_id: parameter['sublocation_object_parameter']['destinationSublocation'],
                     invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
                     invcd_add_by: parameter['sublocation_object_parameter']['username']
                 }, {
@@ -178,7 +150,7 @@ class MoveLocationController {
             })
         } else {
             await InvcdDet.update({
-                invcd_qty: parameter['sublocatioN_quantity'],
+                invcd_qty: parameter['sublocation_quantity'],
                 invcd_upd_by: parameter['sublocation_object_parameter']['username'],
                 invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
             }, {
@@ -199,6 +171,32 @@ class MoveLocationController {
                 }
             })
         }
+    }
+
+    async #UPDATE_DATA_STARTING_SUBLOCATION (parameter) {
+        await InvcdDet.update({
+            invcd_qty: parameter['sublocation_quantity_substraction'],
+            invcd_upd_by: parameter['sublocation_object_parameter']['username'],
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                invcd_pt_id: parameter['sublocation_object_parameter']['ptId'],
+                invcd_locs_id: parameter['sublocation_object_parameter']['startingSublocation']
+            },
+            logging: (sql, queryCommand) => {
+                let bind = queryCommand.bind
+
+                Query.insert(sql, {
+                    bind: {
+                        $1: bind[0],
+                        $2: bind[1],
+                        $3: bind[2],
+                        $4: bind[3],
+                        $5: bind[4],
+                    }
+                })
+            }
+        })
     }
 }
 

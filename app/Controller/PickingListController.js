@@ -96,91 +96,28 @@ class PickingListController {
             let {usernama} = await Auth(req.headers['authorization'])
 
             // get qty from original sublocation
-            let originalSublocation = await InvcdDet.findOne({
-                attributes: [['invcd_oid', 'oidStartSublocation'], ['invcd_qty', 'qtyStartSublocation']], 
-                where: {
-                    invcd_pt_id: req.body.ptId, 
-                    invcd_locs_id: parseInt(req.body.startingSublocation)
-                }
-            })
-
-            // update qty from original sublocation
-            let updateQtyOriginalSublocation = InvcdDet.update({
-                invcd_qty: parseInt(originalSublocation['dataValues']['qtyStartSublocation']) - parseInt(req.body.qty),
-                invcd_upd_by: usernama,
-                invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
-            }, {
-                where: {
-                    invcd_oid: originalSublocation['dataValues']['oidStartSublocation']
-                },
-                logging: (sql, queryCommand) => {
-                    let bind = queryCommand['bind']
-                    
-                    Query.insert(sql, {
-                        bind: {
-                            $1: bind[0],
-                            $2: bind[1],
-                            $3: bind[2],
-                            $4: bind[3],
-                        }
-                    })
-                }
-            })
-
-            // input data product based on git sublocation
-            let createdDataBasedGitSublocation = InvcdDet.create({
-                invcd_oid: uuidv4(),
-                invcd_en_id: req.body.enId,
-                invcd_pt_id: req.body.ptId,
-                invcd_qty: req.body.qty,
-                invcd_locs_id: parseInt(req.body.sublocationDestination),
-                invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-                invcd_add_by: usernama
-            }, {
-                logging: (sql, queryCommand) => {
-                    let bind = queryCommand['bind']
-
-                    Query.insert(sql, {
-                        bind: {
-                            $1: bind[0],
-                            $2: bind[1],
-                            $3: bind[2],
-                            $4: bind[3],
-                            $5: bind[4],
-                            $6: bind[5],
-                            $7: bind[6],
-                        }
-                    })
-                }
-            })
-
-            // update table sod_det
-            let updateSodDet = SodDet.update({
-                sod_qty_picked: parseInt(req.body.qty),
-                sod_upd_by: usernama,
-                sod_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
-            }, {
-                where: {
-                    sod_so_oid: req.body.soOid,
-                    sod_pt_id: req.body.ptId
-                },
-                logging: (sql, queryCommand) => {
-                    let bind = queryCommand['bind']
-
-                    Query.insert(sql, {
-                        bind: {
-                            $1: bind[0],
-                            $2: bind[1],
-                            $3: bind[2],
-                            $4: bind[3],
-                            $5: bind[4]
-                        }
-                    })
-                }
+            let originalSublocation = await this.getDataOriginalSublocation({
+                ptId: req.body.ptId,
+                startingSublocation: req.body.startingSublocation
             })
 
             // run 3 query with Promise
-            let proccess = await Promise.all([updateQtyOriginalSublocation, createdDataBasedGitSublocation, updateSodDet])
+            let proccess = await Promise.all([
+                this.UPDATE_SOD_DETAIL({
+                    updatesod_request: req.body,
+                    updatesod_usernama: usernama
+                }),
+                this.CREATE_DATA_BASED_GIT_SUBLOCATION({
+                    createsubl_request: req.body,
+                    createsubl_usernama: usernama
+                }),
+                this.UPDATE_QUANTITY_ORIGINAL_SUBLOCATION({
+                    originalsubl_usernama: usernama,
+                    originalsubl_quantity_took: req.body.qty,
+                    originalsubl_qty: originalSublocation['dataValues']['qty'],
+                    originalsubl_oid: originalSublocation['dataValues']['oid']
+                })
+            ])
 
             transaction.commit()
 
@@ -200,6 +137,96 @@ class PickingListController {
                     error: error.message
                 })
         }
+    }
+
+    getDataOriginalSublocation = async (parameter) => {
+        return await InvcdDet.findOne({
+            attributes: [['invcd_oid', 'oid'], ['invcd_qty', 'qty']], 
+            where: {
+                invcd_pt_id: parameter['ptId'], 
+                invcd_locs_id: parseInt(parameter['startingSublocation'])
+            }
+        })
+    }
+
+    UPDATE_QUANTITY_ORIGINAL_SUBLOCATION = async (parameter) => {
+        let quantityAfterSubstaction = parseInt(parameter['originalsubl_qty']) - parseInt(parameter['originalsubl_quantity_took'])
+
+        await InvcdDet.update({
+            invcd_qty: quantityAfterSubstaction,
+            invcd_upd_by: parameter['originalsubl_usernama'],
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                invcd_oid: parameter['originalsubl_oid']
+            },
+            logging: (sql, queryCommand) => {
+                let bind = queryCommand['bind']
+                
+                Query.insert(sql, {
+                    bind: {
+                        $1: bind[0],
+                        $2: bind[1],
+                        $3: bind[2],
+                        $4: bind[3],
+                    }
+                })
+            }
+        })
+    }
+
+    CREATE_DATA_BASED_GIT_SUBLOCATION = async (parameter) => {
+        InvcdDet.create({
+            invcd_oid: uuidv4(),
+            invcd_en_id: parameter['createsubl_request']['enId'],
+            invcd_pt_id: parameter['createsubl_request']['ptId'],
+            invcd_qty: parameter['createsubl_request']['qty'],
+            invcd_locs_id: parseInt(parameter['createsubl_request']['sublocationDestination']),
+            invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_add_by: parameter['createsubl_usernama']
+        }, {
+            logging: (sql, queryCommand) => {
+                let bind = queryCommand['bind']
+
+                Query.insert(sql, {
+                    bind: {
+                        $1: bind[0],
+                        $2: bind[1],
+                        $3: bind[2],
+                        $4: bind[3],
+                        $5: bind[4],
+                        $6: bind[5],
+                        $7: bind[6],
+                    }
+                })
+            }
+        })
+    }
+
+    UPDATE_SOD_DETAIL = async (parameter) => {
+        await SodDet.update({
+            sod_qty_picked: parseInt(parameter['updatesod_request']['qty']),
+            sod_upd_by: parameter['updatesod_usernama'],
+            sod_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                sod_so_oid: parameter['updatesod_request']['soOid'],
+                sod_pt_id: parameter['updatesod_request']['ptId']
+            },
+            logging: (sql, queryCommand) => {
+                let bind = queryCommand['bind']
+
+                Query.insert(sql, {
+                    bind: {
+                        $1: bind[0],
+                        $2: bind[1],
+                        $3: bind[2],
+                        $4: bind[3],
+                        $5: bind[4]
+                    }
+                })
+            }
+        })
     }
 }
 
