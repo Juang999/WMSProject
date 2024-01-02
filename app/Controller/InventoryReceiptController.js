@@ -504,14 +504,9 @@ class InventoryReceiptController {
 					'locs_active'
 				],
 				where: {
-					[Op.and]: [
-						Sequelize.where(Sequelize.col('locs_id'), {
-							[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det)`)
-						}),
-						Sequelize.where(Sequelize.col('locs_id'), {
-							[Op.notIn]: Sequelize.literal(`(SELECT locst_locs_id FROM public.locs_temporary)`)
-						})
-					],
+					locs_id: {
+						[Op.notIn]: Sequelize.literal(`(SELECT invcd_locs_id FROM public.invcd_det WHERE invcd_locs_id IS NOT NULL UNION SELECT locst_locs_id FROM public.locs_temporary WHERE locst_locs_id IS NOT NULL)`)
+					},
 					locs_active: 'Y'
 				},
 				order: [['locs_id', `ASC`]],
@@ -521,16 +516,13 @@ class InventoryReceiptController {
 			let dataSetToInsertIntoThelocsTemporaryTable = []
 
 			for (let index = 0; index < totalSublocationNeed; index++) {
-
-				let totalQuantityPerSublocation = req.body.qty
-
 				dataSetToInsertIntoThelocsTemporaryTable.push({
 					locst_oid: uuidv4(),
 					locst_locs_id: (dataSubLocation[index] != null) ? dataSubLocation[index]['locs_id'] : null,
 					locst_type: 'IR',
 					locst_header_oid: req.body.headerOid,
 					locst_pt_id: req.body.ptId,
-					locst_pt_qty: (totalQuantityPerSublocation - req.body.qtyPerSublocation < 0) ? totalQuantityPerSublocation : totalSublocationNeed,
+					locst_pt_qty: (req.body.qty - req.body.qtyPerSublocation < 0) ? req.body.qty : req.body.qtyPerSublocation,
 					locst_um: req.body.um,
 					locst_qty_real: req.body.qtyReal,
 					locst_loc_id: req.body.locId,
@@ -538,6 +530,8 @@ class InventoryReceiptController {
 					locst_cost: req.body.cost,
 					locst_cost_total: req.body.costTotal
 				})
+
+				req.body.qty -= req.body.qtyPerSublocation
 			}
 
 			let inputIntoTemporaryTable = await LocsTemporary.bulkCreate(dataSetToInsertIntoThelocsTemporaryTable)
