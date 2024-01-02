@@ -206,7 +206,7 @@ class SetLocationController {
 		await InvcdDet.create({
 			invcd_oid: uuidv4(),
 			invcd_en_id: parameter['inputproduct_request']['enId'],
-			invcd_pt_id: product['dataValues']['ptId'],
+			invcd_pt_id: product['dataValues']['pt_id'],
 			invcd_qty: parameter['inputproduct_request']['qty'],
 			invcd_rfid: (parameter['inputproduct_request']['rfId']) ? parameter['inputproduct_request']['rfId'] : null,
 			invcd_locs_id: parameter['inputproduct_locsid'],
