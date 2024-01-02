@@ -522,13 +522,15 @@ class InventoryReceiptController {
 
 			for (let index = 0; index < totalSublocationNeed; index++) {
 
+				let totalQuantityPerSublocation = req.body.qty
+
 				dataSetToInsertIntoThelocsTemporaryTable.push({
 					locst_oid: uuidv4(),
 					locst_locs_id: (dataSubLocation[index] != null) ? dataSubLocation[index]['locs_id'] : null,
 					locst_type: 'IR',
 					locst_header_oid: req.body.headerOid,
 					locst_pt_id: req.body.ptId,
-					locst_pt_qty: req.body.qtyPerSublocation,
+					locst_pt_qty: (totalQuantityPerSublocation - req.body.qtyPerSublocation < 0) ? totalQuantityPerSublocation : totalSublocationNeed,
 					locst_um: req.body.um,
 					locst_qty_real: req.body.qtyReal,
 					locst_loc_id: req.body.locId,
