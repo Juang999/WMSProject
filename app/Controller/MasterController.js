@@ -18,26 +18,23 @@ const {
 */
 
 class MasterController {
-	getLocation = (req, res) => {
-		LocMstr.findAll({
-			attributes: ['loc_id', 'loc_desc'],
-			order: [
-					['loc_id', 'asc']
-				]	
+	getSite = (req, res) => {
+		SiMstr.findAll({
+			attributes: ['si_id', 'si_code', 'si_desc']	
 		})
 		.then(result => {
 			res.status(200)
 				.json({
 					status: 'success',
-					message: 'success to get data location',
-					data: result
+					message: 'success to get site',
+					result: result
 				})
 		})
 		.catch(err => {
 			res.status(400)
 				.json({
 					status: 'failed',
-					message: 'failed to get data location',
+					message: 'failed to get site',
 					error: err.message
 				})
 		})
@@ -93,28 +90,6 @@ class MasterController {
 		})
 	}
 
-	getSite = (req, res) => {
-		SiMstr.findAll({
-			attributes: ['si_id', 'si_code', 'si_desc']	
-		})
-		.then(result => {
-			res.status(200)
-				.json({
-					status: 'success',
-					message: 'success to get site',
-					result: result
-				})
-		})
-		.catch(err => {
-			res.status(400)
-				.json({
-					status: 'failed',
-					message: 'failed to get site',
-					error: err.message
-				})
-		})
-	}
-
 	getPartner = (req, res) => {
 		PtnrMstr.findAll({
 			attributes: [
@@ -148,6 +123,31 @@ class MasterController {
 				.json({
 					status: 'failed',
 					message: 'failed to get partner',
+					error: err.message
+				})
+		})
+	}
+
+	getLocation = (req, res) => {
+		LocMstr.findAll({
+			attributes: ['loc_id', 'loc_desc'],
+			order: [
+					['loc_id', 'asc']
+				]	
+		})
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'success to get data location',
+					data: result
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'failed to get data location',
 					error: err.message
 				})
 		})

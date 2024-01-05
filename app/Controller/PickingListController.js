@@ -139,38 +139,42 @@ class PickingListController {
         }
     }
 
-    getDataOriginalSublocation = async (parameter) => {
-        return await InvcdDet.findOne({
-            attributes: [['invcd_oid', 'oid'], ['invcd_qty', 'qty']], 
-            where: {
-                invcd_pt_id: parameter['ptId'], 
-                invcd_locs_id: parseInt(parameter['startingSublocation'])
-            }
-        })
-    }
+    /*
+    * the methods below are used for helper
+    */
 
-    UPDATE_QUANTITY_ORIGINAL_SUBLOCATION = async (parameter) => {
-        let quantityAfterSubstaction = parseInt(parameter['originalsubl_qty']) - parseInt(parameter['originalsubl_quantity_took'])
-
-        await InvcdDet.update({
-            invcd_qty: quantityAfterSubstaction,
-            invcd_upd_by: parameter['originalsubl_usernama'],
-            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+    UPDATE_SOD_DETAIL = async (parameter) => {
+        await SodDet.update({
+            sod_qty_picked: parseInt(parameter['updatesod_request']['qty']),
+            sod_upd_by: parameter['updatesod_usernama'],
+            sod_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
         }, {
             where: {
-                invcd_oid: parameter['originalsubl_oid']
+                sod_so_oid: parameter['updatesod_request']['soOid'],
+                sod_pt_id: parameter['updatesod_request']['ptId']
             },
             logging: (sql, queryCommand) => {
                 let bind = queryCommand['bind']
-                
+
                 Query.insert(sql, {
                     bind: {
                         $1: bind[0],
                         $2: bind[1],
                         $3: bind[2],
                         $4: bind[3],
+                        $5: bind[4]
                     }
                 })
+            }
+        })
+    }
+
+    getDataOriginalSublocation = async (parameter) => {
+        return await InvcdDet.findOne({
+            attributes: [['invcd_oid', 'oid'], ['invcd_qty', 'qty']], 
+            where: {
+                invcd_pt_id: parameter['ptId'], 
+                invcd_locs_id: parseInt(parameter['startingSublocation'])
             }
         })
     }
@@ -203,26 +207,26 @@ class PickingListController {
         })
     }
 
-    UPDATE_SOD_DETAIL = async (parameter) => {
-        await SodDet.update({
-            sod_qty_picked: parseInt(parameter['updatesod_request']['qty']),
-            sod_upd_by: parameter['updatesod_usernama'],
-            sod_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+    UPDATE_QUANTITY_ORIGINAL_SUBLOCATION = async (parameter) => {
+        let quantityAfterSubstaction = parseInt(parameter['originalsubl_qty']) - parseInt(parameter['originalsubl_quantity_took'])
+
+        await InvcdDet.update({
+            invcd_qty: quantityAfterSubstaction,
+            invcd_upd_by: parameter['originalsubl_usernama'],
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
         }, {
             where: {
-                sod_so_oid: parameter['updatesod_request']['soOid'],
-                sod_pt_id: parameter['updatesod_request']['ptId']
+                invcd_oid: parameter['originalsubl_oid']
             },
             logging: (sql, queryCommand) => {
                 let bind = queryCommand['bind']
-
+                
                 Query.insert(sql, {
                     bind: {
                         $1: bind[0],
                         $2: bind[1],
                         $3: bind[2],
                         $4: bind[3],
-                        $5: bind[4]
                     }
                 })
             }

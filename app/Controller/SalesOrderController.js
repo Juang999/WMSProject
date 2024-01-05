@@ -67,50 +67,6 @@ class SalesOrderController {
 		})
 	}
 
-	updateQtySalesOrder = async (req, res) => {
-		try {
-			let user = await Auth(req.headers['authorization'])
-			let detailQtyChecked = JSON.parse(req.body.products)
-
-			for (let dataQtyChecked of detailQtyChecked) {
-				await SodDet.update({
-					sod_upd_by: user['usernama'],
-					sod_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-					sod_qty_checked: dataQtyChecked['qtyChecked']
-				}, {
-					where: {
-						sod_oid: dataQtyChecked['sod_oid']
-					}, 
-					logging: async (sql, queryCommand) => {
-						let value = queryCommand.bind
-
-						await Query.insert(sql, {
-							bind: {
-								$1: value[0],
-								$2: value[1],
-								$3: value[2],
-								$4: value[3],
-							}
-						})
-					}
-				})
-			}
-
-			res.status(200)
-				.json({
-					status: 'success',
-					message: 'success to update SO'	
-				})
-		} catch (error) {
-			res.status(400)
-				.json({
-					status: 'failed',
-					message: 'failed to update SO',
-					error: error.message
-				})
-		}
-	}
-
 	getHistory = async (req, res) => {
 		try {
 			let user = await Auth(req.headers['authorization'])
@@ -232,6 +188,50 @@ class SalesOrderController {
 					error: err.message
 				})
 		})
+	}
+
+	updateQtySalesOrder = async (req, res) => {
+		try {
+			let user = await Auth(req.headers['authorization'])
+			let detailQtyChecked = JSON.parse(req.body.products)
+
+			for (let dataQtyChecked of detailQtyChecked) {
+				await SodDet.update({
+					sod_upd_by: user['usernama'],
+					sod_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+					sod_qty_checked: dataQtyChecked['qtyChecked']
+				}, {
+					where: {
+						sod_oid: dataQtyChecked['sod_oid']
+					}, 
+					logging: async (sql, queryCommand) => {
+						let value = queryCommand.bind
+
+						await Query.insert(sql, {
+							bind: {
+								$1: value[0],
+								$2: value[1],
+								$3: value[2],
+								$4: value[3],
+							}
+						})
+					}
+				})
+			}
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'success to update SO'	
+				})
+		} catch (error) {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'failed to update SO',
+					error: error.message
+				})
+		}
 	}
 }
 

@@ -200,78 +200,9 @@ class SetLocationController {
 		}
 	}
 
-	createProductWithSublocation = async (parameter) => {
-		let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: parameter['inputproduct_ptcode']}});
-
-		await InvcdDet.create({
-			invcd_oid: uuidv4(),
-			invcd_en_id: parameter['inputproduct_request']['enId'],
-			invcd_pt_id: product['dataValues']['pt_id'],
-			invcd_qty: parameter['inputproduct_request']['qty'],
-			invcd_rfid: (parameter['inputproduct_request']['rfId']) ? parameter['inputproduct_request']['rfId'] : null,
-			invcd_locs_id: parameter['inputproduct_locsid'],
-			invcd_color_code: '-',
-			invcd_remarks: parameter['inputproduct_request']['remarks'],
-			invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-			invcd_add_by: parameter['inputproduct_usernama'],
-			invcd_weight: 0,
-			invcd_type: 'I'
-		}, {
-			logging: async (sql, queryCommand) => {
-				let value = queryCommand.bind;
-
-				await Query.insert(sql, {
-					bind: {
-						$1: value[0],
-						$2: value[1],
-						$3: value[2],
-						$4: value[3],
-						$5: value[4],
-						$6: value[5],
-						$7: value[6],
-						$8: value[7],
-						$9: value[8],
-						$10: value[9],
-						$11: value[10],
-					}
-				})
-			}
-		});
-	}
-
-	updateQuantityProduct = async (parameter) => {
-		await InvcdDet.update({
-			invcd_qty: parameter['updateinvcd_qty'],
-			invcd_upd_by: parameter['updateinvcd_usernama'],
-			invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-			invcd_type: 'R',
-		}, {
-			where: {
-				[Op.and]: [
-					Sequelize.where(Sequelize.col('invcd_pt_id'), {
-						[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${parameter['updateinvcd_ptcode']}')`)
-					}),
-					Sequelize.where(Sequelize.col('invcd_locs_id'), {
-						[Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${parameter['updateinvcd_sublname']}')`)
-					})
-				]
-			},
-			logging: async (sql, queryCommand) => {
-				let value = queryCommand.bind;
-
-				await Query.insert(sql, {
-					bind: {
-						$1: value[0],
-						$2: value[1],
-						$3: value[2],
-						$4: value[3],
-						$5: value[4],
-						$6: value[5],
-					}
-				})
-			}
-		})
-	}
+	/*
+	* the methods below are used for helper
+	*/
 
 	createDataCcremMstr = async (parameter) => {
 		// find data
@@ -330,6 +261,40 @@ class SetLocationController {
 		})
 	}
 
+	updateQuantityProduct = async (parameter) => {
+		await InvcdDet.update({
+			invcd_qty: parameter['updateinvcd_qty'],
+			invcd_upd_by: parameter['updateinvcd_usernama'],
+			invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+			invcd_type: 'R',
+		}, {
+			where: {
+				[Op.and]: [
+					Sequelize.where(Sequelize.col('invcd_pt_id'), {
+						[Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${parameter['updateinvcd_ptcode']}')`)
+					}),
+					Sequelize.where(Sequelize.col('invcd_locs_id'), {
+						[Op.eq]: Sequelize.literal(`(SELECT locs_id FROM public.locs_mstr WHERE locs_name = '${parameter['updateinvcd_sublname']}')`)
+					})
+				]
+			},
+			logging: async (sql, queryCommand) => {
+				let value = queryCommand.bind;
+
+				await Query.insert(sql, {
+					bind: {
+						$1: value[0],
+						$2: value[1],
+						$3: value[2],
+						$4: value[3],
+						$5: value[4],
+						$6: value[5],
+					}
+				})
+			}
+		})
+	}
+
 	GET_DATA_PRODUCT_AND_CCREM = async (parameter) => {
 		let dataProduct = await PtMstr.findOne({where: {pt_code: parameter['ccrem_ptcode']}})
 		let dataCcrem = await CcremMstr.findOne({
@@ -346,6 +311,45 @@ class SetLocationController {
 			data_product: dataProduct,
 			data_ccrem: dataCcrem
 		}
+	}
+
+	createProductWithSublocation = async (parameter) => {
+		let product = await PtMstr.findOne({attributes: ['pt_id'], where: {pt_code: parameter['inputproduct_ptcode']}});
+
+		await InvcdDet.create({
+			invcd_oid: uuidv4(),
+			invcd_en_id: parameter['inputproduct_request']['enId'],
+			invcd_pt_id: product['dataValues']['pt_id'],
+			invcd_qty: parameter['inputproduct_request']['qty'],
+			invcd_rfid: (parameter['inputproduct_request']['rfId']) ? parameter['inputproduct_request']['rfId'] : null,
+			invcd_locs_id: parameter['inputproduct_locsid'],
+			invcd_color_code: '-',
+			invcd_remarks: parameter['inputproduct_request']['remarks'],
+			invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+			invcd_add_by: parameter['inputproduct_usernama'],
+			invcd_weight: 0,
+			invcd_type: 'I'
+		}, {
+			logging: async (sql, queryCommand) => {
+				let value = queryCommand.bind;
+
+				await Query.insert(sql, {
+					bind: {
+						$1: value[0],
+						$2: value[1],
+						$3: value[2],
+						$4: value[3],
+						$5: value[4],
+						$6: value[5],
+						$7: value[6],
+						$8: value[7],
+						$9: value[8],
+						$10: value[9],
+						$11: value[10],
+					}
+				})
+			}
+		});
 	}
 }
 

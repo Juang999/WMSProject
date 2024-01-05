@@ -14,8 +14,8 @@ router.patch('/:locsOid/update-temporary-sublocation', [authenticate], Sublocati
 /*
 [not used router]
 
-* router.post('/', [authenticate], SublocationController.store);
-* router.patch('/:locs_id/capacity', [authenticate], SublocationController.updateCapacitySublocation);
 */ 
+router.post('/', [authenticate], SublocationController.store);
+router.patch('/:locs_id/capacity', [authenticate], SublocationController.updateCapacitySublocation);
 
 module.exports = router

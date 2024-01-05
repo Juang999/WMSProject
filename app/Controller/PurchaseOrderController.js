@@ -68,6 +68,70 @@ class PurchaseOrderController {
 		})
 	}
 
+	getPurchaseOrderToday = (req, res) => {
+		let startDate = (req.query.start_date) ? moment(req.query.start_date).format('YYYY-MM-DD 00:00:00') : moment().format('YYYY-MM-DD 00:00:00')
+		let endDate = (req.query.end_date) ? moment(req.query.end_date).format('YYYY-MM-DD 23:59:59') : moment().format('YYYY-MM-DD 23:59:59')
+
+		PoMstr.findAll({
+				attributes: [
+					['po_oid', 'oid'], 
+					['po_code', 'code'], 
+					['po_add_by', 'add_by'], 
+					['po_add_date', 'add_date'], 
+					['po_upd_by', 'upd_by'], 
+					['po_upd_date', 'upd_date'],
+				],
+				include: [
+						{
+							model: PodDet,
+							as: 'detail_purchase_order',
+							attributes: [
+									['pod_oid', 'detail_oid'],
+									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_code"'), 'detail_pt_code'],
+									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_desc1"'), 'detail_pt_desec1'],
+									['pod_qty', 'detail_qty'],
+									['pod_qty_receive', 'detail_qty_receive'],
+									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_syslog_code"'), 'detail_syslog_code']
+								],
+							include: [
+									{
+										model: PtMstr,
+										as: 'detail_product',
+										attributes: [],
+										required: true,
+										duplicating: false
+									}
+								]
+						}
+					],
+				where: {
+					po_oid: {
+						[Op.in]: Sequelize.literal(`(SELECT pod_po_oid FROM public.pod_det WHERE pod_upd_by IS NULL)`)
+					}, 
+					po_add_date: {
+						[Op.between]: [startDate, endDate]
+					}
+				},
+				order: [[Sequelize.literal('detail_purchase_order.pod_upd_date'), 'desc']]
+			})
+			.then(result => {
+				res.status(200)
+					.json({
+						status: 'success',
+						message: 'success to get data',
+						data: result
+					})
+			})
+			.catch(err => {
+				res.status(400)
+					.json({
+						status: 'failed',
+						message: 'failed to get data',
+						error: err.message
+					})
+			})
+	}
+
 	updatePurchaseOrder = async (req, res) => {
 		let transaction = await sequelize.transaction()
 
@@ -181,70 +245,6 @@ class PurchaseOrderController {
 					error: error.message
 				})
 		}
-	}
-
-	getPurchaseOrderToday = (req, res) => {
-		let startDate = (req.query.start_date) ? moment(req.query.start_date).format('YYYY-MM-DD 00:00:00') : moment().format('YYYY-MM-DD 00:00:00')
-		let endDate = (req.query.end_date) ? moment(req.query.end_date).format('YYYY-MM-DD 23:59:59') : moment().format('YYYY-MM-DD 23:59:59')
-
-		PoMstr.findAll({
-				attributes: [
-					['po_oid', 'oid'], 
-					['po_code', 'code'], 
-					['po_add_by', 'add_by'], 
-					['po_add_date', 'add_date'], 
-					['po_upd_by', 'upd_by'], 
-					['po_upd_date', 'upd_date'],
-				],
-				include: [
-						{
-							model: PodDet,
-							as: 'detail_purchase_order',
-							attributes: [
-									['pod_oid', 'detail_oid'],
-									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_code"'), 'detail_pt_code'],
-									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_desc1"'), 'detail_pt_desec1'],
-									['pod_qty', 'detail_qty'],
-									['pod_qty_receive', 'detail_qty_receive'],
-									[Sequelize.literal('"detail_purchase_order->detail_product"."pt_syslog_code"'), 'detail_syslog_code']
-								],
-							include: [
-									{
-										model: PtMstr,
-										as: 'detail_product',
-										attributes: [],
-										required: true,
-										duplicating: false
-									}
-								]
-						}
-					],
-				where: {
-					po_oid: {
-						[Op.in]: Sequelize.literal(`(SELECT pod_po_oid FROM public.pod_det WHERE pod_upd_by IS NULL)`)
-					}, 
-					po_add_date: {
-						[Op.between]: [startDate, endDate]
-					}
-				},
-				order: [[Sequelize.literal('detail_purchase_order.pod_upd_date'), 'desc']]
-			})
-			.then(result => {
-				res.status(200)
-					.json({
-						status: 'success',
-						message: 'success to get data',
-						data: result
-					})
-			})
-			.catch(err => {
-				res.status(400)
-					.json({
-						status: 'failed',
-						message: 'failed to get data',
-						error: err.message
-					})
-			})
 	}
 }
 

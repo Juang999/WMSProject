@@ -332,7 +332,7 @@ class SublocationController {
 	/*
 	* below method isn't used
 	*/
-	async #generateLocsId (users) {
+	generateLocsId = async (users) => {
 		let getSubLocation = await LocsMstr.findOne({
 			order: [
 					['locs_id', 'DESC']
@@ -376,7 +376,7 @@ class SublocationController {
 				})
 	}
 
-	async #store (req, res) {
+	store = async (req, res) => {
 		try {
 			let user = await Auth(req.headers['authorization'])
 

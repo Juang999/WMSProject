@@ -73,6 +73,10 @@ class MoveLocationController {
         }
     }
 
+    /*
+    * the method below is used for helper
+    */
+
     updateQtyProduct = async (objectParameter) => {
         // get previous qty in sublocation destination
         let dataSublocationDestination = await this.#GET_DATA_SUBLOCATION_DESTINATION(objectParameter)
@@ -106,19 +110,30 @@ class MoveLocationController {
         }
     }
 
-    async #GET_DATA_SUBLOCATION_DESTINATION (PTID_AND_SUBLOCATION_DESTINATION) {
-        let startSublocation = await InvcdDet.findOne({
-            attributes: [
-                ['invcd_oid', 'invcdOid'], 
-                ['invcd_qty', 'preminilaryQty']
-            ], 
+    async #UPDATE_DATA_STARTING_SUBLOCATION (parameter) {
+        await InvcdDet.update({
+            invcd_qty: parameter['sublocation_quantity_substraction'],
+            invcd_upd_by: parameter['sublocation_object_parameter']['username'],
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
             where: {
-                invcd_pt_id: PTID_AND_SUBLOCATION_DESTINATION['ptId'],
-                invcd_locs_id: PTID_AND_SUBLOCATION_DESTINATION['destinationSublocation']
+                invcd_pt_id: parameter['sublocation_object_parameter']['ptId'],
+                invcd_locs_id: parameter['sublocation_object_parameter']['startingSublocation']
+            },
+            logging: (sql, queryCommand) => {
+                let bind = queryCommand.bind
+
+                Query.insert(sql, {
+                    bind: {
+                        $1: bind[0],
+                        $2: bind[1],
+                        $3: bind[2],
+                        $4: bind[3],
+                        $5: bind[4],
+                    }
+                })
             }
         })
-
-        return startSublocation
     }
 
     async #UPDATE_DATA_SUBLOCATION_DESTINATION (parameter) {
@@ -173,30 +188,19 @@ class MoveLocationController {
         }
     }
 
-    async #UPDATE_DATA_STARTING_SUBLOCATION (parameter) {
-        await InvcdDet.update({
-            invcd_qty: parameter['sublocation_quantity_substraction'],
-            invcd_upd_by: parameter['sublocation_object_parameter']['username'],
-            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
-        }, {
+    async #GET_DATA_SUBLOCATION_DESTINATION (PTID_AND_SUBLOCATION_DESTINATION) {
+        let startSublocation = await InvcdDet.findOne({
+            attributes: [
+                ['invcd_oid', 'invcdOid'], 
+                ['invcd_qty', 'preminilaryQty']
+            ], 
             where: {
-                invcd_pt_id: parameter['sublocation_object_parameter']['ptId'],
-                invcd_locs_id: parameter['sublocation_object_parameter']['startingSublocation']
-            },
-            logging: (sql, queryCommand) => {
-                let bind = queryCommand.bind
-
-                Query.insert(sql, {
-                    bind: {
-                        $1: bind[0],
-                        $2: bind[1],
-                        $3: bind[2],
-                        $4: bind[3],
-                        $5: bind[4],
-                    }
-                })
+                invcd_pt_id: PTID_AND_SUBLOCATION_DESTINATION['ptId'],
+                invcd_locs_id: PTID_AND_SUBLOCATION_DESTINATION['destinationSublocation']
             }
         })
+
+        return startSublocation
     }
 }
 
