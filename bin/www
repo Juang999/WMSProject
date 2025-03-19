@@ -1,5 +1,10 @@
 #!/usr/bin/env node
+// path windows
+let path = 'C:/Users/user/Project/WMSProject'
+// path linux
+// let path = '/var/www/wms'
 
+const {config} = require(`${path}/config/environment`);
 /**
  * Module dependencies.
  */
@@ -12,14 +17,14 @@ var http = require('http');
  * Get host from environment and store in Express.
  */
 
-var host = (process.env.HOST) ? process.env.HOST : 'localhost';
+var host = (config.parsed.HOST) ? config.parsed.HOST : 'localhost';
 app.set('host', host);
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(config.parsed.PORT || '3000');
 app.set('port', port);
 
 /**
@@ -33,7 +38,8 @@ var server = http.createServer(app);
  */
 
 server.listen(port, () => {
-  console.log(`listening to host http://${host}:${port}`)
+  console.info(`stage: ${config.parsed.NODE_ENV}`);
+  console.log(`listening to host http://${host}:${port}`);
 });
 server.on('error', onError);
 server.on('listening', onListening);
