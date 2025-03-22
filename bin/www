@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // path windows
-let path = 'C:/Users/user/Project/WMSProject'
+// let path = 'C:/Users/user/Project/WMSProject'
 // path linux
-// let path = '/var/www/wms'
+let path = '/var/www/wms'
 
 const {config} = require(`${path}/config/environment`);
 /**

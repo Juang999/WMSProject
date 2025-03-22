@@ -1,5 +1,5 @@
-let path = 'C:/Users/user/Project/WMSProject'
-// let path = '/var/www/wms-dev'
+// let path = 'C:/Users/user/Project/WMSProject'
+let path = '/var/www/wms-dev'
 
 module.exports = {
     config: require('dotenv').config({path: `${path}/.env`}),
