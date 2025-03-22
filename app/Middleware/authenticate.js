@@ -1,6 +1,6 @@
-require('dotenv').config()
 const jwt = require('jsonwebtoken')
-const {TokenStorage} = require('../../models')
+const {config} = require('../../config/environment');
+const {set} = require('express-http-context');
 
 const authenticate = async (req, res, next) => {
 	let authHeader = req.headers['authorization']
@@ -9,26 +9,18 @@ const authenticate = async (req, res, next) => {
 	if (!token) {
 		res.status(300)
 			.json({
-				status: 'Authorization Token not found'
+				status: 'error',
+                message: 'Authorization Token not found',
+                data: null,
+                error: null
 			})
 
 		return
 	}
 
-	let checkTokenExtitence = await TokenStorage.findOne({attributes: ['token_token'], where: {token_token: token}})
+    set('token', token);
 
-    if (!checkTokenExtitence) {
-        res.status(300)
-            .json({
-                code: 300,
-                status: "failed",
-                error: "failed login"
-            })
-
-        return
-    }
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+    jwt.verify(token, config.parsed.ACCESS_TOKEN_SECRET, async (err, user) => {
         if (err) {
             res.status(400)
                 .json({
