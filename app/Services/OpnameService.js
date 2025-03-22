@@ -6,7 +6,7 @@ const {
 } = require('../../models');
 
 class OpnameService {
-    retrieveDataOpname = async (userid) => {
+    retrieveDataOpname = async () => {
         let result = await SomMstr.findAll({
             attributes: [
                 'som_oid',
@@ -37,9 +37,6 @@ class OpnameService {
                     attributes: []
                 }
             ],
-            where: {
-                som_user_id: userid
-            }
         })
 
         return result;
