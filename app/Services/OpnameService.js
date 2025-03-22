@@ -46,7 +46,7 @@ class OpnameService {
     }
 
     retrieveDetailOpname = async (opnameCode) => {
-        let result = await SomMstr.findOne({
+        let result = await SomMstr.findAll({
             attributes: [
                 'som_oid',
                 [Sequelize.col(`"user_pic"."usernama"`), 'pic'],
@@ -115,7 +115,7 @@ class OpnameService {
             subQuery: false,
         })
 
-        return result;
+        return result[0];
     }
 }
 
