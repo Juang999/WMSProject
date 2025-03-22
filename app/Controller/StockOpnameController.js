@@ -3,7 +3,7 @@ const {InventoryService, OpnameService} = require('../Services/ServiceContainer'
 
 class StockOpnameController {
     index = (req, res) => {
-        OpnameService.retrieveDataOpname(userid)
+        OpnameService.retrieveDataOpname()
         .then(result => {
             res.status(200)
                 .json({
