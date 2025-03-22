@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'pt_id',
         foreignKey: 'som_pt_id'
       })
+
+      SomMstr.hasMany(models.SomdDet, {
+        as: 'detail_opname',
+        sourceKey: 'som_oid',
+        foreignKey: 'somd_som_oid',
+      })
     }
   }
   SomMstr.init({
