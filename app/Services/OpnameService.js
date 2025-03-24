@@ -120,6 +120,20 @@ class OpnameService {
         return result[0];
     }
 
+    retrieveSerialOpname = async (somdOid) => {
+        let result = await SomddDet.findAll({
+            attributes: [
+                ['somdd_serial', 'uniq'],
+                ['somdd_created_date', 'created_date']
+            ],
+            where: {
+                somdd_somd_oid: somdOid
+            }
+        })
+
+        return result;
+    }
+
     addQtyOpname = async (somdOid, transaction) => {
         await SomdDet.update({
             somd_qty_real: Sequelize.literal(`CAST(somd_qty_real AS INTEGER) + 1`)
