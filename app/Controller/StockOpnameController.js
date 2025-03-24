@@ -1,5 +1,9 @@
 const Auth = require('../../helper/auth');
-const {InventoryService, OpnameService} = require('../Services/ServiceContainer');
+const {sequelize} = require('../../models');
+const {
+    InventoryService, UserService, 
+    ProductService, OpnameService
+} = require('../Services/ServiceContainer');
 
 class StockOpnameController {
     index = (req, res) => {
@@ -40,6 +44,75 @@ class StockOpnameController {
                 .json({
                     status: 'failed',
                     message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
+    store = (req, res) => {
+        let {somd_oid, partnumber, uniq, location_id} = req.body;
+        
+        sequelize.transaction(async t => {
+            let [
+                dataProduct, 
+                serialNumber
+            ] = await Promise.all([
+                ProductService.findProductByPartnumber(partnumber), 
+                OpnameService.findSerialNumber(uniq, partnumber, t)
+            ])
+
+            if (!serialNumber) {
+                await Promise.all([
+                    OpnameService.createSerialNumber(uniq, dataProduct.dataValues, location_id, t),
+                    OpnameService.createDetailOpname(somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
+                ])
+
+                return {
+                    statusCode: 200,
+                    response: {
+                        status: 'success',
+                        message: 'serial created!',
+                        data: null,
+                        error: null
+                    }
+                }
+            } else if (serialNumber.dataValues.uniq == null) {
+                await Promise.all([
+                    OpnameService.updateSerialNumber(uniq, partnumber, location_id, t),
+                    OpnameService.createDetailOpname(somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
+                ])
+
+                return {
+                    statusCode: 200,
+                    response: {
+                        status: 'success',
+                        message: 'serial created!',
+                        data: null,
+                        error: null
+                    }
+                }
+            } else {
+                return {
+                    statusCode: 300,
+                    response: {
+                        status: 'failed',
+                        message: 'serial already exist!',
+                        data: null,
+                        error: null
+                    }
+                }
+            }
+        })
+        .then(result => {
+            res.status(result.statusCode)
+                .json(result.response)
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error!',
                     data: null,
                     error: err.message
                 })

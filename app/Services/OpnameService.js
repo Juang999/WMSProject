@@ -1,9 +1,14 @@
 const {
-    InvcMstr,
+    SomddDet,
     PtMstr, LocMstr,
     SomMstr, SomdDet, 
+    InvcMstr, InvcdDet,
     TConfUser, Sequelize
 } = require('../../models');
+const {Query} = require('../../helper/helper');
+const {Op} = require('sequelize');
+const {v4: uuidv4} = require('uuid');
+const moment = require('moment');
 
 class OpnameService {
     retrieveDataOpname = async () => {
@@ -113,6 +118,132 @@ class OpnameService {
         })
 
         return result[0];
+    }
+
+    addQtyOpname = async (somdOid, transaction) => {
+        await SomdDet.update({
+            somd_qty_real: Sequelize.literal(`CAST(somd_qty_real AS INTEGER) + 1`)
+        }, {
+            where: {
+                somd_oid: somdOid
+            },
+            logging: (sqlCommand, {bind}) => {
+                let realSql = sqlCommand.split(': ')[1]
+
+                Query.insert(realSql, bind)
+            }
+        })
+    }
+
+    findSerialNumber = async (serialNumber, productCode, transaction) => {
+        let result = await InvcdDet.findOne({
+            attributes: [
+                [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
+                ['invcd_qrbarcode', 'uniq'],
+                ['invcd_alias_qrbarcode', 'alias_uniq'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.or]: [
+                    {
+                        invcd_qrbarcode: serialNumber
+                    }, {
+                        [Op.and]: [
+                            Sequelize.where(Sequelize.col('invcd_alias_qrbarcode'), {
+                                [Op.eq]: serialNumber
+                            }),
+                            Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
+                                [Op.eq]: productCode
+                            })
+                        ]
+                    }
+                ]
+            },
+            transaction
+        })
+
+        return result;
+    }
+
+    createSerialNumber = async (serialNumber, product, locId, transaction) => {
+        let result = await InvcdDet.create({
+            invcd_oid: uuidv4(),
+            invcd_dom_id: 1,
+            invcd_en_id: product.pt_en_id,
+            invcd_pt_id: product.pt_id,
+            invcd_qty: 1,
+            invcd_qrbarcode: serialNumber,
+            invcd_loc_id: locId,
+            invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_add_by: 'system',
+            invcd_si_id: 992,
+            invcd_date: moment().format('YYYY-MM-DD'),
+            invcd_is_verified: 'Y',
+        }, {
+            transaction,
+            logging: (sqlCommand, {bind}) => {
+                let realSql = sqlCommand.split(': ')[1];
+
+                Query.insert(realSql, bind);
+            }
+        })
+
+        return result;
+    }
+
+    updateSerialNumber = async (serialNumber, productCode, locId, transaction) => {
+        let result = await InvcdDet.update({
+            invcd_qrbarcode: serialNumber,
+            invcd_qty: 1,
+            invcd_loc_id: locId,
+            invcd_qty_old: 0,
+            invcd_add_by: 'system',
+            invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                invcd_pt_id: {
+                    [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${productCode}')`)
+                },
+                invcd_alias_qrbarcode: serialNumber
+            },
+            transaction,
+            logging: (sqlCommand, {bind}) => {
+                let realSql = sqlCommand.split(': ')[1];
+
+                Query.insert(realSql, bind);
+            }
+        })
+
+        return result;
+    }
+
+    createDetailOpname = async (somdOid, productId, locId, serialNumber, transaction) => {
+        let result = await SomddDet.create({
+            somdd_oid: uuidv4(),
+            somdd_somd_oid: somdOid,
+            somdd_pt_id: productId,
+            somdd_loc_id: locId,
+            somdd_serial: serialNumber,
+            somdd_qty_sys: 1,
+            somdd_qty_real: 1,
+            somdd_created_by: 'system',
+            somdd_created_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+        }, {
+            transaction,
+            logging: (sqlCommand, {bind}) => {
+                let realSql = sqlCommand.split(': ')[1];
+
+                Query.insert(realSql, bind);
+            }
+        })
+
+        return result;
     }
 }
 
