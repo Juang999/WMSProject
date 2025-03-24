@@ -124,8 +124,16 @@ class OpnameService {
     retrieveSerialOpname = async (somdOid) => {
         let result = await SomddDet.findAll({
             attributes: [
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 ['somdd_serial', 'uniq'],
                 ['somdd_created_date', 'created_date']
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
             ],
             where: {
                 somdd_somd_oid: somdOid

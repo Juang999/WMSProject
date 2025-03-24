@@ -5,7 +5,7 @@ class OpnameController {
     index = (req, res) => {
         let {userid} = Auth();
 
-        OpnameService.retrieveDataOpname(userid)
+        OpnameService.retrieveDataOpname()
         .then(result => {
             res.status(200)
                 .json({
