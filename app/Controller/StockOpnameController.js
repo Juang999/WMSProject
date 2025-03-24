@@ -64,6 +64,7 @@ class StockOpnameController {
 
             if (!serialNumber) {
                 await Promise.all([
+                    OpnameService.addQtyOpname(somd_oid, t),
                     OpnameService.createSerialNumber(uniq, dataProduct.dataValues, location_id, t),
                     OpnameService.createDetailOpname(somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
                 ])

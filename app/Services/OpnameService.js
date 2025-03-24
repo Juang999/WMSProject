@@ -127,6 +127,7 @@ class OpnameService {
             where: {
                 somd_oid: somdOid
             },
+            transaction,
             logging: (sqlCommand, {bind}) => {
                 let realSql = sqlCommand.split(': ')[1]
 
