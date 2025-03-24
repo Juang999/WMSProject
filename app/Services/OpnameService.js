@@ -62,6 +62,7 @@ class OpnameService {
                 ['som_locked', 'lock_status'],
                 ['som_start_date', 'start_date'],
                 ['som_end_date', 'end_date'],
+                [Sequelize.literal(`(SELECT CAST(SUM(somd_qty_real) AS BIGINT) FROM public.somd_det WHERE somd_som_oid = som_oid)`), 'counted']
             ],
             include: [
                 {
