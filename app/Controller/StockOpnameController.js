@@ -87,7 +87,7 @@ class StockOpnameController {
             ] = await Promise.all([
                 ProductService.findProductByPartnumber(partnumber), 
                 OpnameService.findSerialNumber(uniq, partnumber, t),
-                OpnameService.findDetailOpname(som_oid, partnumber)
+                OpnameService.findDetailOpname(som_oid, partnumber, location_id)
             ])
 
             if (!serialNumber) {

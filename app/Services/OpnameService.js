@@ -159,11 +159,12 @@ class OpnameService {
         })
     }
 
-    findDetailOpname = async (somOid, partNumber) => {
+    findDetailOpname = async (somOid, partNumber, locId) => {
         let result = await SomdDet.findOne({
             attributes: ['somd_oid', 'somd_loc_id'],
             where: {
                 somd_som_oid: somOid,
+                somd_loc_id: locId,
                 somd_pt_id: {
                     [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${partNumber}')`)
                 }
