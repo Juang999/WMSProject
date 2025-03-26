@@ -1,5 +1,5 @@
-require('dotenv').config()
 // package
+const {config} = require('../../config/environment')
 const jwt = require('jsonwebtoken')
 const {v4: uuidv4} = require('uuid')
 const {Op} = require('sequelize')
@@ -13,7 +13,7 @@ class UserController {
 				attributes: ['usernama', 'password', 'userid', 'user_ptnr_id'],
 				where: {
 					usernama: req.body.usernama
-				}
+				},
 			})
 
 			if (req.body.password != getUserAccount['password']) {
@@ -26,8 +26,7 @@ class UserController {
 				return
 			}
 
-			let token = await jwt.sign(getUserAccount['dataValues'], process.env.ACCESS_TOKEN_SECRET, {expiresIn: '24h'})
-			
+			let token = jwt.sign(getUserAccount['dataValues'], config.parsed.ACCESS_TOKEN_SECRET, {expiresIn: '24h'})
 			await this.deleteOldToken(token, getUserAccount['dataValues']['userid'])
 
 			res.status(200)
@@ -65,7 +64,7 @@ class UserController {
 				userid: {
 					[Op.eq]: Sequelize.literal(`(SELECT token_user_id FROM public.token_storage WHERE token_token = '${token}')`)
 				}
-			}
+			},
 		})
 		.then(result => {
 			res.status(200)

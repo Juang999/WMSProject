@@ -88,9 +88,9 @@ class OpnameService {
                         [Sequelize.literal(`"detail_opname->product"."pt_code"`), 'product_code'],
                         [Sequelize.literal(`"detail_opname->data_inventory"."invc_loc_id"`), 'location_id'],
                         [Sequelize.literal(`"detail_opname->data_inventory->location"."loc_desc"`), 'location_name'],
-                        [Sequelize.literal('CAST(somd_qty_sys AS BIGINT)'), 'qty_system'],
-                        [Sequelize.literal('CAST(somd_qty_real AS BIGINT)'), 'qty_real'],
-                        [Sequelize.literal('CAST(somd_variance AS BIGINT)'), 'qty_variance'],
+                        [Sequelize.literal('CAST("detail_opname"."somd_qty_sys" AS BIGINT)'), 'qty_system'],
+                        [Sequelize.literal('CAST("detail_opname"."somd_qty_real" AS BIGINT)'), 'qty_real'],
+                        [Sequelize.literal('CAST("detail_opname"."somd_variance" AS BIGINT)'), 'qty_variance'],
                     ],
                     include: [
                         {
@@ -157,6 +157,20 @@ class OpnameService {
                 Query.insert(realSql, bind)
             }
         })
+    }
+
+    findDetailOpname = async (somOid, partNumber) => {
+        let result = await SomdDet.findOne({
+            attributes: ['somd_oid', 'somd_loc_id'],
+            where: {
+                somd_som_oid: somOid,
+                somd_pt_id: {
+                    [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${partNumber}')`)
+                }
+            }
+        })
+
+        return result;
     }
 
     findSerialNumber = async (serialNumber, productCode, transaction) => {
