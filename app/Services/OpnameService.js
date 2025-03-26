@@ -86,7 +86,7 @@ class OpnameService {
                         ['somd_pt_id', 'product_id'],
                         [Sequelize.literal(`"detail_opname->product"."pt_desc1"`), 'product_name'],
                         [Sequelize.literal(`"detail_opname->product"."pt_code"`), 'product_code'],
-                        [Sequelize.literal(`"detail_opname->data_inventory"."invc_loc_id"`), 'location_id'],
+                        [Sequelize.literal(`"detail_opname"."somd_loc_id"`), 'location_id'],
                         [Sequelize.literal(`"detail_opname->data_inventory->location"."loc_desc"`), 'location_name'],
                         [Sequelize.literal('CAST("detail_opname"."somd_qty_sys" AS BIGINT)'), 'qty_system'],
                         [Sequelize.literal('CAST("detail_opname"."somd_qty_real" AS BIGINT)'), 'qty_real'],
