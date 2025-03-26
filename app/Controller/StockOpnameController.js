@@ -5,6 +5,7 @@ const {
     InventoryService, UserService, 
     ProductService, OpnameService
 } = require('../Services/ServiceContainer');
+const {info, error: errorLog} = require('../../helper/Logging');
 
 class StockOpnameController {
     index = (req, res) => {
@@ -19,6 +20,8 @@ class StockOpnameController {
                 })
         })
         .catch(err => {
+            errorLog(`RETRIEVE DATA OPNAME`, err.message)
+
             res.status(400)
                 .json({
                     status: 'failed',
@@ -47,6 +50,8 @@ class StockOpnameController {
                     error: null
                 })
         } catch (error) {
+            await errorLog('RETRIEVE DETAIL OPNAME', error.message)
+
             res.status(400)
                 .json({
                     status: 'failed',
@@ -138,6 +143,8 @@ class StockOpnameController {
                 .json(result.response)
         })
         .catch(err => {
+            errorLog(`STORE SERIAL NUMBER`, err.message)
+
             res.status(400)
                 .json({
                     status: 'failed',
@@ -160,6 +167,8 @@ class StockOpnameController {
                 })
         })
         .catch(err => {
+            errorLog('RETRIEVE SERIAL OPNAME', err.message);
+
             res.status(400)
                 .json({
                     status: 'failed',

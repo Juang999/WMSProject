@@ -8,3 +8,5 @@ helper/AuthV2.js
 .env.testing
 .env.production
 test
+log
+error-log
