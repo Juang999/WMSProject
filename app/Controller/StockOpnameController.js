@@ -155,7 +155,7 @@ class StockOpnameController {
                 .json({
                     status: (result.length != 0) ? 'success' : 'not found!',
                     message: (result.length != 0) ? 'ok' : 'not found',
-                    data: (result.length != 0) ? result.length != 0 : null,
+                    data: (result.length != 0) ? result : null,
                     error: (result.length != 0) ? null : 'not found'
                 })
         })
