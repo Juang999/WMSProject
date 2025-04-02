@@ -34,9 +34,21 @@ class StockOpnameController {
 
     detail = async (req, res) => {
         try {
-            let {dataValues: dataDetail} = await OpnameService.retrieveDetailOpname(req.params.opname_code);
+            let dataDetail = await OpnameService.retrieveDetailOpname(req.params.opname_code);
 
-            let idLocations = dataDetail.detail_opname.map(({dataValues}) => {
+            if (!dataDetail) {
+                res.status(404)
+                    .json({
+                        status: 'not found',
+                        message: 'not found',
+                        data: null,
+                        error: 'not found'
+                    });
+
+                return;
+            }
+
+            let idLocations = dataDetail.dataValues.detail_opname.map(({dataValues}) => {
                 return dataValues.location_id;
             })
 
@@ -50,7 +62,7 @@ class StockOpnameController {
                     error: null
                 })
         } catch (error) {
-            await errorLog('RETRIEVE DETAIL OPNAME', error.message)
+            await errorLog('RETRIEVE DETAIL OPNAME', `PARAMETER: ${req.params.opname_code} | error: ${error.message}`)
 
             res.status(400)
                 .json({
@@ -60,25 +72,6 @@ class StockOpnameController {
                     error: error.message
                 })
         }
-        // OpnameService.retrieveDetailOpname(req.params.opname_code)
-        // .then(result => {
-        //     res.status(200)
-        //         .json({
-        //             status: 'success',
-        //             message: 'ok',
-        //             data: result,
-        //             error: null
-        //         })
-        // })
-        // .catch(err => {
-        //     res.status(400)
-        //         .json({
-        //             status: 'failed',
-        //             message: 'error',
-        //             data: null,
-        //             error: err.message
-        //         })
-        // })
     }
 
     store = (req, res) => {
@@ -158,12 +151,12 @@ class StockOpnameController {
     serialOpname = (req, res) => {
         OpnameService.retrieveSerialOpname(req.params.somd_oid)
         .then(result => {
-            res.status(200)
+            res.status((result.length != 0) ? 200 : 404)
                 .json({
-                    status: 'success',
-                    message: 'ok',
-                    data: result,
-                    error: null
+                    status: (result.length != 0) ? 'success' : 'not found!',
+                    message: (result.length != 0) ? 'ok' : 'not found',
+                    data: (result.length != 0) ? result.length != 0 : null,
+                    error: (result.length != 0) ? null : 'not found'
                 })
         })
         .catch(err => {
