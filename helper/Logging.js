@@ -1,6 +1,6 @@
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
-const {messageSend} = require('./TelegramBot');
+const {messageSend, importantMessageSend} = require('./TelegramBot');
 
 class Logging {
     Logger = winston.createLogger({
@@ -43,6 +43,12 @@ class Logging {
 
     info = (feature, message, data) => {
         this.Logger.info({feature, message, data});
+    }
+
+    important = async (message) => {
+        this.Logger.info({message});
+
+        await importantMessageSend(message);
     }
 
     error = async (feature, message) => {

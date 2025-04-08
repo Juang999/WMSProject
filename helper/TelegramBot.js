@@ -12,6 +12,15 @@ class TelegramBot {
         await this.botSetting(dataMessage);
     }
 
+    importantMessageSend = async (message) => {
+        const waktu = moment().format('YYYY-MM-DD HH:mm:ss');
+        const {NODE_ENV: stage, APP_NAME: appName} = config.parsed;
+
+        let dataMessage = `--=[ ${appName} ]=--\nStage: ${stage}\nTanggal & Waktu: ${waktu}\n\nmessage: ${message}`
+
+        await this.botSetting(dataMessage);
+    }
+
     botSetting = async (message) => {
         let {parsed: dataEnv} = config;
 
