@@ -35,7 +35,7 @@ class StockOpnameController {
     }
     
     getProductOpname = (req, res) => {
-        let location_id = (req.params.location_id == 0 || req.params.location_id == ':location_id') ? null : req.params.location_id;
+        let location_id = (req.params.location_id == 0 || isNaN(parseInt(req.params.location_id))) ? null : req.params.location_id;
         let search = (req.query.search) ? req.query.search : '';
 
         ProductService.getSimpleDataProduct(req.params.entity_id, location_id, search)
