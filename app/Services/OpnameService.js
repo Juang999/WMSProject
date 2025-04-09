@@ -310,10 +310,54 @@ class OpnameService {
         return result;
     }
 
-    createDetailOpname = async (data, transaction) => {
-        await SomdDet.bulkCreate(data, {
-            transaction
+    // createDetailOpname = async (data, transaction) => {
+    //     await SomdDet.bulkCreate(data, {
+    //         transaction
+    //     });
+    // }
+
+    retrieveSerial = async (location_id, product_id) => {
+        let condition;
+
+        if (location_id != null && product_id != null) {
+            condition = {
+                invcd_loc_id: location_id,
+                invcd_pt_id: product_id
+            }
+        } else if (location_id != null && product_id == null) {
+            condition = {
+                invcd_loc_id: location_id
+            }
+        } else if (location_id == null && product_id != null) {
+            condition = {
+                invcd_pt_id: product_id
+            }
+        }
+
+        let result = await InvcdDet.findAll({
+            attributes: [
+                [Sequelize.col(`"product"."pt_id"`), 'product_id'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
+                [Sequelize.literal(`CASE WHEN invcd_qrbarcode IS NOT NULL THEN invcd_qrbarcode ELSE invcd_alias_qrbarcode END`), 'uniq'],
+                [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'status']
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }
+            ],
+            where: condition
         });
+
+        return result;
     }
 }
 
