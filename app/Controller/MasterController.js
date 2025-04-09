@@ -3,13 +3,14 @@ const {Op} = require('sequelize')
 
 // model
 const {
-	EnMstr, LocMstr, 
+	LocMstr, 
 	AcMstr, CodeMstr, 
 	PtnrMstr, SiMstr, 
 	PtnrgGrp, Sequelize
 } = require('../../models')
 
 const {MasterService} = require('../Services/ServiceContainer');
+const {info, error: errorLog} = require('../../helper/Logging');
 
 /*
 * MasterController is simillar with SublocationController, the different is
@@ -57,6 +58,30 @@ class MasterController {
 				.json({
 					status: 'failed',
 					message: 'failed to get entity',
+					error: err.message
+				})
+		})
+	}
+
+	getCategory = (req, res) => {
+		MasterService.getCategory()
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			errorLog('GET CATEGORY', err.message)
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
 					error: err.message
 				})
 		})

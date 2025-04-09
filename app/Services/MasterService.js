@@ -1,4 +1,4 @@
-const {EnMstr} = require('../../models');
+const {EnMstr, PtCatMstr} = require('../../models');
 const {Op} = require('sequelize');
 
 class MasterService {
@@ -10,6 +10,14 @@ class MasterService {
                     [Op.not]: 0
                 }
             }
+        })
+
+        return result;
+    }
+
+    getCategory = async () => {
+        let result = await PtCatMstr.findAll({
+            attributes: ['ptcat_id', 'ptcat_desc'],
         })
 
         return result;

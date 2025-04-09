@@ -1,4 +1,4 @@
-const {PtMstr, InvcMstr, Sequelize} = require('../../models');
+const {PtMstr, InvcMstr, PtCatMstr, Sequelize} = require('../../models');
 const {Op} = require('sequelize');
 
 class ProductService {
@@ -17,7 +17,8 @@ class ProductService {
     }
 
     getSimpleDataProduct = async (entity_id, location_id, search) => {
-        let loc_id = (location_id == null) ? 'IS NOT NULL' : '=' + location_id;
+        let subQuery = (location_id == null) ? `(SELECT invc_pt_id FROM public.invc_mstr WHERE invc_loc_id IS NOT NULL)` 
+                                            : `(SELECT invc_pt_id FROM public.invc_mstr WHERE invc_loc_id = :location_id)`;
 
         let result = await PtMstr.findAll({
             attributes: [
@@ -39,13 +40,18 @@ class ProductService {
                     [Op.iLike]: `%${search}%`
                 },
                 pt_id: {
-                    [Op.in]: Sequelize.literal(`(SELECT invc_pt_id FROM public.invc_mstr WHERE invc_loc_id $1)`)
+                    [Op.in]: Sequelize.literal(subQuery)
                 }
             },
-            bind: [loc_id],
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
+            replacements: {location_id}
+        })
+
+        return result;
+    }
+
+    getDataCategory = async () => {
+        let result = await PtCatMstr.findAll({
+            attributes: ['ptcat_id', 'ptcat_desc'],
         })
 
         return result;

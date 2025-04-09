@@ -8,6 +8,6 @@ router.post('/create', store);
 router.get('/:opname_code/detail', detail);
 router.get('/:somd_oid/serial', serialOpname);
 router.get('/:entity_id/location', getLocationOpname);
-// router.get('/:entity_id/entity/:location_id/location/product', getProductOpname);
+router.get('/:entity_id/entity/:location_id/location/product', getProductOpname);
 
 module.exports = router;
