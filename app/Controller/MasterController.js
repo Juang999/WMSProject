@@ -9,6 +9,8 @@ const {
 	PtnrgGrp, Sequelize
 } = require('../../models')
 
+const {MasterService} = require('../Services/ServiceContainer');
+
 /*
 * MasterController is simillar with SublocationController, the different is
 * MasterController only accomodate method that don't need CREATE, UPDATE,
@@ -41,15 +43,7 @@ class MasterController {
 	}
 
 	getEntity = (req, res) => {
-		EnMstr.findAll({
-			attributes: ['en_id', 'en_desc'],
-			where: {
-				en_id: {
-					[Op.not]: 0
-				}
-			},
-			order: [['en_id', 'asc']]
-		})
+		MasterService.getEntity()
 		.then(result => {
 			res.status(200)
 				.json({

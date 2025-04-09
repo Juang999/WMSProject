@@ -31,7 +31,10 @@ class UserController {
 
 			res.status(200)
 				.json({
-					token: token
+					status: 'success',
+					message: 'ok',
+					token: token,
+					error: null
 				})
 		} catch (error) {
 			res.status(400)

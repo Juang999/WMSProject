@@ -1,11 +1,13 @@
 const {Router} = require('express');
 const router = Router();
 const {authenticate} = require('../app/Middleware/middleware');
-const {index, detail, store, serialOpname} = require('../app/Controller/StockOpnameController');
+const {getLocationOpname, getProductOpname, index, detail, store, serialOpname} = require('../app/Controller/StockOpnameController');
 
 router.get('/', index);
 router.post('/create', store);
 router.get('/:opname_code/detail', detail);
 router.get('/:somd_oid/serial', serialOpname);
+router.get('/:entity_id/location', getLocationOpname);
+// router.get('/:entity_id/entity/:location_id/location/product', getProductOpname);
 
 module.exports = router;

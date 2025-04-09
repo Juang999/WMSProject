@@ -284,6 +284,37 @@ class OpnameService {
 
         return result;
     }
+
+    createHeaderOpname = async (body, user, transaction) => {
+        let result = await SomMstr.create({
+            som_oid: uuidv4(),
+            som_en_id: body.entity_id,
+            som_date: moment().format('YYYY-MM-DD'),
+            som_code: '-',
+            som_loc_id: body.location_id,
+            som_group_code: body.group_code,
+            som_pt_id: body.product_id,
+            som_user_id: user.userid,
+            som_remarks: body.remarks,
+            som_status: 'Draft',
+            som_qty_ttl: 0,
+            som_created_by: user.usernama,
+            som_created_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            som_year: moment().format('YYYY'),
+            som_start_date: body.start_date,
+            som_end_date: body.end_date,
+        }, {
+            transaction
+        });
+
+        return result;
+    }
+
+    createDetailOpname = async (data, transaction) => {
+        await SomdDet.bulkCreate(data, {
+            transaction
+        });
+    }
 }
 
 module.exports = new OpnameService();

@@ -64,6 +64,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'en_id',
         foreignKey: 'pt_en_id'
       })
+
+      PtMstr.hasOne(models.InvcMstr, {
+        as: 'singular_inventory_control',
+        sourceKey: 'pt_id',
+        foreignKey: 'invc_pt_id'
+      })
     }
   }
   PtMstr.init({

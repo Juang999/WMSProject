@@ -8,6 +8,59 @@ const {
 const {info, error: errorLog} = require('../../helper/Logging');
 
 class StockOpnameController {
+    getLocationOpname = (req, res) => {
+        let search = (req.query.search) ? req.query.search : '';
+
+        LocationService.getSimpleDataLocation(req.params.entity_id, search)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            errorLog('GET LOCATION OPNAME', err.message);
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+    
+    getProductOpname = (req, res) => {
+        let location_id = (req.params.location_id == 0) ? null : req.params.location_id;
+        let search = (req.query.search) ? req.query.search : '';
+
+        ProductService.getSimpleDataProduct(req.params.entity_id, location_id, search)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            errorLog('GET PRODUCT OPNAME', err.message);
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     index = (req, res) => {
         OpnameService.retrieveDataOpname()
         .then(result => {
@@ -52,7 +105,7 @@ class StockOpnameController {
                 return dataValues.location_id;
             })
 
-            dataDetail.locations = await LocationService.findLocations(idLocations);
+            dataDetail.dataValues.locations = await LocationService.findLocations(idLocations);
 
             res.status(200)
                 .json({
