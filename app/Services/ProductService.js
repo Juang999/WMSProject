@@ -17,8 +17,8 @@ class ProductService {
     }
 
     getSimpleDataProduct = async (entity_id, location_id, search) => {
-        let subQuery = (location_id == null) ? `(SELECT invc_pt_id FROM public.invc_mstr WHERE invc_loc_id IS NOT NULL)` 
-                                            : `(SELECT invc_pt_id FROM public.invc_mstr WHERE invc_loc_id = :location_id)`;
+        let locationIdClause = (location_id == null) ? {[Op.not]: null} 
+                                            : {[Op.eq]: location_id};
 
         let result = await PtMstr.findAll({
             attributes: [
@@ -31,7 +31,10 @@ class ProductService {
                 {
                     model: InvcMstr,
                     as: 'singular_inventory_control',
-                    attributes: []
+                    attributes: [],
+                    where: {
+                        invc_loc_id: locationIdClause
+                    }
                 }
             ],
             where: {
@@ -39,19 +42,8 @@ class ProductService {
                 pt_desc1: {
                     [Op.iLike]: `%${search}%`
                 },
-                pt_id: {
-                    [Op.in]: Sequelize.literal(subQuery)
-                }
             },
             replacements: {location_id}
-        })
-
-        return result;
-    }
-
-    getDataCategory = async () => {
-        let result = await PtCatMstr.findAll({
-            attributes: ['ptcat_id', 'ptcat_desc'],
         })
 
         return result;
