@@ -42,8 +42,7 @@ class ProductService {
                 pt_desc1: {
                     [Op.iLike]: `%${search}%`
                 },
-            },
-            replacements: {location_id}
+            }
         })
 
         return result;
