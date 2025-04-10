@@ -1,4 +1,4 @@
-const {ShipmentService, LocationService} = require('../Services/ServiceContainer');
+const {ShipmentService, SalesOrderService, LocationService} = require('../Services/ServiceContainer');
 const {info, error: errorLog} = require('../../helper/Logging');
 
 class SoShipmentController {
@@ -41,8 +41,47 @@ class SoShipmentController {
         }
     }
 
+    detailSalesOrder = async (req, res) => {
+        try {
+            let dataSalesOrder = await SalesOrderService.getDetailSalesOrder(req.params.sales_order_code);
+
+            if (dataSalesOrder == undefined) {
+                res.status(404)
+                    .json({
+                        status: 'not found',
+                        message: 'not found',
+                        data: null,
+                        error: null
+                    })
+
+                return 
+            }
+
+            let idsLocation = [...new Set(dataSalesOrder.dataValues.detail_sales_order.map(({dataValues: dataDetail}) => dataDetail.location_id))];
+            dataSalesOrder.dataValues.locations = await LocationService.findLocations(idsLocation);
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: dataSalesOrder,
+                    error: null
+                })
+        } catch (error) {
+            await errorLog('GET DETAIL SALES ORDER', error.message);
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
+    }
+
     shipSerial = (req, res) => {
-        
+        console.info(req.body.soshipd_oid);
     }
 
     detailSerial = async (req, res) => {
