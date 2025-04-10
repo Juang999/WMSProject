@@ -1,7 +1,7 @@
-const {SoShipMstr, SoMstr, SodDet, PtMstr, PtnrMstr, SoShipdDet, SoShipdsSerial, Sequelize} = require('../../models');
+const {SoShipMstr, SoMstr, LocMstr, SodDet, PtMstr, PtnrMstr, SoShipdDet, SoShipdsSerial, Sequelize} = require('../../models');
 
 class ShipmentService {
-    getDetailSerial = async (shipmentCode) => {
+    getDetailShipment = async (shipmentCode) => {
         let result = await SoShipMstr.findAll({
             attributes: [
                 'soship_oid', 
@@ -60,6 +60,52 @@ class ShipmentService {
             },
             subQuery: false
         })
+
+        return result[0];
+    }
+
+    getDetailSerial = async (detailShipmentOid) => {
+        let result = await SoShipdDet.findAll({
+            attributes: [
+                [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`), 'product_name'],
+                [Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`), 'product_code'],
+            ],
+            include: [
+                {
+                    model: SodDet,
+                    as: 'detail_sales_order',
+                    attributes: [],
+                    include: [
+                        {
+                            model: PtMstr,
+                            as: 'detail_product',
+                            attributes: []
+                        }
+                    ]
+                }, {
+                    model: SoShipdsSerial,
+                    as: 'shipment_serial',
+                    attributes: [
+                        ['soshipds_qrbarcode', 'qrbarcode'],
+                        [Sequelize.literal(`"shipment_serial->serial_location"."loc_desc"`), 'location']
+                    ],
+                    include: [
+                        {
+                            model: LocMstr,
+                            as: 'serial_location',
+                            attributes: []
+                        }
+                    ]
+                }
+            ],
+            where: {
+                soshipd_oid: detailShipmentOid
+            },
+            subQuery: false,
+            logging: (sqlCommand) => {
+                console.info(sqlCommand)
+            }
+        });
 
         return result[0];
     }

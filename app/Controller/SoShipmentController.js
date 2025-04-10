@@ -4,8 +4,8 @@ const {info, error: errorLog} = require('../../helper/Logging');
 class SoShipmentController {
     detail = async (req, res) => {
         try {
-            let dataShipment = await ShipmentService.getDetailSerial(req.params.shipment_code);
-            
+            let dataShipment = await ShipmentService.getDetailShipment(req.params.shipment_code);
+
             if (dataShipment == undefined) {
                 res.status(404)
                     .json({
@@ -39,6 +39,33 @@ class SoShipmentController {
                     error: error.message
                 })
         }
+    }
+
+    shipSerial = (req, res) => {
+        
+    }
+
+    detailSerial = async (req, res) => {
+        ShipmentService.getDetailSerial(req.params.detail_shipment_oid)
+        .then(result => {
+            let code = (result != undefined) ? 200 : 404;
+            let status = (result != undefined) ? 'succes' : 'not found';
+            let message = (result != undefined) ? 'ok' : 'not found';
+            let data = (result != undefined) ? result : null;
+
+            res.status(code).json({status, message, data, error: null})
+        })
+        .catch(err => {
+            errorLog('SHIPMENT DETAIL SERIAL', err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
     }
 }
 

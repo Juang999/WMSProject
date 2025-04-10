@@ -11,10 +11,18 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      SoShipdsSerial.belongsTo(models.LocMstr, {
+        as: 'serial_location',
+        targetKey: 'loc_id',
+        foreignKey: 'soshipds_loc_id'
+      })
     }
   }
   SoShipdsSerial.init({
-    soshipds_oid: DataTypes.UUID,
+    soshipds_oid: {
+      type: DataTypes.UUID,
+      primaryKey: true
+    },
     soshipds_soshipd_oid: DataTypes.UUID,
     soshipds_seq: DataTypes.INTEGER,
     soshipds_qty: DataTypes.INTEGER,
@@ -26,6 +34,9 @@ module.exports = (sequelize, DataTypes) => {
     soshipds_qrbarcode: DataTypes.STRING
   }, {
     sequelize,
+    schema: 'public',
+    tableName: 'soshipds_serial',
+    timestamps: false,
     modelName: 'SoShipdsSerial',
   });
   return SoShipdsSerial;
