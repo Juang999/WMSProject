@@ -58,10 +58,7 @@ class ShipmentService {
             where: {
                 soship_code: shipmentCode
             },
-            subQuery: false,
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
+            subQuery: false
         })
 
         return result[0];
