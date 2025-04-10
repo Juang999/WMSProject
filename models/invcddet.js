@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'pt_id',
         foreignKey: 'invcd_pt_id'
       })
+
+      InvcdDet.belongsTo(models.LocMstr, {
+        as: 'location',
+        targetKey: 'loc_id',
+        foreignKey: 'invcd_loc_id'
+      })
     }
   }
   InvcdDet.init({

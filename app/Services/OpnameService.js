@@ -242,6 +242,7 @@ class OpnameService {
             invcd_qty: 1,
             invcd_loc_id: locId,
             invcd_qty_old: 0,
+            invcd_is_verified: 'Y',
             invcd_add_by: 'system',
             invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss')
         }, {
@@ -285,7 +286,7 @@ class OpnameService {
         return result;
     }
 
-    createHeaderOpname = async (body, user, transaction) => {
+    storeHeaderOpname = async (body, user, transaction) => {
         let result = await SomMstr.create({
             som_oid: uuidv4(),
             som_en_id: body.entity_id,
@@ -310,11 +311,11 @@ class OpnameService {
         return result;
     }
 
-    // createDetailOpname = async (data, transaction) => {
-    //     await SomdDet.bulkCreate(data, {
-    //         transaction
-    //     });
-    // }
+    storeDetailOpname = async (data, transaction) => {
+        await SomdDet.bulkCreate(data, {
+            transaction
+        });
+    }
 
     retrieveSerial = async (location_id, product_id) => {
         let condition;

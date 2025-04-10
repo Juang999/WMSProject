@@ -61,6 +61,33 @@ class StockOpnameController {
         })
     }
 
+    getSerialOpname = (req, res) => {
+        let location_id = (req.params.location_id == 0 || isNaN(parseInt(req.params.location_id))) ? null : req.params.location_id;
+        let product_id = (req.params.product_id == 0 || isNaN(parseInt(req.params.product_id))) ? null : req.params.product_id;
+
+        OpnameService.retrieveSerial(location_id, product_id)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                });
+        })
+        .catch(err => {
+            errorLog('GET SERIAL OPNAME', err.message);
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                });
+        })
+    }
+
     index = (req, res) => {
         OpnameService.retrieveDataOpname()
         .then(result => {
@@ -140,6 +167,18 @@ class StockOpnameController {
                 OpnameService.findSerialNumber(uniq, partnumber, t),
                 OpnameService.findDetailOpname(som_oid, partnumber, location_id)
             ])
+
+            if (detailOpname == null || dataProduct == null) {
+                return {
+                    statusCode: 300,
+                    response: {
+                        status: 'rejected',
+                        message: 'rejected',
+                        data: null,
+                        error: null
+                    }
+                }
+            }
 
             if (!serialNumber) {
                 await Promise.all([
