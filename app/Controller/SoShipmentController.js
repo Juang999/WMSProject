@@ -88,16 +88,10 @@ class SoShipmentController {
             let [
                 DATA_SERIAL_NUMBER,
                 DATA_SERIAL_IN_SALES_ORDER,
-                DATA_DETAIL_SO,
             ] = await Promise.all([
                 OpnameService.findSerialNumber(serial, product_code, t),
                 SalesOrderService.checkSerialSalesOrder(sod_oid, serial),
-                SalesOrderService.checkDetailSalesOrder(so_oid, product_code),
             ]);
-
-            if (DATA_DETAIL_SO == null) {
-                return this.returnResponse(404, 'not found', 'product with current serial not found', null);
-            }
 
             if (DATA_SERIAL_NUMBER == null) {
                 return this.returnResponse(404, 'not found', 'serial not found', null);
