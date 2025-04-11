@@ -102,7 +102,6 @@ class SoShipmentController {
             }
 
             if (DATA_SERIAL_IN_SALES_ORDER != null) {
-                console.info(DATA_SERIAL_IN_SALES_ORDER)
                 return this.returnResponse(300, 'data already exist', 'series already included in the list', {serial});
             }
 
