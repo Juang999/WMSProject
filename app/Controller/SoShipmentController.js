@@ -122,6 +122,32 @@ class SoShipmentController {
         })
     }
 
+    findProductBySerial = (req, res) => {
+        let {serial, product_code} = req.params;
+
+        OpnameService.findSerialNumber(serial, product_code, null)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            errorLog('FIND PRODUCT BY SERIAL', err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     detailSerial = async (req, res) => {
         ShipmentService.getDetailSerial(req.params.detail_shipment_oid)
         .then(result => {

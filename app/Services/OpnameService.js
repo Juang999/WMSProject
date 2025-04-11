@@ -178,6 +178,7 @@ class OpnameService {
         let result = await InvcdDet.findOne({
             attributes: [
                 [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
+                [Sequelize.col('"product"."pt_code"'), 'product_code'],
                 ['invcd_qrbarcode', 'uniq'],
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
                 ['invcd_qty', 'qty'],
