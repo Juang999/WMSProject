@@ -1,6 +1,7 @@
 const {SoMstr, TransStatus, SodsSerial, PtnrMstr, PtMstr, SodDet, Sequelize} = require('../../models');
 const {v4: uuidv4} = require("uuid");
 const moment = require('moment');
+const {Op} = require('sequelize');
 
 class SalesOrderService {
     getDetailSalesOrder = async (salesOrderCode) => {
@@ -73,6 +74,34 @@ class SalesOrderService {
         })
 
         return result[0];
+    }
+
+    checkDetailSalesOrder = async (so_oid, product_code) => {
+        let result = await SodDet.findOne({
+            attributes: ['sod_pt_id'],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'detail_product',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.col(`"sod_so_oid"`), {
+                        [Op.eq]: so_oid
+                    }),
+                    Sequelize.where(Sequelize.col(`"detail_product"."pt_code"`), {
+                        [Op.eq]: product_code
+                    })
+                ]
+            },
+            logging: (sqlCommand) => {
+                console.info(sqlCommand)
+            }
+        });
+
+        return result;
     }
 
     checkSerialSalesOrder = async (sod_oid, serial) => {

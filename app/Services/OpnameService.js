@@ -212,6 +212,38 @@ class OpnameService {
         return result;
     }
 
+    newFindSerialNumber = async (serialNumber, transaction) => {
+        let result = await InvcdDet.findOne({
+            attributes: [
+                [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
+                [Sequelize.col('"product"."pt_code"'), 'product_code'],
+                ['invcd_qrbarcode', 'uniq'],
+                ['invcd_alias_qrbarcode', 'alias_uniq'],
+                ['invcd_qty', 'qty'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.or]: [
+                    {
+                        invcd_qrbarcode: serialNumber
+                    }, {
+                        invcd_alias_qrbarcode: serialNumber
+                    }
+                ]
+            },
+            order: [['invcd_pt_id', 'ASC']],
+            transaction
+        })
+
+        return result;
+    }
+
     createSerialNumber = async (serialNumber, product, locId, transaction) => {
         let result = await InvcdDet.create({
             invcd_oid: uuidv4(),

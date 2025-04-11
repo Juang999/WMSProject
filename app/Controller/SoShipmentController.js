@@ -82,16 +82,22 @@ class SoShipmentController {
     }
 
     shipSerial = (req, res) => {
-        let {serial, product_code, sod_oid, location_id} = req.body;
+        let {serial, product_code, sod_oid, so_oid, location_id} = req.body;
 
         sequelize.transaction(async t => {
             let [
                 DATA_SERIAL_NUMBER,
-                DATA_SERIAL_IN_SALES_ORDER
+                DATA_SERIAL_IN_SALES_ORDER,
+                DATA_DETAIL_SO,
             ] = await Promise.all([
                 OpnameService.findSerialNumber(serial, product_code, t),
                 SalesOrderService.checkSerialSalesOrder(sod_oid, serial),
-            ])
+                SalesOrderService.checkDetailSalesOrder(so_oid, product_code),
+            ]);
+
+            if (DATA_DETAIL_SO == null) {
+                return this.returnResponse(404, 'not found', 'product with current serial not found', null);
+            }
 
             if (DATA_SERIAL_NUMBER == null) {
                 return this.returnResponse(404, 'not found', 'serial not found', null);
@@ -118,14 +124,22 @@ class SoShipmentController {
                 .json(result.json)
         })
         .catch(err => {
-            errorLog('INPUT SERIAL', err.message)
+            errorLog('INPUT SERIAL', err.message);
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
         })
     }
 
     findProductBySerial = (req, res) => {
-        let {serial, product_code} = req.params;
+        let {serial} = req.params;
 
-        OpnameService.findSerialNumber(serial, product_code, null)
+        OpnameService.newFindSerialNumber(serial, null)
         .then(result => {
             res.status(200)
                 .json({
