@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'loc_id',
         foreignKey: 'so_loc_to_id'
       })
+
+      SoMstr.belongsTo(models.TransStatus, {
+        as: 'status_so',
+        targetKey: 'trans_id',
+        foreignKey: 'so_trans_id'
+      })
     }
   }
   SoMstr.init({

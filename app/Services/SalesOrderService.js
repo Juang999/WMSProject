@@ -1,4 +1,4 @@
-const {SoMstr, SodsSerial, PtnrMstr, PtMstr, SodDet, Sequelize} = require('../../models');
+const {SoMstr, TransStatus, SodsSerial, PtnrMstr, PtMstr, SodDet, Sequelize} = require('../../models');
 const {v4: uuidv4} = require("uuid");
 const moment = require('moment');
 
@@ -14,12 +14,18 @@ class SalesOrderService {
                 ['so_date', 'date'],
                 ['so_booking', 'book'],
                 ['so_cons', 'consigment'],
+                ['so_trans_id', 'trans_id'],
+                [Sequelize.literal(`"status_so"."trans_desc"`), 'status'],
                 ['so_alocated', 'preorder'],
                 ['so_add_by', 'created_by'],
                 ['so_add_date', 'created_date']
             ],
             include: [
                 {
+                    model: TransStatus,
+                    as: 'status_so',
+                    attributes: []
+                }, {
                     model: PtnrMstr,
                     as: 'buyer',
                     attributes: []
@@ -60,7 +66,8 @@ class SalesOrderService {
                 'sold_to',
                 'sod_oid',
                 Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`),
-                Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`)
+                Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`),
+                Sequelize.literal(`"status_so"."trans_desc"`)
             ],
             subQuery: false
         })
