@@ -1,5 +1,6 @@
-const {ShipmentService, SalesOrderService, LocationService} = require('../Services/ServiceContainer');
+const {ShipmentService, SalesOrderService, OpnameService, LocationService} = require('../Services/ServiceContainer');
 const {info, error: errorLog} = require('../../helper/Logging');
+const { sequelize } = require('../../models');
 
 class SoShipmentController {
     detail = async (req, res) => {
@@ -81,7 +82,44 @@ class SoShipmentController {
     }
 
     shipSerial = (req, res) => {
-        console.info(req.body.soshipd_oid);
+        let {serial, product_code, sod_oid, location_id} = req.body;
+
+        sequelize.transaction(async t => {
+            let [
+                DATA_SERIAL_NUMBER,
+                DATA_SERIAL_IN_SALES_ORDER
+            ] = await Promise.all([
+                OpnameService.findSerialNumber(serial, product_code, t),
+                SalesOrderService.checkSerialSalesOrder(sod_oid, serial),
+            ])
+
+            if (DATA_SERIAL_NUMBER == null) {
+                return this.returnResponse(404, 'not found', 'serial not found', null);
+            }
+
+            if (parseInt(DATA_SERIAL_NUMBER.dataValues.qty) == 0) {
+                return this.returnResponse(405, 'not found', 'serial has been shipped', null)
+            }
+
+            if (DATA_SERIAL_IN_SALES_ORDER != null) {
+                return this.returnResponse(300, 'data already exist', 'series already included in the list', {serial});
+            }
+
+            if (DATA_SERIAL_NUMBER.dataValues.uniq == null) {
+                await OpnameService.updateSerialNumber(serial, product_code, location_id, t);
+            }
+
+            let result = await SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, t);
+
+            return this.returnResponse(200, 'success', 'Data is included in the list', result);
+        })
+        .then(result => {
+            res.status(result.responseCode)
+                .json(result.json)
+        })
+        .catch(err => {
+            errorLog('INPUT SERIAL', err.message)
+        })
     }
 
     detailSerial = async (req, res) => {

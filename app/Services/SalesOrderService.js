@@ -1,4 +1,6 @@
 const {SoMstr, SodsSerial, PtnrMstr, PtMstr, SodDet, Sequelize} = require('../../models');
+const {v4: uuidv4} = require("uuid");
+const moment = require('moment');
 
 class SalesOrderService {
     getDetailSalesOrder = async (salesOrderCode) => {
@@ -64,6 +66,50 @@ class SalesOrderService {
         })
 
         return result[0];
+    }
+
+    checkSerialSalesOrder = async (sod_oid, serial) => {
+        let result = await SodsSerial.findOne({
+            attributes: ['sods_oid', 'sods_qty', 'sods_serial'],
+            where: {
+                sods_sod_oid: sod_oid,
+                sods_serial: serial
+            },
+            logging: (sqlCommand) => {
+                console.info(sqlCommand)
+            }
+        })
+
+        return result;
+    }
+
+    insertSerialSalesOrder = async (body, dataSerial, transaction) => {
+        let sequence = await this.totalSerialBySodOid(body.sod_oid);
+
+        let result = await SodsSerial.create({
+            sods_oid: uuidv4(),
+            sods_sod_oid: body.sod_oid,
+            sods_qty: parseInt(dataSerial.qty),
+            sods_loc_id: body.location_id,
+            sods_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+            sods_serial: body.serial,
+            sods_seq: sequence
+        }, {
+            transaction,
+        })
+
+        return result;
+    }
+
+    totalSerialBySodOid = async (sod_oid, transaction) => {
+        let result = await SodsSerial.count({
+            where: {
+                sods_sod_oid: sod_oid
+            },
+            transaction
+        })
+
+        return result + 1;
     }
 }
 

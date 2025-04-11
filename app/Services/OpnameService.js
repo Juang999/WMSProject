@@ -180,6 +180,7 @@ class OpnameService {
                 [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
                 ['invcd_qrbarcode', 'uniq'],
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
+                ['invcd_qty', 'qty'],
             ],
             include: [
                 {
