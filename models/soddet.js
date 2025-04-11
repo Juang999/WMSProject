@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'sod_oid',
         foreignKey: 'pcklsd_sod_oid'
       })
+
+      SodDet.hasOne(models.SodsSerial, {
+        as: 'singular_serial_sales_order',
+        sourceKey: 'sod_oid',
+        foreignKey: 'sods_sod_oid'
+      })
     }
   }
   SodDet.init({

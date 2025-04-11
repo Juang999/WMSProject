@@ -1,4 +1,4 @@
-const {SoMstr, PtnrMstr, PtMstr, SodDet, Sequelize} = require('../../models');
+const {SoMstr, SodsSerial, PtnrMstr, PtMstr, SodDet, Sequelize} = require('../../models');
 
 class SalesOrderService {
     getDetailSalesOrder = async (salesOrderCode) => {
@@ -31,12 +31,17 @@ class SalesOrderService {
                         ['sod_pt_id', 'product_id'],
                         [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`), 'product_name'],
                         [Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`), 'product_code'],
-                        [Sequelize.literal(`CAST(sod_qty AS INTEGER)`), 'qty_open']
+                        [Sequelize.literal(`CAST(sod_qty AS INTEGER)`), 'qty_open'],
+                        [Sequelize.literal(`CASE WHEN SUM("detail_sales_order->singular_serial_sales_order"."sods_qty") IS NULL THEN 0 ELSE SUM("detail_sales_order->singular_serial_sales_order"."sods_qty") END`), 'qty_scanned']
                     ],
                     include: [
                         {
                             model: PtMstr,
                             as: 'detail_product',
+                            attributes: []
+                        }, {
+                            model: SodsSerial,
+                            as: 'singular_serial_sales_order',
                             attributes: []
                         }
                     ]
@@ -45,6 +50,16 @@ class SalesOrderService {
             where: {
                 so_code: salesOrderCode
             },
+            group: [
+                'so_oid',
+                'so_sq_ref_oid',
+                'sales_order_code',
+                'sales_quotation_code',
+                'sold_to',
+                'sod_oid',
+                Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`),
+                Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`)
+            ],
             subQuery: false
         })
 

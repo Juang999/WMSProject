@@ -119,7 +119,7 @@ class OpnameService {
         })
 
         return result[0];
-    }
+    } 
 
     retrieveSerialOpname = async (somdOid) => {
         let result = await SomddDet.findAll({
