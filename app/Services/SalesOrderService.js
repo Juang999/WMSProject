@@ -96,9 +96,6 @@ class SalesOrderService {
                     })
                 ]
             },
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
         });
 
         return result;
@@ -146,6 +143,40 @@ class SalesOrderService {
         })
 
         return result + 1;
+    }
+
+    getSerialProductSalesOrder = async (sodOid) => {
+        let result = await SodDet.findOne({
+            attributes: [
+                [Sequelize.col(`"detail_product"."pt_id"`), 'product_id'],
+                [Sequelize.col(`"detail_product"."pt_desc1"`), 'product_name'],
+                [Sequelize.col(`"detail_product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"header_sales_order"."so_code"`), 'salesorder_code']
+            ],
+            include: [
+                {
+                    model: SoMstr,
+                    as: 'header_sales_order',
+                    attributes: []
+                }, {
+                    model: PtMstr,
+                    as: 'detail_product',
+                    attributes: []
+                }, {
+                    model: SodsSerial,
+                    as: 'serial_sales_order',
+                    attributes: [
+                        ['sods_serial', 'serial']
+                    ]
+                }
+            ],
+            subQuery: false,
+            where: {
+                sod_oid: sodOid
+            },
+        })
+
+        return result;
     }
 }
 
