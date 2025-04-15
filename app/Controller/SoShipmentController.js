@@ -185,7 +185,7 @@ class SoShipmentController {
             let code = (result == null) ? 404 : 200;
             let status = (result == null) ? 'not found' : 'success';
             let message = (result == null) ? 'not found' : 'ok';
-            let data = (result == null) ? result : null;
+            let data = (result == null) ? null : result;
 
             res.status(code).json({status, message, data, error: null})
         })
