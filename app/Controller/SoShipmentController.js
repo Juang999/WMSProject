@@ -182,13 +182,12 @@ class SoShipmentController {
     detailSerialSalesOrder = async (req, res) => {
         SalesOrderService.getSerialProductSalesOrder(req.params.sod_oid)
         .then(result => {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'ok',
-                    data: result,
-                    error: null
-                })
+            let code = (result == null) ? 404 : 200;
+            let status = (result == null) ? 'not found' : 'success';
+            let message = (result == null) ? 'not found' : 'ok';
+            let data = (result == null) ? result : null;
+
+            res.status(code).json({status, message, data, error: null})
         })
         .catch(err => {
             errorLog(`GET DETAIL SERIAL PRODUCT`, err.message);
