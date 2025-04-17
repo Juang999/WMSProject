@@ -161,11 +161,13 @@ class StockOpnameController {
             let [
                 dataProduct, 
                 serialNumber,
-                detailOpname
+                detailOpname,
+                serialOpname
             ] = await Promise.all([
                 ProductService.findProductByPartnumber(partnumber), 
                 OpnameService.findSerialNumber(uniq, partnumber, t),
-                OpnameService.findDetailOpname(som_oid, partnumber, location_id)
+                OpnameService.findDetailOpname(som_oid, partnumber, location_id),
+                OpnameService.findSerialOpname(location_id, partnumber, uniq),
             ])
 
             if (detailOpname == null || dataProduct == null) {
@@ -199,7 +201,7 @@ class StockOpnameController {
             } else if (serialNumber.dataValues.uniq == null) {
                 await Promise.all([
                     OpnameService.updateSerialNumber(uniq, partnumber, location_id, t),
-                    OpnameService.createDetailOpname(detailOpname.dataValues.somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
+                    OpnameService.updateSerialOpname(serialOpname.dataValues.somdd_oid, t)
                 ])
 
                 return {

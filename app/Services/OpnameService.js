@@ -394,6 +394,50 @@ class OpnameService {
 
         return result;
     }
+
+    findSerialOpname = async (locationId, productCode, serial) => {
+        let result = await SomddDet.findOne({
+            attributes: [
+                'somdd_oid',
+                'somdd_pt_id',
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.col(`somdd_loc_id`), {
+                        [Op.eq]: locationId
+                    }),
+                    Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
+                        [Op.eq]: productCode
+                    }),
+                    Sequelize.where(Sequelize.col(`somdd_serial`), {
+                        [Op.eq]: serial
+                    })
+                ]
+            }
+        })
+
+        return result;
+    }
+
+    updateSerialOpname = async (somddOid, transaction) => {
+        await SomddDet.update({
+            somdd_qty_real: 1,
+            somdd_updated_by: 'system',
+            somdd_updated_date: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                somdd_oid: somddOid
+            },
+            transaction
+        })
+    }
 }
 
 module.exports = new OpnameService();
