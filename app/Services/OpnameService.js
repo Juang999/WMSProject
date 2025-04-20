@@ -126,7 +126,9 @@ class OpnameService {
             attributes: [
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 ['somdd_serial', 'uniq'],
-                ['somdd_created_date', 'created_date']
+                ['somdd_created_date', 'created_date'],
+                [Sequelize.literal('CAST(somdd_qty_sys AS INTEGER)'), 'qty_sys'],
+                [Sequelize.literal('CAST(somdd_qty_real AS INTEGER)'), 'qty_real']
             ],
             include: [
                 {
@@ -181,7 +183,7 @@ class OpnameService {
                 [Sequelize.col('"product"."pt_code"'), 'product_code'],
                 ['invcd_qrbarcode', 'uniq'],
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
-                ['invcd_qty', 'qty'],
+                [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
             ],
             include: [
                 {
@@ -275,16 +277,23 @@ class OpnameService {
             invcd_qrbarcode: serialNumber,
             invcd_qty: 1,
             invcd_loc_id: locId,
-            invcd_qty_old: 0,
+            invcd_qty_old: Sequelize.literal(`invcd_qty`),
             invcd_is_verified: 'Y',
             invcd_add_by: 'system',
             invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss')
         }, {
             where: {
-                invcd_pt_id: {
-                    [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${productCode}')`)
-                },
-                invcd_alias_qrbarcode: serialNumber
+                [Op.or]: [
+                    {
+                        invcd_qrbarcode: serialNumber
+                    }, {
+                        invcd_pt_id: {
+                            [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${productCode}')`)
+                        },
+                        invcd_alias_qrbarcode: serialNumber,
+                    }
+                ],
+                invcd_loc_id: locId
             },
             transaction,
             logging: (sqlCommand, {bind}) => {
@@ -304,7 +313,6 @@ class OpnameService {
             somdd_pt_id: productId,
             somdd_loc_id: locId,
             somdd_serial: serialNumber,
-            somdd_qty_sys: 1,
             somdd_qty_real: 1,
             somdd_created_by: 'system',
             somdd_created_date: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -400,6 +408,7 @@ class OpnameService {
             attributes: [
                 'somdd_oid',
                 'somdd_pt_id',
+                [Sequelize.literal(`CAST(somdd_qty_real AS INTEGER)`), 'qty']
             ],
             include: [
                 {

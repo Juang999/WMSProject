@@ -5,7 +5,7 @@ const {
     InventoryService, UserService, 
     ProductService, OpnameService
 } = require('../Services/ServiceContainer');
-const {info, error: errorLog} = require('../../helper/Logging');
+const {info, error: errorLog, errorMinor} = require('../../helper/Logging');
 
 class StockOpnameController {
     getLocationOpname = (req, res) => {
@@ -171,58 +171,48 @@ class StockOpnameController {
             ])
 
             if (detailOpname == null || dataProduct == null) {
-                return {
-                    statusCode: 300,
-                    response: {
-                        status: 'rejected',
-                        message: 'rejected',
-                        data: null,
-                        error: null
-                    }
-                }
+                errorMinor(`INPUT OPNAME`, `DETAIL OPNAME or DATA PRODUCT not found! | partnumber: ${partnumber}`)
+
+                return this.returnResponse(200, 'rejected', 'rejected', null, null)
             }
 
             if (!serialNumber) {
-                await Promise.all([
-                    OpnameService.addQtyOpname(detailOpname.dataValues.somd_oid, t),
-                    OpnameService.createSerialNumber(uniq, dataProduct.dataValues, location_id, t),
-                    OpnameService.createDetailOpname(detailOpname.dataValues.somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
-                ])
+                if (serialOpname) {
+                    await Promise.all([
+                        OpnameService.addQtyOpname(detailOpname.dataValues.somd_oid, t),
+                        OpnameService.createSerialNumber(uniq, dataProduct.dataValues, location_id, t),
+                        OpnameService.updateSerialOpname(serialOpname.dataValues.somdd_oid, t)
+                    ])
+                } else {
+                    await Promise.all([
+                        OpnameService.addQtyOpname(detailOpname.dataValues.somd_oid, t),
+                        OpnameService.createSerialNumber(uniq, dataProduct.dataValues, location_id, t),
+                        OpnameService.createDetailOpname(detailOpname.dataValues.somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
+                    ])
+                }
 
-                return {
-                    statusCode: 200,
-                    response: {
-                        status: 'success',
-                        message: 'serial created!',
-                        data: null,
-                        error: null
+                return this.returnResponse(200, 'success', 'serial created', null, null)
+            } else if (serialNumber.dataValues.uniq == null || (serialNumber.dataValues.uniq == uniq && serialNumber.dataValues.product_code == partnumber)) {
+                if (serialOpname) {
+                    if (serialOpname.dataValues.qty == 0) {
+                        await OpnameService.addQtyOpname(detailOpname.dataValues.somd_oid, t);
                     }
-                }
-            } else if (serialNumber.dataValues.uniq == null) {
-                await Promise.all([
-                    OpnameService.updateSerialNumber(uniq, partnumber, location_id, t),
-                    OpnameService.updateSerialOpname(serialOpname.dataValues.somdd_oid, t)
-                ])
 
-                return {
-                    statusCode: 200,
-                    response: {
-                        status: 'success',
-                        message: 'serial created!',
-                        data: null,
-                        error: null
-                    }
+                    await Promise.all([
+                        OpnameService.updateSerialNumber(uniq, partnumber, location_id, t),
+                        OpnameService.updateSerialOpname(serialOpname.dataValues.somdd_oid, t)
+                    ])
+                } else {
+                    await Promise.all([
+                        OpnameService.addQtyOpname(detailOpname.dataValues.somd_oid, t),
+                        OpnameService.updateSerialNumber(uniq, partnumber, location_id, t),
+                        OpnameService.createDetailOpname(detailOpname.dataValues.somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
+                    ])
                 }
-            } else {
-                return {
-                    statusCode: 300,
-                    response: {
-                        status: 'failed',
-                        message: 'serial already exist!',
-                        data: null,
-                        error: null
-                    }
-                }
+
+                return this.returnResponse(200, 'success', 'serial created', null, null)
+            } else if ((serialNumber.dataValues.uniq == uniq && serialNumber.dataValues.product_code != partnumber)) {
+                return this.returnResponse(300, 'failed', 'serial already used with another partnumber', null, null)
             }
         })
         .then(result => {
@@ -264,6 +254,13 @@ class StockOpnameController {
                     error: err.message
                 })
         })
+    }
+
+    returnResponse = (statusCode, status, message, data, error) => {
+        return {
+            statusCode,
+            response: {status, message, data, error}
+        }
     }
 }
 

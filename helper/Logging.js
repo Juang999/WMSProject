@@ -56,6 +56,10 @@ class Logging {
 
         this.LoggerError.error({feature, message, data: 0});
     }
+
+    errorMinor = (feature, message) => {
+        this.LoggerError.error({feature, message, data: 0});
+    }
 }
 
 module.exports = new Logging();
