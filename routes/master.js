@@ -9,5 +9,6 @@ router.get('/partner', MasterController.getPartner);
 router.get('/location', MasterController.getLocation);
 router.get('/category', MasterController.getCategory);
 router.get('/sublocation-type', MasterController.getSublocationType);
+router.get('/:location_id/sub-location', MasterController.getSublocation);
 
 module.exports = router

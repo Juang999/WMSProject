@@ -45,6 +45,7 @@ app.use('/stock-opname', stockOpnameRouter);
 app.use('/move-location', moveLocationRouter);
 app.use('/purchase-order', purchaseOrderRouter);
 app.use('/so-ship', require('./routes/soship'));
+app.use('/putting', require('./routes/putting'));
 app.use('/inventory-receipt', inventoryReceiptRouter);
 
 // catch 404 and forward to error handler

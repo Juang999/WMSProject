@@ -172,6 +172,31 @@ class MasterController {
 		})
 	}
 
+	getSublocation = (req, res) => {
+		let locId = req.params.location_id;
+		let search = (req.query.search) ? req.query.search : '';
+
+		MasterService.getSublocation(locId, search)
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					dataa: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
 	getSublocationType = (req, res) => {
 		CodeMstr.findAll({
 			attributes: ['code_id', 'code_field', 'code_name'],
