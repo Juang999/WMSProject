@@ -123,7 +123,9 @@ class OpnameService {
 
     retrieveSerialOpname = async (somdOid) => {
         let result = await SomddDet.findAll({
-            attributes: [
+        attributes: [
+                ['somdd_somd_oid', 'somd_oid'],
+                'somdd_oid',
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 ['somdd_serial', 'uniq'],
                 ['somdd_created_date', 'created_date'],
@@ -151,6 +153,24 @@ class OpnameService {
         }, {
             where: {
                 somd_oid: somdOid
+            },
+            transaction,
+            logging: (sqlCommand, {bind}) => {
+                let realSql = sqlCommand.split(': ')[1]
+
+                Query.insert(realSql, bind)
+            }
+        })
+    }
+
+    subtractQtyOpname = async (somddOid, transaction) => {
+        await SomdDet.update({
+            somd_qty_real: Sequelize.literal(`CAST(somd_qty_real AS INTEGER) - 1`)
+        }, {
+            where: {
+                somd_oid: {
+                    [Op.eq]: Sequelize.literal(`(SELECT somdd_somd_oid FROM public.somdd_det WHERE somdd_oid = '${somddOid}')`)
+                }
             },
             transaction,
             logging: (sqlCommand, {bind}) => {
@@ -445,6 +465,20 @@ class OpnameService {
                 somdd_oid: somddOid
             },
             transaction
+        })
+    }
+
+    deleteSerialOpname = async (somddOid, transaction) => {
+        await SomddDet.destroy({
+            where: {
+                somdd_oid: somddOid
+            },
+            transaction,
+            logging: (sqlCommand) => {
+                let realSql = sqlCommand.split(': ')[1];
+
+                Query.delete(realSql);
+            }
         })
     }
 }

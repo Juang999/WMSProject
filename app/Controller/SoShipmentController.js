@@ -202,6 +202,30 @@ class SoShipmentController {
         })
     }
 
+    deleteSerialSalesOrder = async (req, res) => {
+        let sods_oid = req.params.serial_oid;
+
+        SalesOrderService.deleteSerialShipment(sods_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'deleted',
+                    data: 1,
+                    error: null
+                })
+        })
+        .catch(err => {
+            req.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     returnResponse = (code, status, message, data) => {
         return {
             responseCode: code,

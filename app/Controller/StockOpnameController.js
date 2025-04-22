@@ -256,6 +256,34 @@ class StockOpnameController {
         })
     }
 
+    deleteSerial = (req, res) => {
+        let somddOid = req.params.somdd_oid;
+
+        sequelize.transaction(async t => {
+            await Promise.all([
+                OpnameService.subtractQtyOpname(somddOid, t),
+                OpnameService.deleteSerialOpname(somddOid, t)
+            ])
+
+            return this.returnResponse(200, 'success', 'deleted!', 1, null)
+        })
+        .then(result => {
+            res.status(result.statusCode)
+                .json(result.response)
+        })
+        .catch(err => {
+            errorLog('DELETE SERIAL WHILE STOCK OPNAME', err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    messag: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     returnResponse = (statusCode, status, message, data, error) => {
         return {
             statusCode,

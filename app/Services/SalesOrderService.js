@@ -2,6 +2,7 @@ const {SoMstr, TransStatus, SodsSerial, PtnrMstr, PtMstr, SodDet, Sequelize} = r
 const {v4: uuidv4} = require("uuid");
 const moment = require('moment');
 const {Op} = require('sequelize');
+const Query = require('../../helper/Query');
 
 class SalesOrderService {
     getDetailSalesOrder = async (salesOrderCode) => {
@@ -57,7 +58,8 @@ class SalesOrderService {
                 }
             ],
             where: {
-                so_code: salesOrderCode
+                so_code: salesOrderCode,
+                so_trans_id: 'W'
             },
             group: [
                 'so_oid',
@@ -166,6 +168,7 @@ class SalesOrderService {
                     model: SodsSerial,
                     as: 'serial_sales_order',
                     attributes: [
+                        'sods_oid',
                         ['sods_serial', 'serial']
                     ]
                 }
@@ -177,6 +180,19 @@ class SalesOrderService {
         })
 
         return result;
+    }
+
+    deleteSerialShipment = async (sodsOid) => {
+        await SodsSerial.destroy({
+            where: {
+                sods_oid: sodsOid
+            },
+            logging: (sqlCommand) => {
+                let realSql = sqlCommand.split(': ')[1];
+
+                Query.delete(realSql)
+            }
+        })
     }
 }
 
