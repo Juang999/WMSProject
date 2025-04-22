@@ -12,6 +12,7 @@ class PuttingService {
             invcd_pt_id: body.pt_id,
             invcd_qrbarcode: body.qrbarcode,
             invcd_qty: 1,
+            invcd_loc_id: body.loc_id,
             invcd_locs_id: body.locs_id,
             invcd_um: 9964,
             invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),

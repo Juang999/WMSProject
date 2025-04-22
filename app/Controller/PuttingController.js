@@ -12,6 +12,10 @@ class PuttingController {
                 PuttingService.getTotalSerialInSublocation(req.body.sublocation_id),
             ]);
 
+            if (parseInt(req.body.entity_id) != dataProduct.dataValues.pt_en_id) {
+                return this.returnResponse(300, 'rejected', 'cannot input article with another entity!', null, null)
+            }
+
             if (dataTotalQtySublocation >= dataCapSublocation.dataValues.capacity) {
                 return this.returnResponse(300, 'rejected', 'sublocation already full', null, null)
             }
