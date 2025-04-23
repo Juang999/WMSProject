@@ -78,6 +78,30 @@ class PuttingController {
     returnResponse = (statusCode, status, message, data, error) => {
         return {statusCode, json: {status, message, data, error}}
     }
+
+    deleteDataSerial = (req, res) => {
+        PuttingService.deleteSerial(req.params.invcd_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'deleted!',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            errorLog(`DELETE SERIAL`, err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new PuttingController();

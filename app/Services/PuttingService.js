@@ -2,6 +2,7 @@ const {InvcdDet, LocsMstr, PtMstr, Sequelize} = require('../../models');
 const {v4: uuidV4} = require('uuid');
 const moment = require('moment');
 const {Op} = require('sequelize');
+const Query = require('../../helper/Query');
 
 class PuttingService {
     putProductIntoSubLocation = async (body, transaction) => {
@@ -77,6 +78,21 @@ class PuttingService {
         })
 
         return result;
+    }
+
+    deleteSerial = async (invcdOid) => {
+        await InvcdDet.destroy({
+            where: {
+                invcd_oid: invcdOid
+            },
+            logging: (sqlCommand) => {
+                let realSql = sqlCommand.split(": ")[1];
+
+                Query.delete(realSql);
+            }
+        })
+
+        return 1;
     }
 }
 
