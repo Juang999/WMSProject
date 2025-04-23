@@ -1,4 +1,4 @@
-const {InvcdDet, LocsMstr} = require('../../models');
+const {InvcdDet, LocsMstr, PtMstr, Sequelize} = require('../../models');
 const {v4: uuidV4} = require('uuid');
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -44,6 +44,34 @@ class PuttingService {
             where: {
                 invcd_locs_id: locsId,
                 invcd_qty: 1
+            }
+        })
+
+        return result;
+    }
+
+    getDataSerialBySubLocation = async (subLocId) => {
+        let result = await InvcdDet.findAndCountAll({
+            attributes: [
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                ['invcd_qrbarcode', 'uniq'],
+                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation'],
+                [Sequelize.literal(`CAST(invcd_qty AS INTEGER)`), 'qty'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcd_locs_id: subLocId
             }
         })
 

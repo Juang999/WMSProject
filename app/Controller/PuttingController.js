@@ -3,6 +3,30 @@ const {error: errorLog} = require('../../helper/Logging');
 const {sequelize} = require('../../models');
 
 class PuttingController {
+    index = (req, res) => {
+        PuttingService.getDataSerialBySubLocation(req.params.sublocation_id)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            errorLog('GET DATA SERIAL BY SUBLOCATION', err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     store = async (req, res) => {
         sequelize.transaction(async t => {
             const [dataProduct, dataSerial, dataCapSublocation, dataTotalQtySublocation] = await Promise.all([
