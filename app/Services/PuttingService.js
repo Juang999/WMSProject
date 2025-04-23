@@ -53,6 +53,7 @@ class PuttingService {
     getDataSerialBySubLocation = async (subLocId) => {
         let result = await InvcdDet.findAndCountAll({
             attributes: [
+                'invcd_oid',
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 ['invcd_qrbarcode', 'uniq'],
