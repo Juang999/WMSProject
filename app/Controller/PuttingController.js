@@ -36,6 +36,10 @@ class PuttingController {
                 PuttingService.getTotalSerialInSublocation(req.body.sublocation_id),
             ]);
 
+            if (!dataProduct) {
+                return this.returnResponse(404, 'not found', `product not found!: partnumber: ${req.body.partnumber}`, null, null)
+            }
+
             if (parseInt(req.body.entity_id) != dataProduct.dataValues.pt_en_id) {
                 return this.returnResponse(300, 'rejected', 'cannot input article with another entity!', null, null)
             }
@@ -44,17 +48,22 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', 'sublocation already full', null, null)
             }
 
-            if (dataSerial) {
-                return this.returnResponse(300, 'rejected', 'serial already exist', null, null)
+            if (dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != req.body.partnumber) {
+                return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
-            await PuttingService.putProductIntoSubLocation({
-                en_id: dataProduct.dataValues.pt_en_id,
-                pt_id: dataProduct.dataValues.pt_id,
-                qrbarcode: req.body.uniq,
-                loc_id: req.body.location_id,
-                locs_id: req.body.sublocation_id
-            }, t);
+            if (dataSerial) {
+                await PuttingService.updateSerial(dataSerial.dataValues.invcd_oid, req.body.uniq, req.body.sublocation_id, t)
+            } else {
+                await PuttingService.putProductIntoSubLocation({
+                    en_id: dataProduct.dataValues.pt_en_id,
+                    pt_id: dataProduct.dataValues.pt_id,
+                    qrbarcode: req.body.uniq,
+                    loc_id: req.body.location_id,
+                    locs_id: req.body.sublocation_id
+                }, t);
+            }
+
 
             return this.returnResponse(200, 'success', 'ok', null, null)
         })

@@ -199,6 +199,7 @@ class OpnameService {
     findSerialNumber = async (serialNumber, productCode, transaction) => {
         let result = await InvcdDet.findOne({
             attributes: [
+                'invcd_oid',
                 [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
                 [Sequelize.col('"product"."pt_code"'), 'product_code'],
                 ['invcd_qrbarcode', 'uniq'],

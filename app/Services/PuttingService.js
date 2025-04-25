@@ -94,6 +94,20 @@ class PuttingService {
 
         return 1;
     }
+
+    updateSerial = async (invcdOid, serialNumber, subLocation, transaction) => {
+        await InvcdDet.update({
+            invcd_locs_id: subLocation,
+            invcd_qrbarcode: serialNumber,
+            invcd_upd_by: 'system',
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                invcd_oid: invcdOid
+            },
+            transaction
+        })
+    }
 }
 
 module.exports = new PuttingService();

@@ -59,7 +59,7 @@ class SalesOrderService {
             ],
             where: {
                 so_code: salesOrderCode,
-                so_trans_id: 'W'
+                // so_trans_id: 'W'
             },
             group: [
                 'so_oid',
