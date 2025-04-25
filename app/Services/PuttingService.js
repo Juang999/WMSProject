@@ -47,7 +47,7 @@ class PuttingService {
                 [Sequelize.col(`"product"."pt_id"`), 'product_id'],
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
-                [Sequelize.literal(`CAST(SUM("invcd_qty") AS INTEGER)`), 'product_name'],
+                [Sequelize.literal(`CAST(SUM("invcd_qty") AS INTEGER)`), 'qty'],
             ],
             include: [
                 {
