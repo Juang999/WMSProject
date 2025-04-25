@@ -36,8 +36,12 @@ class PuttingController {
                 PuttingService.getTotalSerialInSublocation(req.body.sublocation_id),
             ]);
 
-            if (!dataProduct) {
+            if (dataProduct == null) {
                 return this.returnResponse(404, 'not found', `product not found!: partnumber: ${req.body.partnumber}`, null, null)
+            }
+
+            if (dataCapSublocation == null) {
+                return this.returnResponse(404, 'not found', `sublocation not found!: sublocation_id: ${req.body.sublocation_id}`, null, null)
             }
 
             if (parseInt(req.body.entity_id) != dataProduct.dataValues.pt_en_id) {
@@ -48,7 +52,7 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', 'sublocation already full', null, null)
             }
 
-            if (dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != req.body.partnumber) {
+            if (dataSerial && dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != req.body.partnumber) {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
