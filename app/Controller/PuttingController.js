@@ -89,17 +89,33 @@ class PuttingController {
     }
 
     getDataProduct = (req, res) => {
-        Promise.all([PuttingService.getSpesificSublocation(req.params.sublocation_id), PuttingService.getProduct(req.params.sublocation_id)])
-        .then(([dataSublocation, dataProduct]) => {
+        Promise.all([
+            PuttingService.getSpesificSublocation(req.params.sublocation_id), 
+            PuttingService.getProduct(req.params.sublocation_id), 
+            PuttingService.getDataSerialBySubLocation(req.params.sublocation_id)
+        ])
+        .then(([dataSublocation, dataProduct, dataScanned]) => {
+            let result;
+
+            if (dataSublocation != null) {
+                dataSublocation.dataValues.scanned = dataScanned['count']
+
+                result = {data_sublocation: dataSublocation, data_product: dataProduct};
+            } else {
+                result = {data_sublocation: null, data_product: null}
+            }
+
             res.status(200)
                 .json({
                     status: 'success',
                     message: 'ok',
-                    data: {data_sublocation: dataSublocation, data_product: dataProduct},
+                    data: result,
                     error: null
                 })
         })
         .catch(err => {
+            errorLog('GET DATA PRODUCT IN SUBLOCATION', err.message)
+
             res.status(400)
                 .json({
                     status: 'failed',

@@ -63,7 +63,7 @@ class PuttingService {
                 Sequelize.col(`"product"."pt_id"`),
                 Sequelize.col(`"product"."pt_code"`),
                 Sequelize.col(`"product"."pt_desc1"`),
-            ]
+            ],
         })
 
         return result;
