@@ -101,10 +101,7 @@ class ShipmentService {
             where: {
                 soshipd_oid: detailShipmentOid
             },
-            subQuery: false,
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
+            subQuery: false
         });
 
         return result[0];

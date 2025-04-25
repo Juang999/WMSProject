@@ -30,11 +30,40 @@ class PuttingService {
             attributes: [
                 'locs_id',
                 ['locs_loc_id', 'loc_id'],
+                ['locs_name', 'sublocation_name'],
                 ['locs_cap', 'capacity']
             ],
             where: {
                 locs_id: locsId
             }
+        })
+
+        return result;
+    }
+
+    getProduct = async (locsId) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                [Sequelize.col(`"product"."pt_id"`), 'product_id'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.literal(`CAST(SUM("invcd_qty") AS INTEGER)`), 'product_name'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcd_locs_id: locsId
+            },
+            group: [
+                Sequelize.col(`"product"."pt_id"`),
+                Sequelize.col(`"product"."pt_code"`),
+                Sequelize.col(`"product"."pt_desc1"`),
+            ]
         })
 
         return result;
@@ -97,8 +126,11 @@ class PuttingService {
 
     updateSerial = async (invcdOid, serialNumber, subLocation, transaction) => {
         await InvcdDet.update({
+            invcd_dom_id: 1,
             invcd_locs_id: subLocation,
             invcd_qrbarcode: serialNumber,
+            invcd_is_verified: 'Y',
+            invcd_um: 9964,
             invcd_upd_by: 'system',
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
         }, {

@@ -88,6 +88,28 @@ class PuttingController {
         })
     }
 
+    getDataProduct = (req, res) => {
+        Promise.all([PuttingService.getSpesificSublocation(req.params.sublocation_id), PuttingService.getProduct(req.params.sublocation_id)])
+        .then(([dataSublocation, dataProduct]) => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: {data_sublocation: dataSublocation, data_product: dataProduct},
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     returnResponse = (statusCode, status, message, data, error) => {
         return {statusCode, json: {status, message, data, error}}
     }

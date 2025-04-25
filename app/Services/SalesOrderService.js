@@ -110,9 +110,6 @@ class SalesOrderService {
                 sods_sod_oid: sod_oid,
                 sods_serial: serial
             },
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
         })
 
         return result;
