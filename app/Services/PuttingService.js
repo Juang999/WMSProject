@@ -109,6 +109,36 @@ class PuttingService {
         return result;
     }
 
+    getDataSerialPartnumber = async (subLocId, productId) => {
+        let result = await InvcdDet.findAndCountAll({
+            attributes: [
+                'invcd_oid',
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                ['invcd_qrbarcode', 'uniq'],
+                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation'],
+                [Sequelize.literal(`CAST(invcd_qty AS INTEGER)`), 'qty'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcd_locs_id: subLocId,
+                invcd_pt_id: productId
+            }
+        })
+
+        return result;
+    }
+
     deleteSerial = async (invcdOid) => {
         await InvcdDet.destroy({
             where: {

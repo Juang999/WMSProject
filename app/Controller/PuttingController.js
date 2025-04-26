@@ -126,6 +126,28 @@ class PuttingController {
         })
     }
 
+    getDataSerial = (req, res) => {
+        PuttingService.getDataSerialPartnumber(req.params.sublocation_id, req.params.product_id)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     returnResponse = (statusCode, status, message, data, error) => {
         return {statusCode, json: {status, message, data, error}}
     }
