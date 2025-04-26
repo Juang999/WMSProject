@@ -1,4 +1,4 @@
-const {EnMstr, PtCatMstr, LocsMstr} = require('../../models');
+const {EnMstr, PtCatMstr, InvcdDet, LocsMstr, Sequelize} = require('../../models');
 const {Op} = require('sequelize');
 
 class MasterService {
@@ -24,21 +24,37 @@ class MasterService {
     }
 
     getSublocation = async (locId, search) => {
-        let result = await LocsMstr.findAll({
+        let result = await InvcdDet.findAll({
             attributes: [
-                ['locs_name', 'subloc_name'],
-                ['locs_id', 'subloc_id'],
-                ['locs_loc_id', 'loc_id'],
-                ['locs_cap', 'subloc_capacity']
+                [Sequelize.col('"sublocation"."locs_name"'), 'subloc_name'],
+                [Sequelize.col('"sublocation"."locs_id"'), 'subloc_id'],
+                [Sequelize.col('"sublocation"."locs_loc_id"'), 'loc_id'],
+                [Sequelize.col('"sublocation"."locs_cap"'), 'subloc_capacity'],
+                [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'scanned']
             ],
-            where: {
-                locs_loc_id: locId,
-                locs_active: 'Y',
-                locs_name: {
-                    [Op.iLike]: `%${search}%`
+            include: [
+                {
+                    model: LocsMstr,
+                    right: true,
+                    as: 'sublocation',
+                    attributes: []
                 }
-            }
-        });
+            ],
+            where:[
+                Sequelize.where(Sequelize.col(`"sublocation"."locs_loc_id"`), {
+                    [Op.eq]: locId
+                }),
+                Sequelize.where(Sequelize.col(`"sublocation"."locs_name"`), {
+                    [Op.iLike]: `%${search}%`
+                })
+            ],
+            group: [
+                Sequelize.col('"sublocation"."locs_name"'),
+                Sequelize.col('"sublocation"."locs_id"'),
+                Sequelize.col('"sublocation"."locs_loc_id"'),
+                Sequelize.col('"sublocation"."locs_cap"'),
+            ]
+        })
 
         return result;
     }
