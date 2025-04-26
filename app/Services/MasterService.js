@@ -30,7 +30,7 @@ class MasterService {
                 [Sequelize.col('"sublocation"."locs_id"'), 'subloc_id'],
                 [Sequelize.col('"sublocation"."locs_loc_id"'), 'loc_id'],
                 [Sequelize.col('"sublocation"."locs_cap"'), 'subloc_capacity'],
-                [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'scanned']
+                [Sequelize.literal(`CASE WHEN SUM(invcd_qty) IS NULL THEN 0 ELSE CAST(SUM(invcd_qty) AS INTEGER) END`), 'scanned']
             ],
             include: [
                 {
