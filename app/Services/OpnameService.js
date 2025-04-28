@@ -355,8 +355,9 @@ class OpnameService {
             invcd_loc_id: locId,
             invcd_qty_old: Sequelize.literal(`invcd_qty`),
             invcd_is_verified: 'Y',
-            invcd_add_by: 'system',
-            invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            invcd_upd_by: 'system',
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             where: {
                 invcd_oid: invcdOid

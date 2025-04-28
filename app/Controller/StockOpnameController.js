@@ -226,13 +226,13 @@ class StockOpnameController {
                     }
 
                     await Promise.all([
-                        OpnameService.updateSerialNumber(uniq, partnumber, location_id, t),
+                        OpnameService.updateSerialNumber(uniq, serialNumber.dataValues.invcd_oid, location_id, t),
                         OpnameService.updateSerialOpname(serialOpname.dataValues.somdd_oid, t)
                     ])
                 } else {
                     await Promise.all([
                         OpnameService.addQtyOpname(detailOpname.dataValues.somd_oid, t),
-                        OpnameService.updateSerialNumber(uniq, partnumber, location_id, t),
+                        OpnameService.updateSerialNumber(uniq, serialNumber.dataValues.invcd_oid, location_id, t),
                         OpnameService.createDetailOpname(detailOpname.dataValues.somd_oid, dataProduct.dataValues.pt_id, location_id, uniq, t)
                     ])
                 }
