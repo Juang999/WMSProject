@@ -200,11 +200,42 @@ class PuttingService {
             where: {
                 invcd_oid: invcdOid,
                 invcd_deleted_by: null,
-                invcd_delete_at: null
+                invcd_deleted_at: null
             },
             transaction
         })
     }
+
+    // historyDelete = async () => {
+    //     let result = await InvcdDet.findAll({
+    //         attriibutes: [
+    //             [Sequelize.col(``)]
+    //         ],
+    //         include: [
+    //             {
+    //                 model: PtMstr,
+    //                 as: 'product',
+    //                 attributes: [],
+    //             }, {
+    //                 model: LocsMstr,
+    //                 as: 'sublocation',
+    //                 attributes: [],
+    //             }, {
+    //                 model: LocMstr,
+    //                 as: 'location',
+    //                 attributes: [],
+    //             }
+    //         ],
+    //         where: {
+    //             invcd_deleted_at: {
+    //                 [Op.not]: null
+    //             }, 
+    //             invcd_deleted_by: {
+    //                 [Op.not]: null
+    //             }
+    //         }
+    //     })
+    // }
 }
 
 module.exports = new PuttingService();
