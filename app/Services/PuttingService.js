@@ -131,6 +131,7 @@ class PuttingService {
                 ['invcd_qrbarcode', 'uniq'],
                 [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation'],
                 [Sequelize.literal(`CAST(invcd_qty AS INTEGER)`), 'qty'],
+                ['invcd_add_date', 'created_at'],
             ],
             include: [
                 {
@@ -146,7 +147,10 @@ class PuttingService {
             where: {
                 invcd_locs_id: subLocId,
                 invcd_pt_id: productId
-            }
+            },
+            order: [
+                ['invcd_add_date', 'DESC']
+            ]
         })
 
         return result;
