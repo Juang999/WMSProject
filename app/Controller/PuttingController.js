@@ -59,7 +59,12 @@ class PuttingController {
             }
 
             if (dataSerial) {
-                await PuttingService.updateSerial(dataSerial.dataValues.invcd_oid, req.body.uniq, req.body.sublocation_id, t)
+                await PuttingService.updateSerial(
+                    dataSerial.dataValues.invcd_oid, 
+                    req.body.uniq, 
+                    req.body.sublocation_id, 
+                    req.body.location_id
+                    , t);
             } else {
                 await PuttingService.putProductIntoSubLocation({
                     en_id: dataProduct.dataValues.pt_en_id,
@@ -129,13 +134,17 @@ class PuttingController {
     }
 
     getDataSerial = (req, res) => {
-        PuttingService.getDataSerialPartnumber(req.params.sublocation_id, req.params.product_id)
-        .then(result => {
+        Promise.all([PuttingService.getDataSerialPartnumber(req.params.sublocation_id, req.params.product_id), PuttingService.getSpesificSublocation(req.params.sublocation_id)])
+        .then(([resultScan, resultSublocation]) => {
+            resultScan.sublocation_name = (resultSublocation) ? resultSublocation.dataValues.sublocation_name : '-';
+            resultScan.location_name = (resultSublocation) ? resultSublocation.dataValues.location_name : '-';
+            resultScan.maximum_capacity = (resultSublocation) ? resultSublocation.dataValues.capacity : 0;
+
             res.status(200)
                 .json({
                     status: 'success',
                     message: 'ok',
-                    data: result,
+                    data: resultScan,
                     error: null
                 })
         })

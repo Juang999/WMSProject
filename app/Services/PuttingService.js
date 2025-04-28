@@ -1,4 +1,4 @@
-const {InvcdDet, LocsMstr, PtMstr, Sequelize} = require('../../models');
+const {InvcdDet, LocsMstr, LocMstr, PtMstr, Sequelize} = require('../../models');
 const {v4: uuidV4} = require('uuid');
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -31,7 +31,15 @@ class PuttingService {
                 'locs_id',
                 ['locs_loc_id', 'loc_id'],
                 ['locs_name', 'sublocation_name'],
+                [Sequelize.col('"location"."loc_desc"'), 'location_name'],
                 ['locs_cap', 'capacity']
+            ],
+            include: [
+                {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }
             ],
             where: {
                 locs_id: locsId
@@ -159,9 +167,10 @@ class PuttingService {
         return 1;
     }
 
-    updateSerial = async (invcdOid, serialNumber, subLocation, transaction) => {
+    updateSerial = async (invcdOid, serialNumber, subLocation, locationId, transaction) => {
         await InvcdDet.update({
             invcd_dom_id: 1,
+            invcd_loc_id: locationId,
             invcd_locs_id: subLocation,
             invcd_qrbarcode: serialNumber,
             invcd_is_verified: 'Y',
