@@ -102,7 +102,8 @@ class PuttingService {
                 }
             ],
             where: {
-                invcd_locs_id: subLocId
+                invcd_locs_id: subLocId,
+                invcd_qty: 1
             }
         })
 

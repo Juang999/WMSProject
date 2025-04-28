@@ -141,7 +141,11 @@ class OpnameService {
             ],
             where: {
                 somdd_somd_oid: somdOid
-            }
+            },
+            order: [
+                ['somdd_updated_date', 'DESC'],
+                ['somdd_created_date', 'DESC'],
+            ]
         })
 
         return result;
