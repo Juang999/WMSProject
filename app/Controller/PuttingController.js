@@ -1,16 +1,18 @@
 const {PuttingService, ProductService, OpnameService} = require('../Services/ServiceContainer');
 const {error: errorLog} = require('../../helper/Logging');
-const {sequelize} = require('../../models');
+const {sequelize, Sequelize} = require('../../models');
 
 class PuttingController {
     index = (req, res) => {
-        PuttingService.getDataSerialBySubLocation(req.params.sublocation_id)
-        .then(result => {
+        Promise.all([PuttingService.getDataSerialBySubLocation(req.params.sublocation_id), PuttingService.getSpesificSublocation(req.params.sublocation_id)])
+        .then(([resultScan, dataSublocation]) => {
+            resultScan.maximum_capacity = (dataSublocation != null) ? dataSublocation.dataValues.capacity : 0
+
             res.status(200)
                 .json({
                     status: 'success',
                     message: 'ok',
-                    data: result,
+                    data: resultScan,
                     error: null
                 })
         })

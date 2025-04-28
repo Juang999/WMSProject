@@ -88,6 +88,33 @@ class StockOpnameController {
         })
     }
 
+    getInventoryMaster = (req, res) => {
+        let searchLocation = (req.query.location) ? req.query.location : '';
+        let searchProduct = (req.query.product) ? req.query.product : '';
+
+        OpnameService.retrieveInventoryMaster(searchLocation, searchProduct)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            errorLog('GET INVENTORY MASTER', err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     index = (req, res) => {
         OpnameService.retrieveDataOpname()
         .then(result => {
