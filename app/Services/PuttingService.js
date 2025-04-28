@@ -66,12 +66,16 @@ class PuttingService {
                 }
             ],
             where: {
-                invcd_locs_id: locsId
+                invcd_locs_id: locsId,
+                invcd_deleted_at: null,
+                invcd_deleted_by: null
             },
             group: [
                 Sequelize.col(`"product"."pt_id"`),
                 Sequelize.col(`"product"."pt_code"`),
                 Sequelize.col(`"product"."pt_desc1"`),
+                Sequelize.col(`invcd_deleted_at`),
+                Sequelize.col(`invcd_deleted_by`),
             ],
         })
 
@@ -82,7 +86,9 @@ class PuttingService {
         let result = await InvcdDet.count({
             where: {
                 invcd_locs_id: locsId,
-                invcd_qty: 1
+                invcd_qty: 1,
+                invcd_deleted_at: null,
+                invcd_deleted_by: null
             }
         })
 
@@ -113,7 +119,9 @@ class PuttingService {
             ],
             where: {
                 invcd_locs_id: subLocId,
-                invcd_qty: 1
+                invcd_qty: 1,
+                invcd_deleted_by: null,
+                invcd_deleted_at: null
             },
             order: [
                 ['invcd_add_date', 'DESC']
@@ -147,7 +155,9 @@ class PuttingService {
             ],
             where: {
                 invcd_locs_id: subLocId,
-                invcd_pt_id: productId
+                invcd_pt_id: productId,
+                invcd_deleted_at: null,
+                invcd_deleted_by: null
             },
             order: [
                 ['invcd_add_date', 'DESC']
@@ -158,7 +168,10 @@ class PuttingService {
     }
 
     deleteSerial = async (invcdOid) => {
-        await InvcdDet.destroy({
+        await InvcdDet.update({
+            invcd_deleted_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_deleted_by: 'system'
+        },{
             where: {
                 invcd_oid: invcdOid
             },
@@ -185,7 +198,9 @@ class PuttingService {
             invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             where: {
-                invcd_oid: invcdOid
+                invcd_oid: invcdOid,
+                invcd_deleted_by: null,
+                invcd_delete_at: null
             },
             transaction
         })

@@ -78,6 +78,12 @@ class OpnameService {
                 }),
                 Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
                     [Op.eq]: `Y`,
+                }),
+                Sequelize.where(Sequelize.col(`"invcd_deleted_at"`), {
+                    [Op.eq]: null,
+                }),
+                Sequelize.where(Sequelize.col(`"invcd_deleted_by"`), {
+                    [Op.eq]: null,
                 })
             ],
             order: [
@@ -88,11 +94,10 @@ class OpnameService {
                 Sequelize.col(`"product"."pt_code"`),
                 Sequelize.col(`"location"."loc_id"`),
                 Sequelize.col(`"product"."pt_desc1"`),
-                Sequelize.col(`"location"."loc_desc"`)
-            ],
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
+                Sequelize.col(`"location"."loc_desc"`),
+                Sequelize.col(`invcd_deleted_at`),
+                Sequelize.col(`invcd_deleted_by`),
+            ]
         })
 
         return result;
@@ -271,7 +276,9 @@ class OpnameService {
             where: {
                 [Op.or]: [
                     {
-                        invcd_qrbarcode: serialNumber
+                        invcd_qrbarcode: serialNumber,
+                        invcd_deleted_at: null,
+                        invcd_deleted_by: null
                     }, {
                         [Op.and]: [
                             Sequelize.where(Sequelize.col('invcd_alias_qrbarcode'), {
@@ -279,7 +286,13 @@ class OpnameService {
                             }),
                             Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
                                 [Op.eq]: productCode
-                            })
+                            }),
+                            Sequelize.where(Sequelize.col('invcd_deleted_at'), {
+                                [Op.eq]: null
+                            }),
+                            Sequelize.where(Sequelize.col('invcd_deleted_by'), {
+                                [Op.eq]: null
+                            }),
                         ]
                     }
                 ]
@@ -313,7 +326,9 @@ class OpnameService {
                     }, {
                         invcd_alias_qrbarcode: serialNumber
                     }
-                ]
+                ],
+                invcd_deleted_at: null,
+                invcd_delted_by: null
             },
             order: [['invcd_pt_id', 'ASC']],
             transaction
@@ -360,7 +375,9 @@ class OpnameService {
             invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             where: {
-                invcd_oid: invcdOid
+                invcd_oid: invcdOid,
+                invcd_deleted_at: null,
+                invcd_deleted_by: null
             },
             transaction,
             logging: (sqlCommand, {bind}) => {
@@ -464,7 +481,9 @@ class OpnameService {
                     attributes: []
                 }
             ],
-            where: condition
+            where: condition,
+            invcd_deleted_at: null,
+            invcd_deleted_by: null
         });
 
         return result;

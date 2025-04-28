@@ -46,6 +46,12 @@ class MasterService {
                 }),
                 Sequelize.where(Sequelize.col(`"sublocation"."locs_name"`), {
                     [Op.iLike]: `%${search}%`
+                }),
+                Sequelize.where(Sequelize.col(`invcd_deleted_at`), {
+                    [Op.eq]: null
+                }),
+                Sequelize.where(Sequelize.col(`invcd_deleted_by`), {
+                    [Op.eq]: null
                 })
             ],
             group: [
@@ -53,6 +59,8 @@ class MasterService {
                 Sequelize.col('"sublocation"."locs_id"'),
                 Sequelize.col('"sublocation"."locs_loc_id"'),
                 Sequelize.col('"sublocation"."locs_cap"'),
+                Sequelize.col(`invcd_deleted_at`),
+                Sequelize.col(`invcd_deleted_by`)
             ]
         })
 
