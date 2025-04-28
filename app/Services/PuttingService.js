@@ -104,7 +104,7 @@ class PuttingService {
                 ['invcd_qrbarcode', 'uniq'],
                 [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation'],
                 [Sequelize.literal(`CAST(invcd_qty AS INTEGER)`), 'qty'],
-                ['invcd_add_date', 'created_at'],
+                [Sequelize.literal('CASE WHEN invcd_upd_date IS NOT NULL THEN invcd_upd_date ELSE invcd_add_date END'), 'created_at'],
             ],
             include: [
                 {
