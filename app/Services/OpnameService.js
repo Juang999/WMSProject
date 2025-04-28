@@ -348,7 +348,7 @@ class OpnameService {
         return result;
     }
 
-    updateSerialNumber = async (serialNumber, productCode, locId, transaction) => {
+    updateSerialNumber = async (serialNumber, invcdOid, locId, transaction) => {
         let result = await InvcdDet.update({
             invcd_qrbarcode: serialNumber,
             invcd_qty: 1,
@@ -359,17 +359,7 @@ class OpnameService {
             invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss')
         }, {
             where: {
-                [Op.or]: [
-                    {
-                        invcd_qrbarcode: serialNumber
-                    }, {
-                        invcd_pt_id: {
-                            [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = '${productCode}')`)
-                        },
-                        invcd_alias_qrbarcode: serialNumber,
-                    }
-                ],
-                invcd_loc_id: locId
+                invcd_oid: invcdOid
             },
             transaction,
             logging: (sqlCommand, {bind}) => {
