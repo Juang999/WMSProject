@@ -19,7 +19,8 @@ class PuttingService {
             invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_add_by: 'system',
             invcd_date: moment().format('YYYY-MM-DD'),
-            invcd_is_verified: 'Y'
+            invcd_is_verified: 'Y',
+            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             transaction
         })
@@ -131,7 +132,7 @@ class PuttingService {
                 ['invcd_qrbarcode', 'uniq'],
                 [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation'],
                 [Sequelize.literal(`CAST(invcd_qty AS INTEGER)`), 'qty'],
-                ['invcd_add_date', 'created_at'],
+                [Sequelize.literal('CASE WHEN invcd_scanned_at IS NOT NULL THEN invcd_upd_date ELSE invcd_add_date END'), 'created_at'],
             ],
             include: [
                 {
@@ -180,7 +181,8 @@ class PuttingService {
             invcd_is_verified: 'Y',
             invcd_um: 9964,
             invcd_upd_by: 'system',
-            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             where: {
                 invcd_oid: invcdOid
