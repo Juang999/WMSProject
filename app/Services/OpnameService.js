@@ -282,6 +282,7 @@ class OpnameService {
                 'invcd_oid',
                 [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
                 [Sequelize.col('"product"."pt_code"'), 'product_code'],
+                'invcd_locs_id',
                 ['invcd_qrbarcode', 'uniq'],
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
                 [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],

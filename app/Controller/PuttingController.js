@@ -1,6 +1,6 @@
-const {PuttingService, ProductService, OpnameService} = require('../Services/ServiceContainer');
+const {sequelize} = require('../../models');
 const {error: errorLog} = require('../../helper/Logging');
-const {sequelize, Sequelize} = require('../../models');
+const {PuttingService, ProductService, OpnameService} = require('../Services/ServiceContainer');
 
 class PuttingController {
     index = (req, res) => {
@@ -56,6 +56,10 @@ class PuttingController {
 
             if (dataSerial && dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != req.body.partnumber) {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
+            }
+
+            if (dataSerial && dataSerial.dataValues.invcd_locs_oid != null) {
+                return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
             }
 
             if (dataSerial) {
