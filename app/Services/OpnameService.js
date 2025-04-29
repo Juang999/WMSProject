@@ -81,6 +81,9 @@ class OpnameService {
                 Sequelize.where(Sequelize.col(`"product"."pt_desc1"`), {
                     [Op.iLike]: `%${searchProduct}%`,
                 }),
+                Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
+                    [Op.not]: null,
+                }),
                 Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
                     [Op.eq]: `Y`,
                 }),
@@ -91,11 +94,6 @@ class OpnameService {
                     [Op.eq]: null,
                 })
             ],
-            where: {
-                invcd_locs_id: {
-                    [Op.not]: null
-                }
-            },
             order: [
                 ['total_qty', 'DESC']
             ],
@@ -108,7 +106,10 @@ class OpnameService {
                 Sequelize.col(`"sublocation"."locs_name"`),
                 Sequelize.col(`invcd_deleted_at`),
                 Sequelize.col(`invcd_deleted_by`),
-            ]
+            ],
+            logging: (sqlCommand) => {
+                console.info(sqlCommand)
+            }
         })
 
         return result;

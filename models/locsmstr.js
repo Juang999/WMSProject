@@ -23,6 +23,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'invcd_locs_id'
       })
 
+      LocsMstr.hasOne(models.InvcdDet, {
+        as: 'serial',
+        sourceKey: 'locs_id',
+        foreignKey: 'invcd_locs_id'
+      })
+
       LocsMstr.hasMany(models.LocsTemporary, {
         as: 'data_temporary',
         sourceKey: 'locs_id',
