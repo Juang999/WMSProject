@@ -147,6 +147,7 @@ class OpnameService {
                         [Sequelize.literal('CAST("detail_opname"."somd_qty_sys" AS BIGINT)'), 'qty_system'],
                         [Sequelize.literal('CAST("detail_opname"."somd_qty_real" AS BIGINT)'), 'qty_real'],
                         [Sequelize.literal('CAST("detail_opname"."somd_variance" AS BIGINT)'), 'qty_variance'],
+                        [Sequelize.literal(`CASE WHEN somd_updated_date IS NOT NULL THEN somd_updated_date ELSE somd_created_date END`), 'scanned_at']
                     ],
                     include: [
                         {
@@ -171,6 +172,11 @@ class OpnameService {
             where: {
                 som_code: opnameCode
             },
+            order: [
+                [Sequelize.col('"detail_opname"."somd_updated_date"'), Sequelize.literal('IS NULL')],
+                [Sequelize.col('"detail_opname"."somd_updated_date"'), 'DESC'],
+                [Sequelize.col('"detail_opname"."somd_created_date"'), 'DESC'],
+            ],
             subQuery: false,
         })
 
@@ -184,9 +190,9 @@ class OpnameService {
                 'somdd_oid',
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 ['somdd_serial', 'uniq'],
-                ['somdd_created_date', 'created_date'],
                 [Sequelize.literal('CAST(somdd_qty_sys AS INTEGER)'), 'qty_sys'],
-                [Sequelize.literal('CAST(somdd_qty_real AS INTEGER)'), 'qty_real']
+                [Sequelize.literal('CAST(somdd_qty_real AS INTEGER)'), 'qty_real'],
+                [Sequelize.literal(`CASE WHEN somdd_updated_date IS NOT NULL THEN somdd_updated_date ELSE somdd_created_date END`), 'created_date']
             ],
             include: [
                 {
@@ -209,7 +215,9 @@ class OpnameService {
 
     addQtyOpname = async (somdOid, transaction) => {
         await SomdDet.update({
-            somd_qty_real: Sequelize.literal(`CAST(somd_qty_real AS INTEGER) + 1`)
+            somd_qty_real: Sequelize.literal(`CAST(somd_qty_real AS INTEGER) + 1`),
+            somd_updated_by: 'system',
+            somd_updated_date: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             where: {
                 somd_oid: somdOid
