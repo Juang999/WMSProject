@@ -1,8 +1,8 @@
 const {
-    SomddDet,
     PtMstr, LocMstr,
     SomMstr, SomdDet, 
     InvcMstr, InvcdDet,
+    SomddDet, LocsMstr,
     TConfUser, Sequelize
 } = require('../../models');
 const {Query} = require('../../helper/helper');
@@ -55,6 +55,7 @@ class OpnameService {
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
+                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
                 [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_qty']
             ],
             include: [
@@ -66,6 +67,10 @@ class OpnameService {
                     right: true,
                     model: PtMstr,
                     as: 'product',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
                     attributes: []
                 }
             ],
@@ -86,6 +91,11 @@ class OpnameService {
                     [Op.eq]: null,
                 })
             ],
+            where: {
+                invcd_locs_id: {
+                    [Op.not]: null
+                }
+            },
             order: [
                 ['total_qty', 'DESC']
             ],
@@ -95,6 +105,7 @@ class OpnameService {
                 Sequelize.col(`"location"."loc_id"`),
                 Sequelize.col(`"product"."pt_desc1"`),
                 Sequelize.col(`"location"."loc_desc"`),
+                Sequelize.col(`"sublocation"."locs_name"`),
                 Sequelize.col(`invcd_deleted_at`),
                 Sequelize.col(`invcd_deleted_by`),
             ]
