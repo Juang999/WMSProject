@@ -112,6 +112,8 @@ class SalesOrderService {
             },
         })
 
+        console.info(result)
+
         return result;
     }
 
