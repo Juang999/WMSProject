@@ -1,4 +1,5 @@
 const {
+    InvcdhHist,
     PtMstr, LocMstr,
     SomMstr, SomdDet, 
     InvcMstr, InvcdDet,
@@ -349,7 +350,7 @@ class OpnameService {
                     }
                 ],
                 invcd_deleted_at: null,
-                invcd_delted_by: null
+                invcd_deleted_by: null
             },
             order: [['invcd_pt_id', 'ASC']],
             transaction
@@ -566,6 +567,58 @@ class OpnameService {
 
                 Query.delete(realSql);
             }
+        })
+    }
+
+    getDataSerial = async (sublocationId, partnumber, uniq) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                'invcd_oid',
+                'invcd_dom_id',
+                'invcd_en_id',
+                'invcd_pt_id',
+                'invcd_loc_id',
+                'invcd_locs_id',
+                'invcd_qrbarcode'
+            ],
+            where: {
+                invcd_locs_id: sublocationId,
+                invcd_deleted_at: null,
+                invcd_deleted_by: null,
+                invcd_pt_id: {
+                    [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = :partnumber)`)
+                },
+                invcd_qrbarcode: {
+                    [Op.in]: uniq
+                }
+            },
+            replacements: {
+                partnumber
+            }
+        })
+
+        return result;
+    }
+
+    moveSerial = async (invcdOid, locId, locsId, transaction) => {
+        await InvcdDet.update({
+            invcd_loc_id: locId,
+            invcd_locs_id: locsId,
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_upd_by: 'system'
+        }, {
+            where: {
+                invcd_oid: {
+                    [Op.in]: invcdOid
+                }
+            },
+            transaction
+        })
+    }
+
+    createHistory = async (dataHistory, transaction) => {
+        await InvcdhHist.bulkCreate(dataHistory, {
+            transaction
         })
     }
 }
