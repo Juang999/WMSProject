@@ -1,10 +1,15 @@
 const {sequelize} = require('../../models');
 const {error: errorLog} = require('../../helper/Logging');
-const {PuttingService, ProductService, OpnameService} = require('../Services/ServiceContainer');
+const {
+    LocationService, ProductService, 
+    InventoryService, OpnameService
+} = require('../Services/ServiceContainer');
+const {v4: uuidv4} = require('uuid');
+const moment = require('moment');
 
 class PuttingController {
     index = (req, res) => {
-        Promise.all([PuttingService.getDataSerialBySubLocation(req.params.sublocation_id), PuttingService.getSpesificSublocation(req.params.sublocation_id)])
+        Promise.all([InventoryService.getSerialSublocation(req.params.sublocation_id), LocationService.findSublocation(req.params.sublocation_id)])
         .then(([resultScan, dataSublocation]) => {
             resultScan.maximum_capacity = (dataSublocation != null) ? dataSublocation.dataValues.capacity : 0
 
@@ -34,8 +39,8 @@ class PuttingController {
             const [dataProduct, dataSerial, dataCapSublocation, dataTotalQtySublocation] = await Promise.all([
                 ProductService.findProductByPartnumber(req.body.partnumber),
                 OpnameService.findSerialNumber(req.body.uniq, req.body.partnumber, t),
-                PuttingService.getSpesificSublocation(req.body.sublocation_id),
-                PuttingService.getTotalSerialInSublocation(req.body.sublocation_id),
+                LocationService.findSublocation(req.body.sublocation_id),
+                InventoryService.countSerialSublocation(req.body.sublocation_id),
             ]);
 
             if (dataProduct == null) {
@@ -58,19 +63,20 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
-            if (dataSerial && dataSerial.dataValues.invcd_locs_oid != null) {
+            if (dataSerial && dataSerial.dataValues.invcd_locs_id != null) {
                 return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
             }
 
             if (dataSerial) {
-                await PuttingService.updateSerial(
+                await InventoryService.updateSerial(
                     dataSerial.dataValues.invcd_oid, 
-                    req.body.uniq, 
-                    req.body.sublocation_id, 
-                    req.body.location_id
-                    , t);
+                    {
+                        location_id: req.body.location_id,
+                        sublocation_id: req.body.sublocation_id,
+                        serial_number: req.body.uniq
+                    }, t);
             } else {
-                await PuttingService.putProductIntoSubLocation({
+                await InventoryService.createSerialNumber({
                     en_id: dataProduct.dataValues.pt_en_id,
                     pt_id: dataProduct.dataValues.pt_id,
                     qrbarcode: req.body.uniq,
@@ -101,9 +107,9 @@ class PuttingController {
 
     getDataProduct = (req, res) => {
         Promise.all([
-            PuttingService.getSpesificSublocation(req.params.sublocation_id), 
-            PuttingService.getProduct(req.params.sublocation_id), 
-            PuttingService.getDataSerialBySubLocation(req.params.sublocation_id)
+            LocationService.findSublocation(req.params.sublocation_id), 
+            InventoryService.getSerialProduct(req.params.sublocation_id), 
+            InventoryService.getSerialSublocation(req.params.sublocation_id)
         ])
         .then(([dataSublocation, dataProduct, dataScanned]) => {
             let result;
@@ -138,8 +144,10 @@ class PuttingController {
     }
 
     getDataSerial = (req, res) => {
-        Promise.all([PuttingService.getDataSerialPartnumber(req.params.sublocation_id, req.params.product_id), PuttingService.getSpesificSublocation(req.params.sublocation_id)])
-        .then(([resultScan, resultSublocation]) => {
+        Promise.all([
+            InventoryService.getSerialSublocation(req.params.sublocation_id, req.params.product_id), 
+            LocationService.findSublocation(req.params.sublocation_id)
+        ]).then(([resultScan, resultSublocation]) => {
             resultScan.sublocation_name = (resultSublocation) ? resultSublocation.dataValues.sublocation_name : '-';
             resultScan.location_name = (resultSublocation) ? resultSublocation.dataValues.location_name : '-';
             resultScan.maximum_capacity = (resultSublocation) ? resultSublocation.dataValues.capacity : 0;
@@ -167,20 +175,59 @@ class PuttingController {
         return {statusCode, json: {status, message, data, error}}
     }
 
-    deleteDataSerial = (req, res) => {
-        PuttingService.deleteSerial(req.params.invcd_oid)
+    deleteDataSerial = async (req, res) => {
+        sequelize.transaction(async t => {
+            let dataSerial = await InventoryService.getSerialByOid(req.params.invcd_oid);
+            let historySerial = {
+                invcdh_oid: uuidv4(),
+                invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
+                invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+                invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+                invcdh_loc_from_id: dataSerial.dataValues.invcd_loc_id,
+                invcdh_locs_from_id: dataSerial.dataValues.invcd_locs_id,
+                invcdh_qrbarcode: dataSerial.dataValues.invcd_qrbarcode,
+                invcdh_status: 'deleted!',
+                invcdh_remarks: 'deleted',
+                invcdh_created_by: 'system',
+                invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            }
+
+            await Promise.all([
+                InventoryService.destroySerial(req.params.invcd_oid, t),
+                InventoryService.createHistory([historySerial], t)
+            ])
+
+            return this.returnResponse(200, 'success', 'deleted', true, 0)
+        })
+        .then(result => {
+            res.status(result.statusCode)
+                .json(result.json)
+        })
+        .catch(err => {
+            errorLog(`DELETE SERIAL`, err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
+    historySerial = async (req, res) => {
+        InventoryService.getHistorySerial(req.params.serial)
         .then(result => {
             res.status(200)
                 .json({
                     status: 'success',
-                    message: 'deleted!',
+                    message: 'ok',
                     data: result,
                     error: null
                 })
         })
         .catch(err => {
-            errorLog(`DELETE SERIAL`, err.message)
-
             res.status(400)
                 .json({
                     status: 'failed',

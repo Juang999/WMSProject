@@ -1,4 +1,7 @@
-const {LocMstr} = require('../../models');
+const {
+    Sequelize,
+    LocMstr, LocsMstr, 
+} = require('../../models');
 const {Op} = require('sequelize');
 
 class LocationService {
@@ -28,6 +31,30 @@ class LocationService {
 
         return result;
     }
+
+    findSublocation = async (locsId) => {
+            let result = await LocsMstr.findOne({
+                attributes: [
+                    'locs_id',
+                    ['locs_loc_id', 'loc_id'],
+                    ['locs_name', 'sublocation_name'],
+                    [Sequelize.col('"location"."loc_desc"'), 'location_name'],
+                    ['locs_cap', 'capacity']
+                ],
+                include: [
+                    {
+                        model: LocMstr,
+                        as: 'location',
+                        attributes: []
+                    }
+                ],
+                where: {
+                    locs_id: locsId
+                }
+            })
+    
+            return result;
+        }
 }
 
 module.exports = new LocationService();
