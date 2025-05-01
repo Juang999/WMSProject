@@ -1,4 +1,4 @@
-const {ShipmentService, SalesOrderService, OpnameService, LocationService} = require('../Services/ServiceContainer');
+const {ShipmentService, SalesOrderService, OpnameService, LocationService, InventoryService} = require('../Services/ServiceContainer');
 const {info, error: errorLog} = require('../../helper/Logging');
 const { sequelize } = require('../../models');
 
@@ -88,13 +88,25 @@ class SoShipmentController {
             let [
                 DATA_SERIAL_NUMBER,
                 DATA_SERIAL_IN_SALES_ORDER,
+                TOTAL_SERIAL_SALES_ORDER,
+                QTY_NEEDED
             ] = await Promise.all([
                 OpnameService.findSerialNumber(serial, product_code, t),
                 SalesOrderService.checkSerialSalesOrder(sod_oid, serial),
-            ]);
+                SalesOrderService.countSerialSalesOrder(sod_oid),
+                SalesOrderService.findDetailSalesOrder(sod_oid)
+            ])
+
+            if (TOTAL_SERIAL_SALES_ORDER >= parseInt(QTY_NEEDED.sod_qty)) {
+                return this.returnResponse(300, 'exceed', 'The series you scanned exceeded the limit', null);
+            }
 
             if (DATA_SERIAL_NUMBER == null) {
                 return this.returnResponse(404, 'not found', 'serial not found', null);
+            }
+
+            if (DATA_SERIAL_NUMBER.dataValues.invcd_is_booked == 1) {
+                return this.returnResponse(404, 'booked', 'serial already booked', null);
             }
 
             if (parseInt(DATA_SERIAL_NUMBER.dataValues.qty) == 0) {
@@ -109,7 +121,10 @@ class SoShipmentController {
                 await OpnameService.updateSerialNumber(serial, product_code, location_id, t);
             }
 
-            let result = await SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, t);
+            let [result] = await Promise.all([
+                SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, t),
+                InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, so_oid)
+            ])
 
             return this.returnResponse(200, 'success', 'Data is included in the list', result);
         })

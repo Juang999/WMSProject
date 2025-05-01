@@ -1,4 +1,9 @@
-const {SoMstr, TransStatus, SodsSerial, PtnrMstr, PtMstr, SodDet, Sequelize} = require('../../models');
+const {
+    TransStatus,
+    PtnrMstr, PtMstr, 
+    SodDet, Sequelize,
+    SoMstr, SoShipdsSerial,
+} = require('../../models');
 const {v4: uuidv4} = require("uuid");
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -42,7 +47,7 @@ class SalesOrderService {
                         [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`), 'product_name'],
                         [Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`), 'product_code'],
                         [Sequelize.literal(`CAST(sod_qty AS INTEGER)`), 'qty_open'],
-                        [Sequelize.literal(`CASE WHEN SUM("detail_sales_order->singular_serial_sales_order"."sods_qty") IS NULL THEN 0 ELSE SUM("detail_sales_order->singular_serial_sales_order"."sods_qty") END`), 'qty_scanned']
+                        [Sequelize.literal(`CASE WHEN SUM("detail_sales_order->singular_serial_shipment"."soshipds_qty") IS NULL THEN 0 ELSE SUM("detail_sales_order->singular_serial_shipment"."soshipds_qty") END`), 'qty_scanned']
                     ],
                     include: [
                         {
@@ -50,8 +55,8 @@ class SalesOrderService {
                             as: 'detail_product',
                             attributes: []
                         }, {
-                            model: SodsSerial,
-                            as: 'singular_serial_sales_order',
+                            model: SoShipdsSerial,
+                            as: 'singular_serial_shipment',
                             attributes: []
                         }
                     ]
@@ -104,30 +109,50 @@ class SalesOrderService {
     }
 
     checkSerialSalesOrder = async (sod_oid, serial) => {
-        let result = await SodsSerial.findOne({
-            attributes: ['sods_oid', 'sods_qty', 'sods_serial'],
+        let result = await SoShipdsSerial.findOne({
+            attributes: ['soshipds_oid', 'soshipds_qty', 'soshipds_qrbarcode'],
             where: {
-                sods_sod_oid: sod_oid,
-                sods_serial: serial
+                soshipds_sod_oid: sod_oid,
+                soshipds_qrbarcode: serial
             },
         })
 
-        console.info(result)
+        return result;
+    }
+
+    countSerialSalesOrder = async (sod_oid) => {
+        let result = await SoShipdsSerial.count({
+            where: {
+                soshipds_sod_oid: sod_oid
+            },
+        })
 
         return result;
+    }
+
+    findDetailSalesOrder = async (sodOid) => {
+        let {dataValues} = await SodDet.findOne({
+            attributes: ['sod_qty'],
+            where: {
+                sod_oid: sodOid
+            }
+        })
+
+        return dataValues;
     }
 
     insertSerialSalesOrder = async (body, dataSerial, transaction) => {
         let sequence = await this.totalSerialBySodOid(body.sod_oid);
 
-        let result = await SodsSerial.create({
-            sods_oid: uuidv4(),
-            sods_sod_oid: body.sod_oid,
-            sods_qty: parseInt(dataSerial.qty),
-            sods_loc_id: body.location_id,
-            sods_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
-            sods_serial: body.serial,
-            sods_seq: sequence
+        let result = await SoShipdsSerial.create({
+            soshipds_oid: uuidv4(),
+            soshipds_sod_oid: body.sod_oid,
+            soshipds_qty: parseInt(dataSerial.qty),
+            soshipds_loc_id: body.location_id,
+            soshipds_si_id: 992,
+            soshipds_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+            soshipds_qrbarcode: body.serial,
+            soshipds_seq: sequence
         }, {
             transaction,
         })
@@ -136,9 +161,9 @@ class SalesOrderService {
     }
 
     totalSerialBySodOid = async (sod_oid, transaction) => {
-        let result = await SodsSerial.count({
+        let result = await SoShipdsSerial.count({
             where: {
-                sods_sod_oid: sod_oid
+                soshipds_sod_oid: sod_oid
             },
             transaction
         })
@@ -164,11 +189,11 @@ class SalesOrderService {
                     as: 'detail_product',
                     attributes: []
                 }, {
-                    model: SodsSerial,
-                    as: 'serial_sales_order',
+                    model: SoShipdsSerial,
+                    as: 'serial_shipment',
                     attributes: [
-                        'sods_oid',
-                        ['sods_serial', 'serial']
+                        'soshipds_oid',
+                        ['soshipds_qrbarcode', 'serial']
                     ]
                 }
             ],
@@ -182,16 +207,22 @@ class SalesOrderService {
     }
 
     deleteSerialShipment = async (sodsOid) => {
-        await SodsSerial.destroy({
+        await SoShipdsSerial.destroy({
             where: {
-                sods_oid: sodsOid
-            },
-            logging: (sqlCommand) => {
-                let realSql = sqlCommand.split(': ')[1];
-
-                Query.delete(realSql)
+                soshipds_oid: sodsOid
             }
         })
+    }
+
+    getSalesOrderOid = async (sodOid) => {
+        let result = await SodDet.findOne({
+            attributes: ['sod_so_oid'],
+            where: {
+                sod_oid: sodOid
+            }
+        })
+
+        return result;
     }
 }
 

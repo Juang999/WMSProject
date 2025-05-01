@@ -40,6 +40,18 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'sod_oid',
         foreignKey: 'sods_sod_oid'
       })
+
+      SodDet.hasOne(models.SoShipdsSerial, {
+        as: 'singular_serial_shipment',
+        sourceKey: 'sod_oid',
+        foreignKey: 'soshipds_sod_oid'
+      })
+
+      SodDet.hasMany(models.SoShipdsSerial, {
+        as: 'serial_shipment',
+        sourceKey: 'sod_oid',
+        foreignKey: 'soshipds_sod_oid'
+      })
     }
   }
   SodDet.init({

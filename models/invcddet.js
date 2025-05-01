@@ -65,7 +65,8 @@ module.exports = (sequelize, DataTypes) => {
     invcd_cs_oid: DataTypes.UUID,
     invcd_scanned_at: DataTypes.DATE,
     invcd_deleted_at: DataTypes.DATE,
-    invcd_deleted_by: DataTypes.STRING
+    invcd_deleted_by: DataTypes.STRING,
+    invcd_transaction_oid: DataTypes.UUID
   }, {
     sequelize,
     schema: 'public',
