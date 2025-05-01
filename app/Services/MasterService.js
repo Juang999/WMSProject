@@ -24,44 +24,48 @@ class MasterService {
     }
 
     getSublocation = async (locId, search) => {
-        let result = await InvcdDet.findAll({
+        let result = await LocsMstr.findAll({
             attributes: [
-                [Sequelize.col('"sublocation"."locs_name"'), 'subloc_name'],
-                [Sequelize.col('"sublocation"."locs_id"'), 'subloc_id'],
-                [Sequelize.col('"sublocation"."locs_loc_id"'), 'loc_id'],
-                [Sequelize.col('"sublocation"."locs_cap"'), 'subloc_capacity'],
-                [Sequelize.literal(`CASE WHEN SUM(invcd_qty) IS NULL THEN 0 ELSE CAST(SUM(invcd_qty) AS INTEGER) END`), 'scanned']
+                ["locs_name", "subloc_name"],
+                ['locs_id', 'subloc_id'],
+                ['locs_loc_id', 'loc_id'],
+                ['locs_cap', 'capacity'],
+                [Sequelize.literal(`CASE WHEN COUNT("serial"."invcd_oid") IS NULL THEN 0 ELSE COUNT("serial"."invcd_oid") END`), 'scanned']
             ],
             include: [
                 {
-                    model: LocsMstr,
-                    right: true,
-                    as: 'sublocation',
-                    attributes: []
+                    model: InvcdDet,
+                    as: 'serial',
+                    required: false,
+                    attributes: [],
+                    where: {
+                        invcd_deleted_at: null,
+                        invcd_deleted_by: null,
+                        invcd_qty: 1,
+                        invcd_qrbarcode: {
+                            [Op.not]: null
+                        }
+                    }
                 }
             ],
-            where:[
-                Sequelize.where(Sequelize.col(`"sublocation"."locs_loc_id"`), {
-                    [Op.eq]: locId
-                }),
-                Sequelize.where(Sequelize.col(`"sublocation"."locs_name"`), {
+            where: {
+                locs_loc_id: locId,
+                locs_name: {
                     [Op.iLike]: `%${search}%`
-                }),
-                Sequelize.where(Sequelize.col(`invcd_deleted_at`), {
-                    [Op.eq]: null
-                }),
-                Sequelize.where(Sequelize.col(`invcd_deleted_by`), {
-                    [Op.eq]: null
-                })
-            ],
+                }
+            },
             group: [
-                Sequelize.col('"sublocation"."locs_name"'),
-                Sequelize.col('"sublocation"."locs_id"'),
-                Sequelize.col('"sublocation"."locs_loc_id"'),
-                Sequelize.col('"sublocation"."locs_cap"'),
-                Sequelize.col(`invcd_deleted_at`),
-                Sequelize.col(`invcd_deleted_by`)
-            ]
+                Sequelize.col('locs_name'),
+                Sequelize.col('locs_id'),
+                Sequelize.col('locs_loc_id'),
+                Sequelize.col('locs_cap'),
+            ],
+            order: [
+                [Sequelize.col('scanned'), 'DESC']
+            ],
+            logging: (sqlCommand) => {
+                console.info(sqlCommand)
+            }
         })
 
         return result;
