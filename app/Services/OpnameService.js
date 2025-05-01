@@ -286,6 +286,7 @@ class OpnameService {
                 'invcd_locs_id',
                 ['invcd_qrbarcode', 'uniq'],
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
+                'invcd_is_booked',
                 [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
             ],
             include: [
@@ -386,7 +387,7 @@ class OpnameService {
     }
 
     updateSerialNumber = async (serialNumber, invcdOid, locId, transaction) => {
-        let result = await InvcdDet.update({
+        await InvcdDet.update({
             invcd_qrbarcode: serialNumber,
             invcd_qty: 1,
             invcd_loc_id: locId,
@@ -408,8 +409,6 @@ class OpnameService {
                 Query.insert(realSql, bind);
             }
         })
-
-        return result;
     }
 
     createDetailOpname = async (somdOid, productId, locId, serialNumber, transaction) => {
