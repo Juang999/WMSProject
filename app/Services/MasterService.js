@@ -29,7 +29,7 @@ class MasterService {
                 ["locs_name", "subloc_name"],
                 ['locs_id', 'subloc_id'],
                 ['locs_loc_id', 'loc_id'],
-                ['locs_cap', 'capacity'],
+                ['locs_cap', 'subloc_capacity'],
                 [Sequelize.literal(`CASE WHEN COUNT("serial"."invcd_oid") IS NULL THEN 0 ELSE COUNT("serial"."invcd_oid") END`), 'scanned']
             ],
             include: [
