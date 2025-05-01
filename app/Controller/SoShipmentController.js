@@ -105,8 +105,12 @@ class SoShipmentController {
                 return this.returnResponse(404, 'not found', 'serial not found', null);
             }
 
+            if (DATA_SERIAL_NUMBER.dataValues.invcd_locs_id == null) {
+                return this.returnResponse(300, 'unregistered', 'serial not registered', null);
+            }
+
             if (DATA_SERIAL_NUMBER.dataValues.invcd_is_booked == 1) {
-                return this.returnResponse(404, 'booked', 'serial already booked', null);
+                return this.returnResponse(300, 'booked', 'serial already booked', null);
             }
 
             if (parseInt(DATA_SERIAL_NUMBER.dataValues.qty) == 0) {
@@ -115,10 +119,6 @@ class SoShipmentController {
 
             if (DATA_SERIAL_IN_SALES_ORDER != null) {
                 return this.returnResponse(300, 'data already exist', 'series already included in the list', {serial});
-            }
-
-            if (DATA_SERIAL_NUMBER.dataValues.uniq == null) {
-                await OpnameService.updateSerialNumber(serial, product_code, location_id, t);
             }
 
             let [result] = await Promise.all([
