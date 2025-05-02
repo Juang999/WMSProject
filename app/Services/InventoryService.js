@@ -515,6 +515,37 @@ class InventoryService {
 
         return result;
     }
+
+    getPartnumberBySerial = async (serialNumber) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                'invcd_qrbarcode',
+                'invcd_alias_qrbarcode',
+                [Sequelize.col(`"product"."pt_code"`), 'pt_code']
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.or]: [
+                    {
+                        invcd_qrbarcode: serialNumber
+                    }, {
+                        invcd_alias_qrbarcode: serialNumber
+                    }
+                ]
+            },
+            order: [
+                ['invcd_qrbarcode', 'ASC']
+            ]
+        })
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();

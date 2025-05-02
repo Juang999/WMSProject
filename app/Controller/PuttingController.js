@@ -36,12 +36,24 @@ class PuttingController {
 
     store = async (req, res) => {
         sequelize.transaction(async t => {
-            const [dataProduct, dataSerial, dataCapSublocation, dataTotalQtySublocation] = await Promise.all([
+            const [dataProduct, dataSerial, dataCapSublocation, dataTotalQtySublocation, dataPartnumber] = await Promise.all([
                 ProductService.findProductByPartnumber(req.body.partnumber),
                 OpnameService.findSerialNumber(req.body.uniq, req.body.partnumber, t),
                 LocationService.findSublocation(req.body.sublocation_id),
                 InventoryService.countSerialSublocation(req.body.sublocation_id),
+                InventoryService.getPartnumberBySerial(req.body.uniq)
             ]);
+
+            
+            if (dataPartnumber.length != 0) {
+                for (const {dataValues: dataSingular} of dataPartnumber) {
+                    if (dataSingular.invcd_qrbarcode != null) {
+                        return this.returnResponse(300, 'rejected', `uniq already registered with another partnumber!`, null, null)
+                    } else if (dataSingular.invcd_alias_qrbarcode == req.body.uniq && dataSingular.pt_code != req.body.partnumber) {
+                        return this.returnResponse(300, 'rejected', `alias uniq already registered with another partnumber!`, null, null)
+                    }
+                }
+            }
 
             if (dataProduct == null) {
                 return this.returnResponse(404, 'not found', `product not found!: partnumber: ${req.body.partnumber}`, null, null)
@@ -63,7 +75,7 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
-            if (dataSerial && dataSerial.dataValues.invcd_locs_id != null || dataSerial.dataValues.invcd_locs_id != req.body.sublocation_id) {
+            if (dataSerial && dataSerial.dataValues.invcd_locs_id != null) {
                 return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
             }
 
