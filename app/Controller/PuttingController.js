@@ -145,7 +145,7 @@ class PuttingController {
 
     getDataSerial = (req, res) => {
         Promise.all([
-            InventoryService.getSerialSublocation(req.params.sublocation_id, req.params.product_id), 
+            InventoryService.getSerialPartnumber(req.params.sublocation_id, req.params.product_id), 
             LocationService.findSublocation(req.params.sublocation_id)
         ]).then(([resultScan, resultSublocation]) => {
             resultScan.sublocation_name = (resultSublocation) ? resultSublocation.dataValues.sublocation_name : '-';
