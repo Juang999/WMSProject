@@ -455,6 +455,52 @@ class InventoryService {
             transaction
         })
     }
+
+    getProductAndSerialBySublocation = async (locsId) => {
+        let result = await PtMstr.findAll({
+            attributes: [
+                ['pt_id', 'product_id'],
+                ['pt_code', 'product_code'],
+                ['pt_desc1', 'product_name']
+            ],
+            include: [
+                {
+                    model: InvcdDet,
+                    as: 'data_serial',
+                    attributes: [
+                        'invcd_oid',
+                        ['invcd_qrbarcode', 'uniq'],
+                        [Sequelize.literal(`"data_serial->sublocation"."locs_name"`), 'subloc_name'],
+                        [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
+                    ],
+                    include: [
+                        {
+                            model: LocsMstr,
+                            as: 'sublocation',
+                            attributes: []
+                        }
+                    ],
+                    where: {
+                        invcd_qty: 1,
+                        invcd_locs_id: locsId,
+                        invcd_qrbarcode: {
+                            [Op.not]: null
+                        }
+                    }
+                }
+            ],
+            where: {
+                pt_id: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE invcd_locs_id = :locs_id AND invcd_qty = 1 AND invcd_qrbarcode IS NOT NULL)`)
+                }
+            },
+            replacements: {
+                locs_id: locsId
+            }
+        })
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();

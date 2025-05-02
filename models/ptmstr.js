@@ -70,6 +70,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pt_id',
         foreignKey: 'invc_pt_id'
       })
+
+      PtMstr.hasMany(models.InvcdDet, {
+        as: 'data_serial',
+        sourceKey: 'pt_id',
+        foreignKey: 'invcd_pt_id'
+      })
     }
   }
   PtMstr.init({
