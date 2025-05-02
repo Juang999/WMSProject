@@ -9,7 +9,11 @@ class RegisterController {
 
         sequelize.transaction(async t => {
             let parsedUniq = JSON.parse(uniq);
-            let getSerial = await OpnameService.getDataSerial(sublocation_from, partnumber, parsedUniq);
+            let [getSerial, originSublocation, destinationSublocation] = await Promise.all([
+                OpnameService.getDataSerial(sublocation_from, partnumber, parsedUniq),
+                InventoryService.findSublocation(sublocation_from),
+                InventoryService.findSublocation(sublocation_to)
+            ]);
 
             if (getSerial.length == 0) {
                 return this.returnResponse(300, 'failed', 'serial not registered', null, null)
@@ -22,8 +26,8 @@ class RegisterController {
                     invcdh_dom_id: data.invcd_dom_id,
                     invcdh_en_id: data.invcd_en_id,
                     invcdh_pt_id: data.invcd_pt_id,
-                    invcdh_loc_from_id: data.invcd_loc_id,
-                    invcdh_loc_to_id: data.invcd_loc_id,
+                    invcdh_loc_from_id: originSublocation.dataValues.location_id,
+                    invcdh_loc_to_id: destinationSublocation.dataValues.location_id,
                     invcdh_locs_from_id: sublocation_from,
                     invcdh_locs_to_id: sublocation_to,
                     invcdh_qrbarcode: data.invcd_qrbarcode,
@@ -35,7 +39,7 @@ class RegisterController {
             })
 
             await Promise.all([
-                OpnameService.moveSerial(uuidSerial, sublocation_to, t),
+                OpnameService.moveSerial(uuidSerial, destinationSublocation.dataValues.location_id, sublocation_to, t),
                 OpnameService.createHistory(dataHistorySerial, t)
             ])
 

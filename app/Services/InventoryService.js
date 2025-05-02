@@ -501,6 +501,20 @@ class InventoryService {
 
         return result;
     }
+
+    findSublocation = async (locsId) => {
+        let result = await LocsMstr.findOne({
+            attributes: [
+                ['locs_id', 'sublocation_id'],
+                ['locs_loc_id', 'location_id']
+            ],
+            where: {
+                locs_id: locsId
+            }
+        })
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();

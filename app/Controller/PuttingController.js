@@ -63,7 +63,7 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
-            if (dataSerial && dataSerial.dataValues.invcd_locs_id != null) {
+            if (dataSerial && dataSerial.dataValues.invcd_locs_id != null || dataSerial.dataValues.invcd_locs_id != req.body.sublocation_id) {
                 return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
             }
 

@@ -599,8 +599,9 @@ class OpnameService {
         return result;
     }
 
-    moveSerial = async (invcdOid, locsId, transaction) => {
+    moveSerial = async (invcdOid, locId, locsId, transaction) => {
         await InvcdDet.update({
+            invcd_loc_id: locId,
             invcd_locs_id: locsId,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_upd_by: 'system'
