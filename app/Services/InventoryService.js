@@ -55,7 +55,7 @@ class InventoryService {
         })
     }
 
-    getHistorySerial = async (serialNumber) => {
+    getHistorySerial = async () => {
         let result = await InvcdhHist.findAll({
             attributes: [
                 [Sequelize.col(`"location_from"."loc_desc"`), 'origin_location'],
@@ -97,9 +97,9 @@ class InventoryService {
                     attributes: []
                 }
             ],
-            where: {
-                invcdh_qrbarcode: serialNumber
-            }
+            order: [
+                ['invcdh_created_date', 'desc']
+            ]
         })
 
         return result;

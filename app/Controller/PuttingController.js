@@ -217,7 +217,7 @@ class PuttingController {
     }
 
     historySerial = async (req, res) => {
-        InventoryService.getHistorySerial(req.params.serial)
+        InventoryService.getHistorySerial()
         .then(result => {
             res.status(200)
                 .json({
