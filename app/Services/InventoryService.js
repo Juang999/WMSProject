@@ -441,6 +441,20 @@ class InventoryService {
             }
         })
     }
+
+    releaseSerial = async (sodsOid, transaction) => {
+        await InvcdDet.update({
+            invcd_is_booked: 0,
+            invcd_transaction_oid: null
+        }, {
+            where: {
+                invcd_qrbarcode: {
+                    [Op.eq]: Sequelize.literal(`(SELECT sods_serial FROM public.sods_serial WHERE sods_oid = '${sodsOid}')`)
+                }
+            },
+            transaction
+        })
+    }
 }
 
 module.exports = new InventoryService();

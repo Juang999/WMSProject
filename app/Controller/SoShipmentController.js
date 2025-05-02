@@ -219,19 +219,19 @@ class SoShipmentController {
 
     deleteSerialSalesOrder = async (req, res) => {
         let sods_oid = req.params.serial_oid;
+        
+        sequelize.transaction(async t => {
+            await InventoryService.releaseSerial(sods_oid, t);
+            await SalesOrderService.deleteSerialShipment(sods_oid, t);
 
-        SalesOrderService.deleteSerialShipment(sods_oid)
+            return this.returnResponse(200, 'success', 'deleted', 1);
+        })
         .then(result => {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'deleted',
-                    data: 1,
-                    error: null
-                })
+            res.status(result.responseCode)
+                .json(result.json)
         })
         .catch(err => {
-            req.status(400)
+            res.status(400)
                 .json({
                     status: 'failed',
                     message: 'error',

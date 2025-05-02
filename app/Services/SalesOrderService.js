@@ -131,7 +131,9 @@ class SalesOrderService {
 
     findDetailSalesOrder = async (sodOid) => {
         let {dataValues} = await SodDet.findOne({
-            attributes: ['sod_qty'],
+            attributes: [
+                'sod_qty',
+            ],
             where: {
                 sod_oid: sodOid
             }
@@ -205,11 +207,12 @@ class SalesOrderService {
         return result;
     }
 
-    deleteSerialShipment = async (sodsOid) => {
+    deleteSerialShipment = async (sodsOid, transaction) => {
         await SodsSerial.destroy({
             where: {
                 sods_oid: sodsOid
-            }
+            },
+            transaction
         })
     }
 
