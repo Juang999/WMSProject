@@ -3,7 +3,7 @@ const router = Router();
 const {store, index, getDataProduct, deleteDataSerial, getDataSerial, historySerial} = require('../app/Controller/PuttingController')
 
 router.post('/post', store);
-router.get('/:serial/history', historySerial);
+router.get('/history', historySerial);
 router.get('/:sublocation_id/result-scan', index);
 router.delete('/:invcd_oid/delete-scan', deleteDataSerial);
 router.get('/:sublocation_id/data-product', getDataProduct);
