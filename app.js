@@ -33,10 +33,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(upload())
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/master', masterRouter );
-app.use('/product', productRouter);
+app.use('/', require('./routes/index'));
+app.use('/users', require('./routes/users'));
+app.use('/master', require('./routes/master'));
+app.use('/product', require('./routes/product'));
 app.use('/sales-order', require('./routes/sales_order'));
 app.use('/sublocation', subLocationRouter);
 app.use('/set-location', setLocationRouter);
@@ -45,6 +45,7 @@ app.use('/stock-opname', stockOpnameRouter);
 app.use('/move-location', moveLocationRouter);
 app.use('/purchase-order', purchaseOrderRouter);
 app.use('/so-ship', require('./routes/soship'));
+app.use('/scanout', require('./routes/scanout'));
 app.use('/putting', require('./routes/putting'));
 app.use('/register', require('./routes/register'));
 app.use('/inventory-receipt', inventoryReceiptRouter);
