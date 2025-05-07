@@ -7,5 +7,7 @@ router.get('/:so_code/detail', [authenticate], SalesOrderController.detailSalesO
 router.patch('/update', [authenticate], SalesOrderController.updateQtySalesOrder)
 router.get('/history', [authenticate], SalesOrderController.getHistory)
 router.get('/today', [authenticate], SalesOrderController.getSalesOrderToday)
+router.patch('/scan-out', SalesOrderController.scanOut);
+router.get('/:transaction_oid/scanned-out', SalesOrderController.getScannedOutSerial);
 
 module.exports = router

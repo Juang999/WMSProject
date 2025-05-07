@@ -37,7 +37,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/master', masterRouter );
 app.use('/product', productRouter);
-app.use('/sales-order', salesOrderRouter);
+app.use('/sales-order', require('./routes/sales_order'));
 app.use('/sublocation', subLocationRouter);
 app.use('/set-location', setLocationRouter);
 app.use('/picking-list', pickingListRouter);

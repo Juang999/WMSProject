@@ -2,9 +2,10 @@
 const {Auth, Query} = require('../../helper/helper')
 const moment = require('moment')
 const {Op} = require('sequelize')
-
+const {InventoryService, SalesOrderService} = require('../Services/ServiceContainer')
+const {v4: uuidv4} = require('uuid');
 // model
-const {SoMstr, SodDet, PtMstr, Sequelize, PtnrMstr, LocMstr} = require('../../models')
+const {SoMstr, SodDet, PtMstr, Sequelize, PtnrMstr, LocMstr, sequelize} = require('../../models')
 
 class SalesOrderController {
 	detailSalesOrder = (req, res) => {
@@ -232,6 +233,86 @@ class SalesOrderController {
 					error: error.message
 				})
 		}
+	}
+
+	scanOut = (req, res) => {
+		let {serial_number, transaction_oid, entity_id} = req.body;
+
+		sequelize.transaction(async t => {
+			let dataSerial = await InventoryService.findSerialNumber(serial_number, t);
+
+			if (!dataSerial) {
+				return this.returnResponse(300, 'rejected', 'serial not found', null)
+			}
+
+			if (dataSerial.dataValues.qty == 0) {
+				return this.returnResponse(300, 'rejected', 'serial has scanned out!', null)
+			}
+
+			if (dataSerial.dataValues.entity_id != entity_id) {
+				return this.returnResponse(300, 'rejected', 'serial not belong to this entity', null)
+			}
+
+			let historySerial = {
+				invcdh_oid: uuidv4(),
+				invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
+				invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+				invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+				invcdh_loc_from_id: dataSerial.dataValues.invcd_loc_id,
+				invcdh_locs_from_id: dataSerial.dataValues.invcd_locs_id,
+				invcdh_qrbarcode: (dataSerial.dataValues.uniq != null) ?dataSerial.dataValues.uniq : dataSerial.dataValues.alias_uniq,
+				invcdh_status: 'scanned out!',
+				invcdh_remarks: `scanned out reference to oid: ${transaction_oid}`,
+				invcdh_created_by: 'system',
+				invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+			}
+
+			await Promise.all([
+				InventoryService.scanoutSerial(dataSerial.dataValues.invcd_oid, transaction_oid, t),
+				InventoryService.createHistory([historySerial], t)
+			])
+
+			return this.returnResponse(200, 'success', 'success to scan out serial', null)
+		})
+		.then(result => {
+			res.status(result.code)
+				.json(result.json)
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'failed to scan out serial',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	getScannedOutSerial = (req, res) => {
+		InventoryService.getScannedOutSerial(req.params.transaction_oid)
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'success to get scanned out serial',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'failed to get scanned out serial',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	returnResponse = (code, status, message, data) => {
+		return {code, json: {status, message, data, error: null}}
 	}
 }
 

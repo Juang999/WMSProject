@@ -68,6 +68,7 @@ class InventoryService {
                 ['invcdh_qrbarcode', 'serial'],
                 ['invcdh_status', 'status'],
                 ['invcdh_remarks', 'remark'],
+                ['invcdh_created_by', 'created_by'],
                 ['invcdh_created_date', 'created_at']
             ],
             include: [
@@ -385,11 +386,18 @@ class InventoryService {
     findSerialNumber = async (serialNumber, transaction) => {
         let result = await InvcdDet.findOne({
             attributes: [
+                'invcd_oid',
+                'invcd_dom_id',
+                'invcd_en_id',
+                'invcd_pt_id',
+                'invcd_loc_id',
+                'invcd_locs_id',
                 [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
                 [Sequelize.col('"product"."pt_code"'), 'product_code'],
                 ['invcd_qrbarcode', 'uniq'],
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
-                ['invcd_qty', 'qty'],
+                [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
+                ['invcd_en_id', 'entity_id'],
             ],
             include: [
                 {
@@ -542,6 +550,59 @@ class InventoryService {
             order: [
                 ['invcd_qrbarcode', 'ASC']
             ]
+        })
+
+        return result;
+    }
+
+    scanoutSerial = async (invcdOid, transactionOid, transaction) => {
+        await InvcdDet.update({
+            invcd_qty: 0,
+            invcd_upd_by: 'system',
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_upd_by: 'system',
+            invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
+            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_is_booked: 1,
+            invcd_transaction_oid: transactionOid
+        }, {
+            where: {
+                invcd_oid: invcdOid
+            },
+            transaction
+        })
+    }
+
+    getScannedOutSerial = async (transactionOid) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                'invcd_oid',
+                'invcd_qrbarcode',
+                'invcd_alias_qrbarcode',
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
+                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
+                ['invcd_transaction_oid', 'transaction_oid'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcd_transaction_oid: transactionOid
+            }
         })
 
         return result;
