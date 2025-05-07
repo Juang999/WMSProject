@@ -253,6 +253,10 @@ class SalesOrderController {
 				return this.returnResponse(300, 'rejected', 'serial not belong to this entity', null)
 			}
 
+			if (dataSerial.dataValues.uniq == null || dataSerial.dataValues.invcd_locs_id == null) {
+				return this.returnResponse(300, 'rejected', 'Unregistered serial', null)
+			}
+
 			let historySerial = {
 				invcdh_oid: uuidv4(),
 				invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
