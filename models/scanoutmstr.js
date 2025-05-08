@@ -29,6 +29,10 @@ module.exports = (sequelize, DataTypes) => {
     sc_created_at: DataTypes.DATE,
     sc_remarks: DataTypes.STRING,
     sc_date: DataTypes.DATEONLY,
+    sc_pack_code: DataTypes.STRING,
+    sc_so_code: DataTypes.STRING,
+    sc_receiver: DataTypes.STRING,
+    sc_trans_id: DataTypes.STRING
   }, {
     sequelize,
     tableName: 'scanout_mstr',

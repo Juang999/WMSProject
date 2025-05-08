@@ -12,7 +12,11 @@ class ScanoutService {
             sc_created_by: 'system',
             sc_created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
             sc_remarks: data.remarks,
-            sc_date: data.date
+            sc_date: data.date,
+            sc_pack_code: data.pack_code,
+            sc_so_code: data.so_code,
+            sc_receiver: data.receiver,
+            sc_trans_id: 'D'
         })
 
         return result;
