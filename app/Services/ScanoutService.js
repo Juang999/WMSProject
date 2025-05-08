@@ -28,8 +28,8 @@ class ScanoutService {
         let scCode = 'SC';
         let serverCode = '02';
         let scEntity = `${data.entity_id}0`;
-        let scYearMonth = moment().format('YYMM');
-        let monthCode = '0000';
+        let scYearMonth = moment().format('YYMMDD');
+        let monthCode = '00';
         let sequentialCode = (totalScanoutHeader + 1).toString().padStart(4, '0');
 
         let result = `${scCode}${scEntity}${scYearMonth}${serverCode}${monthCode}${sequentialCode}`;
