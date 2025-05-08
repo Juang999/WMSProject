@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'scd_sc_oid',
         as: 'details',
       });
+
+      ScanOutMstr.belongsTo(models.TransStatus, {
+        as: 'transaction_status',
+        targetKey: 'trans_id',
+        foreignKey: 'sc_trans_id'
+      })
     }
   }
   ScanOutMstr.init({
@@ -31,8 +37,10 @@ module.exports = (sequelize, DataTypes) => {
     sc_date: DataTypes.DATEONLY,
     sc_pack_code: DataTypes.STRING,
     sc_so_code: DataTypes.STRING,
-    sc_receiver: DataTypes.STRING,
-    sc_trans_id: DataTypes.STRING
+    sc_receiver_name: DataTypes.STRING,
+    sc_trans_id: DataTypes.STRING,
+    sc_updated_by: DataTypes.STRING,
+    sc_updated_at: DataTypes.DATE,
   }, {
     sequelize,
     tableName: 'scanout_mstr',

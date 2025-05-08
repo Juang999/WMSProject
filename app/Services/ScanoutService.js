@@ -1,4 +1,4 @@
-const {ScanOutMstr, Sequelize, sequelize, PtMstr, ScanOutdDet} = require('../../models');
+const {ScanOutMstr, Sequelize, sequelize, PtMstr, ScanOutdDet, TransStatus} = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -15,7 +15,7 @@ class ScanoutService {
             sc_date: data.date,
             sc_pack_code: data.pack_code,
             sc_so_code: data.so_code,
-            sc_receiver: data.receiver,
+            sc_receiver_name: data.receiver,
             sc_trans_id: 'D'
         })
 
@@ -96,7 +96,25 @@ class ScanoutService {
 
     getAllHeaderr = async (search) => {
         let result = await ScanOutMstr.findAll({
-            attributes: ['sc_oid', ['sc_code', 'scanout_code'], 'sc_created_by', 'sc_created_at', 'sc_remarks', 'sc_date'],
+            attributes: [
+                'sc_oid', 
+                ['sc_code', 'scanout_code'], 
+                'sc_created_by', 
+                'sc_created_at', 
+                'sc_remarks', 
+                'sc_date',
+                'sc_pack_code',
+                'sc_so_code',
+                'sc_receiver_name',
+                [Sequelize.literal(`"transaction_status"."trans_desc"`), 'status']
+            ],
+            include: [
+                {
+                    model: TransStatus,
+                    as: 'transaction_status',
+                    attributes: []
+                }
+            ],
             where: {
                 sc_code: {
                     [Op.iLike]: `%${search}%`
