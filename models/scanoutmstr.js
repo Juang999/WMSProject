@@ -22,6 +22,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'trans_id',
         foreignKey: 'sc_trans_id'
       })
+
+      ScanOutMstr.hasOne(models.ScanOutdDet, {
+        as: 'singular_details',
+        sourceKey: 'sc_oid',
+        foreignKey: 'scd_sc_oid',
+      })
     }
   }
   ScanOutMstr.init({

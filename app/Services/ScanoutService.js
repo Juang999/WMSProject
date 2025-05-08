@@ -51,6 +51,22 @@ class ScanoutService {
 
     findScanoutHeader = async (scCode) => {
         let result = await ScanOutMstr.findOne({
+            attributes: [
+                'sc_oid',
+                'sc_en_id',
+                'sc_code',
+                'sc_created_by',
+                'sc_created_at',
+                'sc_remarks',
+                'sc_date',
+                'sc_pack_code',
+                'sc_so_code',
+                'sc_receiver_name',
+                'sc_trans_id',
+                'sc_updated_by',
+                'sc_updated_at',
+                [Sequelize.literal(`COUNT("singular_details"."scd_oid")`), 'counted']
+            ],
             include: [
                 {
                     model: ScanOutdDet,
@@ -68,11 +84,34 @@ class ScanoutService {
                             attributes: []
                         }
                     ]
+                }, {
+                    model: ScanOutdDet,
+                    as: 'singular_details',
+                    attributes: []
                 }
             ],
             where: {
                 sc_code: scCode
             },
+            group: [
+                'sc_oid',
+                'sc_en_id',
+                'sc_code',
+                'sc_created_by',
+                'sc_created_at',
+                'sc_remarks',
+                'sc_date',
+                'sc_pack_code',
+                'sc_so_code',
+                'sc_receiver_name',
+                'sc_trans_id',
+                'sc_updated_by',
+                'sc_updated_at',
+                Sequelize.literal(`"details"."scd_oid"`),
+                Sequelize.literal('"details"."scd_serial"'),
+                Sequelize.literal(`"details->product"."pt_desc1"`),
+                Sequelize.literal(`"details->product"."pt_code"`),
+            ],
             subQuery: false
         })
 
@@ -106,12 +145,17 @@ class ScanoutService {
                 'sc_pack_code',
                 'sc_so_code',
                 'sc_receiver_name',
-                [Sequelize.literal(`"transaction_status"."trans_desc"`), 'status']
+                [Sequelize.literal(`"transaction_status"."trans_desc"`), 'status'],
+                [Sequelize.literal(`COUNT("singular_details"."scd_oid")`), 'counted']
             ],
             include: [
                 {
                     model: TransStatus,
                     as: 'transaction_status',
+                    attributes: []
+                }, {
+                    model: ScanOutdDet,
+                    as: 'singular_details',
                     attributes: []
                 }
             ],
@@ -119,7 +163,21 @@ class ScanoutService {
                 sc_code: {
                     [Op.iLike]: `%${search}%`
                 }
-            }
+            },
+            group: [
+                'sc_oid',
+                'sc_created_by',
+                'sc_created_at',
+                'sc_remarks',
+                'sc_date',
+                'sc_pack_code',
+                'sc_so_code',
+                'sc_receiver_name',
+                Sequelize.col(`"transaction_status"."trans_desc"`)
+            ],
+            order: [
+                ['sc_created_at', 'DESC']
+            ]
         })
 
         return result;
