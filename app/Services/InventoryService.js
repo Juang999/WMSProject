@@ -425,6 +425,41 @@ class InventoryService {
         return result;
     }
 
+    findRegisteredSerialNumber = async (serialNumber, transaction) => {
+        let result = await InvcdDet.findOne({
+            attributes: [
+                'invcd_oid',
+                'invcd_dom_id',
+                'invcd_en_id',
+                'invcd_pt_id',
+                'invcd_loc_id',
+                'invcd_locs_id',
+                [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
+                [Sequelize.col('"product"."pt_code"'), 'product_code'],
+                ['invcd_qrbarcode', 'uniq'],
+                ['invcd_alias_qrbarcode', 'alias_uniq'],
+                [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
+                ['invcd_en_id', 'entity_id'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcd_qrbarcode: serialNumber,
+                invcd_deleted_at: null,
+                invcd_deleted_by: null
+            },
+            order: [['invcd_pt_id', 'ASC']],
+            transaction
+        })
+
+        return result;
+    }
+
     moveSerial = async (invcdOid, locsId, transaction) => {
         await InvcdDet.update({
             invcd_locs_id: locsId,

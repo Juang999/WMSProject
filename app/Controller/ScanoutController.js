@@ -47,7 +47,7 @@ class ScanoutController {
 
     createDetail = (req, res) => {
         sequelize.transaction(async t => {
-            let dataSerial = await InventoryService.findSerialNumber(req.body.uniq, t);
+            let dataSerial = await InventoryService.findRegisteredSerialNumber(req.body.uniq, t);
 
             if (!dataSerial) {
                 return this.returnResponse(300, 'rejected', 'serial not found', null)
