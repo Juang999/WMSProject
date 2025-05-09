@@ -112,10 +112,7 @@ class ScanoutService {
                 Sequelize.literal(`"details->product"."pt_desc1"`),
                 Sequelize.literal(`"details->product"."pt_code"`),
             ],
-            subQuery: false,
-            logging: (sqlCommand) => {
-                console.log(sqlCommand);
-            }
+            subQuery: false
         })
 
         return result[0];
@@ -181,6 +178,26 @@ class ScanoutService {
             order: [
                 ['sc_created_at', 'DESC']
             ]
+        })
+
+        return result;
+    }
+
+    deleteSerial = async (scdOid, transaction) => {
+        await ScanOutdDet.destroy({
+            where: {
+                scd_oid: scdOid
+            },
+            transaction
+        })
+    }
+
+    findSerialAlreadyScanned = async (scdOid) => {
+        let result = await ScanOutdDet.findOne({
+            attributes: ['scd_serial'],
+            where: {
+                scd_oid: scdOid
+            }
         })
 
         return result;

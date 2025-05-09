@@ -128,6 +128,52 @@ class ScanoutController {
         })
     }
 
+    deleteScannedOut = (req, res) => {
+        sequelize.transaction(async t => {
+            let dataScannedOut = await ScanoutService.findSerialAlreadyScanned(req.params.scd_oid);
+            let dataSerial = await InventoryService.findRegisteredSerialNumber(dataScannedOut.dataValues.scd_serial, t);
+
+            if (!dataScannedOut) {
+                return this.returnResponse(300, 'rejected', 'serial not found', null)
+            }
+
+            await Promise.all([
+                InventoryService.newReleaseSerial(dataScannedOut.dataValues.scd_serial, t),
+                ScanoutService.deleteSerial(req.params.scd_oid, t),
+                InventoryService.createHistory([{
+                    invcdh_oid: uuidv4(),
+                    invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
+                    invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+                    invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+                    invcdh_loc_from_id: dataSerial.dataValues.invcd_loc_id,
+                    invcdh_locs_from_id: dataSerial.dataValues.invcd_locs_id,
+                    invcdh_qrbarcode: dataSerial.dataValues.invcd_qrbarcode,
+                    invcdh_status: 'released scanned out!',
+                    invcdh_remarks: 'released scanned out',
+                    invcdh_created_by: 'system',
+                    invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                }], t)
+            ])
+
+            return this.returnResponse(200, 'success', 'success to delete scanned out serial', null)
+        })
+        .then(result => {
+            res.status(result.code)
+                .json(result.json)
+        })
+        .catch(err => {
+            errorLog(`DELETE SCANNED OUT`, err.message)
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'failed to delete scanned out serial',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     returnResponse = (code, status, message, data) => {
 		return {code, json: {status, message, data, error: null}}
 	}
