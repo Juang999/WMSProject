@@ -133,6 +133,22 @@ class ScanoutService {
         })
     }
 
+    updateHeaderScanout = async (scanoutOid, data) => {
+        await ScanOutMstr.update({
+            sc_updated_by: 'system',
+            sc_updated_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            sc_remarks: data.remarks,
+            sc_pack_code: data.pack_code,
+            sc_so_code: data.so_code,
+            sc_receiver_name: data.receiver,
+            sc_trans_id: data.transaction_id
+        }, {
+            where: {
+                sc_oid: scanoutOid
+            }
+        })
+    }
+
     getAllHeaderr = async (search) => {
         let result = await ScanOutMstr.findAll({
             attributes: [

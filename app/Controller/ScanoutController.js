@@ -174,6 +174,45 @@ class ScanoutController {
         })
     }
 
+    updateHeader = async (req, res) => {
+        try {
+            let dataHeader = await ScanoutService.findScanoutHeader(req.params.scanout_code);
+
+            if (!dataHeader) {
+                return res.status(404).json({
+                    status: 'error',
+                    message: 'Scanout header not found',
+                    data: null,
+                    error: null
+                })
+            }
+
+            await ScanoutService.updateHeaderScanout(dataHeader.dataValues.sc_oid, {
+                remarks: (req.body.remarks) ? req.body.remarks : dataHeader.dataValues.sc_remarks,
+                pack_code: (req.body.pack_code) ? req.body.pack_code : dataHeader.dataValues.sc_pack_code,
+                so_code: (req.body.so_code) ? req.body.so_code : dataHeader.dataValues.sc_so_code,
+                receiver: (req.body.receiver) ? req.body.receiver : dataHeader.dataValues.sc_receiver_name,
+                transaction_id: (req.body.transaction_id) ? req.body.transaction_id : dataHeader.dataValues.sc_trans_id
+            })
+
+            return res.status(200).json({
+                status: 'success',
+                message: 'Scanout header updated successfully',
+                data: null,
+                error: null
+            })
+        } catch (error) {
+            errorLog(`UPDATE SCANOUT HEADER`, error.message)
+
+            return res.status(500).json({
+                status: 'error',
+                message: 'Failed to update scanout header',
+                data: null,
+                error: error.message
+            })
+        }
+    }
+
     returnResponse = (code, status, message, data) => {
 		return {code, json: {status, message, data, error: null}}
 	}
