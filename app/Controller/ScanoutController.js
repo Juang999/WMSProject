@@ -1,5 +1,7 @@
 const {ScanoutService, InventoryService} = require('../Services/ServiceContainer');
 const {sequelize} = require('../../models');
+const {v4: uuidv4} = require('uuid');
+const moment = require('moment');
 
 class ScanoutController {
     createHeader = (req, res) => {
@@ -68,7 +70,20 @@ class ScanoutController {
                     location_id: dataSerial.dataValues.invcd_loc_id,
                     sublocation_id: dataSerial.dataValues.invcd_locs_id,
                     serial: req.body.uniq,
-                }, t)
+                }, t),
+                InventoryService.createHistory([{
+                    invcdh_oid: uuidv4(),
+                    invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
+                    invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+                    invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+                    invcdh_loc_from_id: dataSerial.dataValues.invcd_loc_id,
+                    invcdh_locs_from_id: dataSerial.dataValues.invcd_locs_id,
+                    invcdh_qrbarcode: dataSerial.dataValues.invcd_qrbarcode,
+                    invcdh_status: 'scanned out!',
+                    invcdh_remarks: 'scanned out',
+                    invcdh_created_by: 'system',
+                    invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                }], t)
             ])
 
             return this.returnResponse(200, 'success', 'success to scan out serial', null)
