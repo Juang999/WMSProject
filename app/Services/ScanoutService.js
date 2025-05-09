@@ -160,6 +160,7 @@ class ScanoutService {
                 'sc_date',
                 'sc_pack_code',
                 'sc_so_code',
+                ['sc_trans_id', 'status_id'],
                 'sc_receiver_name',
                 [Sequelize.literal(`"transaction_status"."trans_desc"`), 'status'],
                 [Sequelize.literal(`COUNT("singular_details"."scd_oid")`), 'counted']
