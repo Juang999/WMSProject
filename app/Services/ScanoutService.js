@@ -50,7 +50,7 @@ class ScanoutService {
     }
 
     findScanoutHeader = async (scCode) => {
-        let result = await ScanOutMstr.findOne({
+        let result = await ScanOutMstr.findAll({
             attributes: [
                 'sc_oid',
                 'sc_en_id',
@@ -112,10 +112,13 @@ class ScanoutService {
                 Sequelize.literal(`"details->product"."pt_desc1"`),
                 Sequelize.literal(`"details->product"."pt_code"`),
             ],
-            subQuery: false
+            subQuery: false,
+            logging: (sqlCommand) => {
+                console.log(sqlCommand);
+            }
         })
 
-        return result;
+        return result[0];
     }
 
     createDetailScanout = async (data) => {
