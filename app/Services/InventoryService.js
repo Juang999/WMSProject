@@ -234,8 +234,9 @@ class InventoryService {
             where: {
                 invcd_locs_id: subLocId,
                 invcd_pt_id: productId,
+                invcd_qty: 1,
                 invcd_deleted_at: null,
-                invcd_deleted_by: null
+                invcd_deleted_by: null,
             },
             order: [
                 ['invcd_add_date', 'DESC']
