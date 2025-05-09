@@ -2,6 +2,7 @@ const {ScanoutService, InventoryService} = require('../Services/ServiceContainer
 const {sequelize} = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
+const {error: errorLog} = require('../../helper/Logging');
 
 class ScanoutController {
     createHeader = (req, res) => {
@@ -93,6 +94,8 @@ class ScanoutController {
                 .json(result.json)
         })
         .catch(err => {
+            errorLog(`INPUT SERIAL`, err.message)
+
             res.status(400)
                 .json({
                     status: 'failed',
