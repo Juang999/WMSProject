@@ -55,22 +55,21 @@ class ScanoutController {
                 return this.returnResponse(300, 'rejected', 'serial has scanned out!', null)
             }
 
-            if (dataSerial.dataValues.entity_id != req.body.entity_id) {
-                return this.returnResponse(300, 'rejected', 'serial not belong to this entity', null)
-            }
-
             if (dataSerial.dataValues.uniq == null || dataSerial.dataValues.invcd_locs_id == null) {
                 return this.returnResponse(300, 'rejected', 'Unregistered serial', null)
             }
 
-            await ScanoutService.createDetailScanout({
-                entity_id: req.body.entity_id,
-                scanout_oid: req.body.scanout_oid,
-                product_id: dataSerial.dataValues.invcd_pt_id,
-                location_id: dataSerial.dataValues.invcd_loc_id,
-                sublocation_id: dataSerial.dataValues.invcd_locs_id,
-                serial: req.body.uniq,
-            }, t)
+            await Promise.all([
+                InventoryService.scanoutSerial(dataSerial.dataValues.invcd_oid, req.body.scanout_oid, t),
+                ScanoutService.createDetailScanout({
+                    entity_id: req.body.entity_id,
+                    scanout_oid: req.body.scanout_oid,
+                    product_id: dataSerial.dataValues.invcd_pt_id,
+                    location_id: dataSerial.dataValues.invcd_loc_id,
+                    sublocation_id: dataSerial.dataValues.invcd_locs_id,
+                    serial: req.body.uniq,
+                }, t)
+            ])
 
             return this.returnResponse(200, 'success', 'success to scan out serial', null)
         })
