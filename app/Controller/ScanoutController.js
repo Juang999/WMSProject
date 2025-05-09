@@ -62,7 +62,7 @@ class ScanoutController {
             await Promise.all([
                 InventoryService.scanoutSerial(dataSerial.dataValues.invcd_oid, req.body.scanout_oid, t),
                 ScanoutService.createDetailScanout({
-                    entity_id: req.body.entity_id,
+                    entity_id: dataSerial.dataValues.entity_id,
                     scanout_oid: req.body.scanout_oid,
                     product_id: dataSerial.dataValues.invcd_pt_id,
                     location_id: dataSerial.dataValues.invcd_loc_id,
