@@ -222,31 +222,17 @@ class ScanoutController {
     registerSerial = async (dataSerial, uniqSerial, transaction) => {
         let sublocationId = null;
 
-        // switch (dataSerial.dataValues.invcd_en_id) {
-        //     case 1:
-        //         sublocationId = 10021162;
-        //         break;
-
-        //     case 2:
-        //         sublocationId = 20021163;
-        //         break;
-
-        //     case 3:
-        //         sublocationId = 30021164;
-        //         break;
-        // }
-
         switch (dataSerial.dataValues.invcd_en_id) {
             case 1:
-                sublocationId = 10012;
+                sublocationId = 10021162;
                 break;
 
             case 2:
-                sublocationId = 203679;
+                sublocationId = 20021163;
                 break;
 
             case 3:
-                sublocationId = 205075;
+                sublocationId = 30021164;
                 break;
         }
 
