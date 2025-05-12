@@ -449,9 +449,15 @@ class InventoryService {
                 }
             ],
             where: {
-                invcd_qrbarcode: serialNumber,
                 invcd_deleted_at: null,
-                invcd_deleted_by: null
+                invcd_deleted_by: null,
+                [Op.or]: [
+                    {
+                        invcd_qrbarcode: serialNumber
+                    }, {
+                        invcd_alias_qrbarcode: serialNumber
+                    }
+                ]
             },
             order: [['invcd_pt_id', 'ASC']],
             transaction

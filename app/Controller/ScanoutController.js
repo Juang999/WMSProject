@@ -1,5 +1,5 @@
 const {ScanoutService, InventoryService} = require('../Services/ServiceContainer');
-const {sequelize} = require('../../models');
+const {sequelize, Sequelize} = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
 const {error: errorLog} = require('../../helper/Logging');
@@ -58,28 +58,30 @@ class ScanoutController {
                 return this.returnResponse(300, 'rejected', 'serial has scanned out!', null)
             }
 
-            if (dataSerial.dataValues.uniq == null || dataSerial.dataValues.invcd_locs_id == null) {
-                return this.returnResponse(300, 'rejected', 'Unregistered serial', null)
+            if (dataSerial.dataValues.invcd_locs_id == null) {
+                await this.registerSerial(dataSerial, req.body.uniq, t);
             }
 
+            let newDataSerial = await InventoryService.findRegisteredSerialNumber(req.body.uniq, t);
+
             await Promise.all([
-                InventoryService.scanoutSerial(dataSerial.dataValues.invcd_oid, req.body.scanout_oid, t),
+                InventoryService.scanoutSerial(newDataSerial.dataValues.invcd_oid, req.body.scanout_oid, t),
                 ScanoutService.createDetailScanout({
-                    entity_id: dataSerial.dataValues.entity_id,
+                    entity_id: newDataSerial.dataValues.entity_id,
                     scanout_oid: req.body.scanout_oid,
-                    product_id: dataSerial.dataValues.invcd_pt_id,
-                    location_id: dataSerial.dataValues.invcd_loc_id,
-                    sublocation_id: dataSerial.dataValues.invcd_locs_id,
+                    product_id: newDataSerial.dataValues.invcd_pt_id,
+                    location_id: newDataSerial.dataValues.invcd_loc_id,
+                    sublocation_id: newDataSerial.dataValues.invcd_locs_id,
                     serial: req.body.uniq,
                 }, t),
                 InventoryService.createHistory([{
                     invcdh_oid: uuidv4(),
-                    invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
-                    invcdh_en_id: dataSerial.dataValues.invcd_en_id,
-                    invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
-                    invcdh_loc_from_id: dataSerial.dataValues.invcd_loc_id,
-                    invcdh_locs_from_id: dataSerial.dataValues.invcd_locs_id,
-                    invcdh_qrbarcode: dataSerial.dataValues.invcd_qrbarcode,
+                    invcdh_dom_id: newDataSerial.dataValues.invcd_dom_id,
+                    invcdh_en_id: newDataSerial.dataValues.invcd_en_id,
+                    invcdh_pt_id: newDataSerial.dataValues.invcd_pt_id,
+                    invcdh_loc_from_id: newDataSerial.dataValues.invcd_loc_id,
+                    invcdh_locs_from_id: newDataSerial.dataValues.invcd_locs_id,
+                    invcdh_qrbarcode: newDataSerial.dataValues.uniq,
                     invcdh_status: 'scanned out!',
                     invcdh_remarks: 'scanned out',
                     invcdh_created_by: 'system',
@@ -216,6 +218,59 @@ class ScanoutController {
     returnResponse = (code, status, message, data) => {
 		return {code, json: {status, message, data, error: null}}
 	}
+
+    registerSerial = async (dataSerial, uniqSerial, transaction) => {
+        let sublocationId = null;
+
+        // switch (dataSerial.dataValues.invcd_en_id) {
+        //     case 1:
+        //         sublocationId = 10021162;
+        //         break;
+
+        //     case 2:
+        //         sublocationId = 20021163;
+        //         break;
+
+        //     case 3:
+        //         sublocationId = 30021164;
+        //         break;
+        // }
+
+        switch (dataSerial.dataValues.invcd_en_id) {
+            case 1:
+                sublocationId = 10012;
+                break;
+
+            case 2:
+                sublocationId = 203679;
+                break;
+
+            case 3:
+                sublocationId = 205075;
+                break;
+        }
+
+        await Promise.all([
+            InventoryService.updateSerial(dataSerial.dataValues.invcd_oid, {
+                location_id: Sequelize.literal(`"invcd_loc_id"`),
+                sublocation_id: sublocationId,
+                serial_number: uniqSerial
+            }, transaction),
+            InventoryService.createHistory([{
+                invcdh_oid: uuidv4(),
+                invcdh_dom_id: 1,
+                invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+                invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+                invcdh_loc_from_id: dataSerial.dataValues.invcd_loc_id,
+                invcdh_locs_from_id: sublocationId,
+                invcdh_qrbarcode: uniqSerial,
+                invcdh_status: 'registered!',
+                invcdh_remarks: 'registered',
+                invcdh_created_by: 'system',
+                invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            }], transaction)
+        ])
+    }
 }
 
 module.exports = new ScanoutController();

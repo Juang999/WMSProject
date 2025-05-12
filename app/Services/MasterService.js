@@ -62,10 +62,7 @@ class MasterService {
             ],
             order: [
                 [Sequelize.col('scanned'), 'DESC']
-            ],
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
+            ]
         })
 
         return result;
