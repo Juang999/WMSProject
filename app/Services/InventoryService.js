@@ -440,6 +440,7 @@ class InventoryService {
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
                 [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
                 ['invcd_en_id', 'entity_id'],
+                'invcd_is_booked'
             ],
             include: [
                 {
@@ -459,7 +460,7 @@ class InventoryService {
                     }
                 ]
             },
-            order: [['invcd_pt_id', 'ASC']],
+            order: [['invcd_qrbarcode', 'ASC']],
             transaction
         })
 
