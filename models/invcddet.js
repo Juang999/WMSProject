@@ -28,6 +28,18 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'loc_id',
         foreignKey: 'invcd_loc_id'
       })
+
+      InvcdDet.belongsTo(models.TConfUser, {
+        as: 'creator_operator',
+        targetKey: 'usernama',
+        foreignKey: 'invcd_add_by'
+      })
+
+      InvcdDet.belongsTo(models.TConfUser, {
+        as: 'update_operator',
+        targetKey: 'usernama',
+        foreignKey: 'invcd_upd_by'
+      })
     }
   }
   InvcdDet.init({

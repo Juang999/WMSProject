@@ -1,7 +1,7 @@
 const {
-    LocMstr,
     PtMstr, EnMstr,
     LocsMstr, InvcdDet, 
+    LocMstr, TConfUser,
     InvcdhHist, Sequelize,
 } = require('../../models');
 const moment = require('moment');
@@ -708,29 +708,18 @@ class InventoryService {
     reportRegistering = async (date) => {
         let result = await InvcdDet.findAll({
             attributes: [
-                ['invcd_pt_id', 'product_id'],
-                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
-                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
-                ['invcd_qrbarcode', 'uniq'],
-                ['invcd_loc_id', 'location_id'],
-                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
-                ['invcd_locs_id', 'sublocation_id'],
-                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
+                [Sequelize.literal(`CASE WHEN invcd_upd_by IS NOT NULL THEN "update_operator"."userid" ELSE "creator_operator"."userid" END`), 'operator_id'],
                 [Sequelize.literal(`CASE WHEN invcd_upd_by IS NOT NULL THEN invcd_upd_by ELSE invcd_add_by END`), 'registered_by'],
-                [Sequelize.literal(`CASE WHEN invcd_upd_date IS NOT NULL THEN invcd_upd_date ELSE invcd_add_date END`), 'registered_at'],
+                [Sequelize.literal(`COUNT(*)`), 'total_scan'],
             ],
             include: [
                 {
-                    model: PtMstr,
-                    as: 'product',
+                    model: TConfUser,
+                    as: 'creator_operator',
                     attributes: []
                 }, {
-                    model: LocsMstr,
-                    as: 'sublocation',
-                    attributes: []
-                }, {
-                    model: LocMstr,
-                    as: 'location',
+                    model: TConfUser,
+                    as: 'update_operator',
                     attributes: []
                 }
             ],
@@ -749,8 +738,12 @@ class InventoryService {
                     })
                 ]
             },
+            group: [
+                'operator_id',
+                'registered_by',
+            ],
             order: [
-                ['registered_at', 'DESC']
+                ['total_scan', 'DESC']
             ]
         })
 
