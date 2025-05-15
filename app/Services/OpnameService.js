@@ -89,15 +89,12 @@ class OpnameService {
                 Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
                     [Op.not]: null,
                 }),
+                Sequelize.where(Sequelize.col(`"invcd_qty"`), {
+                    [Op.not]: 0,
+                }),
                 Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
-                    [Op.eq]: `Y`,
+                    [Op.eq]: 'Y',
                 }),
-                Sequelize.where(Sequelize.col(`"invcd_deleted_at"`), {
-                    [Op.eq]: null,
-                }),
-                Sequelize.where(Sequelize.col(`"invcd_deleted_by"`), {
-                    [Op.eq]: null,
-                })
             ],
             order: [
                 ['total_qty', 'DESC']

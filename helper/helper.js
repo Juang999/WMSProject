@@ -3,7 +3,8 @@ class Helper {
 		return {
 			Auth: require('./auth'),
 			Query: require('./Query'),
-			Page: require('./page')
+			Page: require('./page'),
+			Authentication: require('./AuthV2')
 		}
 	}
 }

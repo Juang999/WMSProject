@@ -6,6 +6,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var upload = require('express-fileupload')
+var expressHttpContext = require('express-http-context');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -31,23 +32,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(upload())
+app.use(upload());
+app.use(expressHttpContext.middleware);
 
 app.use('/', require('./routes/index'));
-app.use('/users', require('./routes/users'));
-app.use('/master', require('./routes/master'));
-app.use('/product', require('./routes/product'));
-app.use('/sales-order', require('./routes/sales_order'));
-app.use('/sublocation', subLocationRouter);
-app.use('/set-location', setLocationRouter);
-app.use('/picking-list', pickingListRouter);
 app.use('/stock-opname', stockOpnameRouter);
+app.use('/users', require('./routes/users'));
 app.use('/move-location', moveLocationRouter);
 app.use('/purchase-order', purchaseOrderRouter);
+app.use('/report', require('./routes/report'));
+app.use('/master', require('./routes/master'));
 app.use('/so-ship', require('./routes/soship'));
 app.use('/scanout', require('./routes/scanout'));
+app.use('/product', require('./routes/product'));
 app.use('/putting', require('./routes/putting'));
 app.use('/register', require('./routes/register'));
+app.use('/sales-order', require('./routes/sales_order'));
+app.use('/sublocation', require('./routes/sublocation'));
+app.use('/set-location', require('./routes/set_location'));
+app.use('/picking-list', require('./routes/picking_list'));
 app.use('/inventory-receipt', inventoryReceiptRouter);
 
 // catch 404 and forward to error handler

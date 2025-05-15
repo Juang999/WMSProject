@@ -705,6 +705,58 @@ class InventoryService {
             transaction
         })
     }
+
+    reportRegistering = async (date) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                ['invcd_pt_id', 'product_id'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                ['invcd_qrbarcode', 'uniq'],
+                ['invcd_loc_id', 'location_id'],
+                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
+                ['invcd_locs_id', 'sublocation_id'],
+                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
+                [Sequelize.literal(`CASE WHEN invcd_upd_by IS NOT NULL THEN invcd_upd_by ELSE invcd_add_by END`), 'registered_by'],
+                [Sequelize.literal(`CASE WHEN invcd_upd_date IS NOT NULL THEN invcd_upd_date ELSE invcd_add_date END`), 'registered_at'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcd_qty: 1,
+                invcd_is_verified: 'Y',
+                invcd_locs_id: {
+                    [Op.not]: null
+                },
+                [Op.or]: [
+                    Sequelize.where(Sequelize.literal(`DATE(invcd_add_date)`), {
+                        [Op.eq]: date
+                    }),
+                    Sequelize.where(Sequelize.literal(`DATE(invcd_upd_date)`), {
+                        [Op.eq]: date
+                    })
+                ]
+            },
+            order: [
+                ['registered_at', 'DESC']
+            ]
+        })
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();

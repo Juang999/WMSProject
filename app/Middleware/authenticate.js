@@ -18,8 +18,6 @@ const authenticate = async (req, res, next) => {
 		return
 	}
 
-    set('token', token);
-
     jwt.verify(token, config.parsed.ACCESS_TOKEN_SECRET, async (err, user) => {
         if (err) {
             res.status(400)
@@ -31,6 +29,8 @@ const authenticate = async (req, res, next) => {
 
             return
         }
+
+        set('user', user);
 
         next()
     })	
