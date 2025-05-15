@@ -20,6 +20,7 @@ class UserController {
 				res.status(300)
 					.json({
 						status: 'failed',
+						message: 'ok',
 						data: null,
 						error: 'wrong username or password!'
 					})

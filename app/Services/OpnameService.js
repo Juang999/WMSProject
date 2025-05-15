@@ -48,11 +48,12 @@ class OpnameService {
         return result;
     }
 
-    retrieveInventoryMaster = async (searchLocation, searchProduct) => {
+    retrieveInventoryMaster = async (searchLocation, searchProduct, searchProductCode) => {
         let result = await InvcdDet.findAll({
             attributes: [
                 [Sequelize.col(`"product"."pt_id"`), 'product_id'],
                 [Sequelize.col(`"location"."loc_id"`), 'location_id'],
+                ['invcd_locs_id', 'sublocation_id'],
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
@@ -81,6 +82,9 @@ class OpnameService {
                 }),
                 Sequelize.where(Sequelize.col(`"product"."pt_desc1"`), {
                     [Op.iLike]: `%${searchProduct}%`,
+                }),
+                Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
+                    [Op.iLike]: `%${searchProductCode}%`,
                 }),
                 Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
                     [Op.not]: null,
@@ -301,7 +305,9 @@ class OpnameService {
                     {
                         invcd_qrbarcode: serialNumber,
                         invcd_deleted_at: null,
-                        invcd_deleted_by: null
+                        invcd_deleted_by: null,
+                        invcd_is_booked: '0',
+                        invcd_transaction_oid: null
                     }, {
                         [Op.and]: [
                             Sequelize.where(Sequelize.col('invcd_alias_qrbarcode'), {

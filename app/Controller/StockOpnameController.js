@@ -91,8 +91,9 @@ class StockOpnameController {
     getInventoryMaster = (req, res) => {
         let searchLocation = (req.query.location) ? req.query.location : '';
         let searchProduct = (req.query.product) ? req.query.product : '';
+        let searchProductCode = (req.query.product_code) ? req.query.product_code : '';
 
-        OpnameService.retrieveInventoryMaster(searchLocation, searchProduct)
+        OpnameService.retrieveInventoryMaster(searchLocation, searchProduct, searchProductCode)
         .then(result => {
             res.status(200)
                 .json({
