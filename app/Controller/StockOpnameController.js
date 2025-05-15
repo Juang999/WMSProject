@@ -1,7 +1,7 @@
 const Auth = require('../../helper/auth');
 const {sequelize} = require('../../models');
 const {
-    LocationService,
+    LocationService, GetDescService,
     InventoryService, UserService, 
     ProductService, OpnameService
 } = require('../Services/ServiceContainer');
@@ -196,6 +196,12 @@ class StockOpnameController {
                 OpnameService.findDetailOpname(som_oid, partnumber, location_id),
                 OpnameService.findSerialOpname(location_id, partnumber, uniq),
             ])
+
+            if (dataProduct == null) {
+                let dataPn = await GetDescService.findOldProductBySerialNumber(partnumber);
+
+                dataProduct = (dataPn == null) ? null : await ProductService.findProductByPartnumber(dataPn.dataValues.pn);
+            }
 
             if (detailOpname == null || dataProduct == null) {
                 errorMinor(`INPUT OPNAME`, `DETAIL OPNAME or DATA PRODUCT not found! | partnumber: ${partnumber}`)

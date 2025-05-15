@@ -7,6 +7,7 @@ class ProductService {
             attributes: [
                 'pt_en_id',
                 'pt_id',
+                ['pt_code', 'partnumber']
             ],
             where: {
                 pt_code: partnumber

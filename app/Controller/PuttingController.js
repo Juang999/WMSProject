@@ -1,6 +1,7 @@
 const {sequelize} = require('../../models');
 const {error: errorLog} = require('../../helper/Logging');
 const {
+    GetDescService,
     LocationService, ProductService, 
     InventoryService, OpnameService
 } = require('../Services/ServiceContainer');
@@ -36,7 +37,9 @@ class PuttingController {
 
     store = async (req, res) => {
         sequelize.transaction(async t => {
-            const [dataProduct, dataSerial, dataCapSublocation, dataTotalQtySublocation, dataPartnumber] = await Promise.all([
+            let newData = null;
+
+            let [dataProduct, dataSerial, dataCapSublocation, dataTotalQtySublocation, dataPartnumber] = await Promise.all([
                 ProductService.findProductByPartnumber(req.body.partnumber),
                 OpnameService.findSerialNumber(req.body.uniq, req.body.partnumber, t),
                 LocationService.findSublocation(req.body.sublocation_id),
@@ -44,19 +47,25 @@ class PuttingController {
                 InventoryService.getPartnumberBySerial(req.body.uniq)
             ]);
 
-            
-            if (dataPartnumber.length != 0) {
-                for (const {dataValues: dataSingular} of dataPartnumber) {
-                    if (dataSingular.invcd_qrbarcode != null) {
-                        return this.returnResponse(300, 'rejected', `uniq already registered with another partnumber!`, null, null)
-                    } else if (dataSingular.invcd_alias_qrbarcode == req.body.uniq && dataSingular.pt_code != req.body.partnumber) {
-                        return this.returnResponse(300, 'rejected', `alias uniq already registered with another partnumber!`, null, null)
-                    }
-                }
+            if (dataProduct == null) {
+                let dataPn = await GetDescService.findOldProductBySerialNumber(req.body.partnumber);
+
+                newData = (dataPn == null) ? 'hello null' : 'hello world';
+                dataProduct = (dataPn == null) ? null : await ProductService.findProductByPartnumber(dataPn.dataValues.pn);
             }
 
             if (dataProduct == null) {
                 return this.returnResponse(404, 'not found', `product not found!: partnumber: ${req.body.partnumber}`, null, null)
+            }
+
+            if (dataPartnumber.length != 0) {
+                for (const {dataValues: dataSingular} of dataPartnumber) {
+                    if (dataSingular.invcd_qrbarcode != null) {
+                        return this.returnResponse(300, 'rejected', `uniq already registered with another partnumber!`, null, null)
+                    } else if (dataSingular.invcd_alias_qrbarcode == req.body.uniq && dataSingular.pt_code != dataProduct.dataValues.partnumber) {
+                        return this.returnResponse(300, 'rejected', `alias uniq already registered with another partnumber!`, null, null)
+                    }
+                }
             }
 
             if (dataCapSublocation == null) {
