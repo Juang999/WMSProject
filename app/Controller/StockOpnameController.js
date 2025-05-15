@@ -185,29 +185,33 @@ class StockOpnameController {
         let {som_oid, partnumber, uniq, location_id} = req.body;
 
         sequelize.transaction(async t => {
-            let [
-                dataProduct, 
-                serialNumber,
-                detailOpname,
-                serialOpname
-            ] = await Promise.all([
-                ProductService.findProductByPartnumber(partnumber), 
-                OpnameService.findSerialNumber(uniq, partnumber, t),
-                OpnameService.findDetailOpname(som_oid, partnumber, location_id),
-                OpnameService.findSerialOpname(location_id, partnumber, uniq),
-            ])
+            let dataProduct = await ProductService.findProductByPartnumber(partnumber);
 
             if (dataProduct == null) {
                 let dataPn = await GetDescService.findOldProductBySerialNumber(partnumber);
-
                 dataProduct = (dataPn == null) ? null : await ProductService.findProductByPartnumber(dataPn.dataValues.pn);
             }
 
-            if (detailOpname == null || dataProduct == null) {
+            if (dataProduct == null) {
+                errorMinor(`INPUT OPNAME`, `DETAIL OPNAME or DATA PRODUCT not found! | partnumber: ${partnumber}`)
+                return this.returnResponse(300, 'rejected', 'rejected', null, null)
+            }
+
+            let detailOpname = await OpnameService.findDetailOpname(som_oid, dataProduct.dataValues.partnumber, location_id);
+
+            if (detailOpname == null) {
                 errorMinor(`INPUT OPNAME`, `DETAIL OPNAME or DATA PRODUCT not found! | partnumber: ${partnumber}`)
 
-                return this.returnResponse(200, 'rejected', 'rejected', null, null)
+                return this.returnResponse(300, 'rejected', 'rejected', null, null)
             }
+
+            let [
+                serialNumber,
+                serialOpname
+            ] = await Promise.all([ 
+                OpnameService.findSerialNumber(uniq, dataProduct.dataValues.partnumber, t),
+                OpnameService.findSerialOpname(location_id, dataProduct.dataValues.partnumber, uniq),
+            ])
 
             if (!serialNumber) {
                 if (serialOpname) {

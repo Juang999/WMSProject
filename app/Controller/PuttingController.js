@@ -37,26 +37,23 @@ class PuttingController {
 
     store = async (req, res) => {
         sequelize.transaction(async t => {
-            let newData = null;
-
-            let [dataProduct, dataSerial, dataCapSublocation, dataTotalQtySublocation, dataPartnumber] = await Promise.all([
-                ProductService.findProductByPartnumber(req.body.partnumber),
-                OpnameService.findSerialNumber(req.body.uniq, req.body.partnumber, t),
-                LocationService.findSublocation(req.body.sublocation_id),
-                InventoryService.countSerialSublocation(req.body.sublocation_id),
-                InventoryService.getPartnumberBySerial(req.body.uniq)
-            ]);
+            let dataProduct = await ProductService.findProductByPartnumber(req.body.partnumber);
 
             if (dataProduct == null) {
                 let dataPn = await GetDescService.findOldProductBySerialNumber(req.body.partnumber);
-
-                newData = (dataPn == null) ? 'hello null' : 'hello world';
                 dataProduct = (dataPn == null) ? null : await ProductService.findProductByPartnumber(dataPn.dataValues.pn);
             }
 
             if (dataProduct == null) {
                 return this.returnResponse(404, 'not found', `product not found!: partnumber: ${req.body.partnumber}`, null, null)
             }
+
+            let [dataSerial, dataCapSublocation, dataTotalQtySublocation, dataPartnumber] = await Promise.all([
+                OpnameService.findSerialNumber(req.body.uniq, dataProduct.dataValues.partnumber, t),
+                LocationService.findSublocation(req.body.sublocation_id),
+                InventoryService.countSerialSublocation(req.body.sublocation_id),
+                InventoryService.getPartnumberBySerial(req.body.uniq)
+            ]);
 
             if (dataPartnumber.length != 0) {
                 for (const {dataValues: dataSingular} of dataPartnumber) {
