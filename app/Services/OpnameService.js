@@ -111,6 +111,7 @@ class OpnameService {
                 Sequelize.col(`"sublocation"."locs_name"`),
                 Sequelize.col(`invcd_deleted_at`),
                 Sequelize.col(`invcd_deleted_by`),
+                Sequelize.col(`invcd_locs_id`),
             ],
             logging: (sqlCommand) => {
                 console.info(sqlCommand)
