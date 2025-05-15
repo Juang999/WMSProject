@@ -7,6 +7,7 @@ const {
 } = require('../Services/ServiceContainer');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
+const {Authentication} = require('../../helper/helper')
 
 class PuttingController {
     index = (req, res) => {
@@ -56,12 +57,10 @@ class PuttingController {
             ]);
 
             if (dataPartnumber.length != 0) {
-                for (const {dataValues: dataSingular} of dataPartnumber) {
-                    if (dataSingular.invcd_qrbarcode != null) {
-                        return this.returnResponse(300, 'rejected', `uniq already registered with another partnumber!`, null, null)
-                    } else if (dataSingular.invcd_alias_qrbarcode == req.body.uniq && dataSingular.pt_code != dataProduct.dataValues.partnumber) {
-                        return this.returnResponse(300, 'rejected', `alias uniq already registered with another partnumber!`, null, null)
-                    }
+                let response = this.checkPartnumberSerial(dataPartnumber, req.body.uniq, dataProduct.dataValues.partnumber)
+                
+                if (response != undefined) {
+                    return response;
                 }
             }
 
@@ -81,26 +80,60 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
-            if (dataSerial && dataSerial.dataValues.invcd_locs_id != null) {
+            if (dataSerial && dataSerial.dataValues.qty == 1) {
                 return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
             }
 
             if (dataSerial) {
-                await InventoryService.updateSerial(
+                await Promise.all([
+                    InventoryService.updateSerial(
                     dataSerial.dataValues.invcd_oid, 
                     {
                         location_id: req.body.location_id,
                         sublocation_id: req.body.sublocation_id,
                         serial_number: req.body.uniq
-                    }, t);
+                    }, Authentication.user().usernama, t),
+                    InventoryService.createHistory([
+                        {
+                            invcdh_oid: uuidv4(),
+                            invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
+                            invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+                            invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+                            invcdh_loc_to_id: req.body.location_id,
+                            invcdh_locs_to_id: req.body.sublocation_id,
+                            invcdh_qrbarcode: req.body.uniq,
+                            invcdh_status: 'registered!',
+                            invcdh_remarks: 'registered',
+                            invcdh_created_by: Authentication.user().usernama,
+                            invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    ], t)
+                ])
             } else {
-                await InventoryService.createSerialNumber({
-                    en_id: dataProduct.dataValues.pt_en_id,
-                    pt_id: dataProduct.dataValues.pt_id,
-                    qrbarcode: req.body.uniq,
-                    loc_id: req.body.location_id,
-                    locs_id: req.body.sublocation_id
-                }, t);
+                await Promise.all([
+                    InventoryService.createSerialNumber({
+                        en_id: dataProduct.dataValues.pt_en_id,
+                        pt_id: dataProduct.dataValues.pt_id,
+                        qrbarcode: req.body.uniq,
+                        loc_id: req.body.location_id,
+                        locs_id: req.body.sublocation_id
+                    }, Authentication.user().usernama, t),
+                    InventoryService.createHistory([
+                        {
+                            invcdh_oid: uuidv4(),
+                            invcdh_dom_id: dataProduct.dataValues.pt_dom_id,
+                            invcdh_en_id: dataProduct.dataValues.pt_en_id,
+                            invcdh_pt_id: dataProduct.dataValues.pt_id,
+                            invcdh_loc_to_id: req.body.location_id,
+                            invcdh_locs_to_id: req.body.sublocation_id,
+                            invcdh_qrbarcode: req.body.uniq,
+                            invcdh_status: 'registered!',
+                            invcdh_remarks: 'registered',
+                            invcdh_created_by: Authentication.user().usernama,
+                            invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    ], t)
+                ])
             }
 
 
@@ -189,10 +222,6 @@ class PuttingController {
         })
     }
 
-    returnResponse = (statusCode, status, message, data, error) => {
-        return {statusCode, json: {status, message, data, error}}
-    }
-
     deleteDataSerial = async (req, res) => {
         sequelize.transaction(async t => {
             let dataSerial = await InventoryService.getSerialByOid(req.params.invcd_oid);
@@ -206,7 +235,7 @@ class PuttingController {
                 invcdh_qrbarcode: dataSerial.dataValues.invcd_qrbarcode,
                 invcdh_status: 'deleted!',
                 invcdh_remarks: 'deleted',
-                invcdh_created_by: 'system',
+                invcdh_created_by: Authentication.user().usernama,
                 invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
             }
 
@@ -254,6 +283,26 @@ class PuttingController {
                     error: err.message
                 })
         })
+    }
+
+    checkPartnumberSerial = (dataPartnumber, uniq, partnumberRequest) => {
+        for (const {dataValues: dataSingular} of dataPartnumber) {
+            if (dataSingular.invcd_qrbarcode != null) {
+                return this.compareSerial(dataSingular.invcd_qrbarcode, uniq)
+            } else if (dataSingular.invcd_alias_qrbarcode == uniq && dataSingular.pt_code != partnumberRequest) {
+                return this.returnResponse(300, 'rejected', `alias uniq already registered with another partnumber!`, null, null)
+            }
+        }
+    }
+
+    compareSerial = (serialDatabase, serialRequest) => {
+        if (serialDatabase != serialRequest) {
+            return {statusCode: 300, json: {status: 'rejected', message: `uniq already registered with another partnumber!`, data: null, error: null}}
+        }
+    }
+
+    returnResponse = (statusCode, status, message, data, error) => {
+        return {statusCode, json: {status, message, data, error}}
     }
 }
 

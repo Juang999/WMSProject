@@ -1,11 +1,12 @@
 const {Router} = require('express');
 const router = Router();
-const {store, index, getDataProduct, deleteDataSerial, getDataSerial, historySerial} = require('../app/Controller/PuttingController')
+const {store, index, getDataProduct, deleteDataSerial, getDataSerial, historySerial} = require('../app/Controller/PuttingController');
+const authMiddleware = require('../app/Middleware/authenticate');
 
-router.post('/post', store);
+router.post('/post', [authMiddleware], store);
 router.get('/history', historySerial);
 router.get('/:sublocation_id/result-scan', index);
-router.delete('/:invcd_oid/delete-scan', deleteDataSerial);
+router.delete('/:invcd_oid/delete-scan', [authMiddleware], deleteDataSerial);
 router.get('/:sublocation_id/data-product', getDataProduct);
 router.get('/:sublocation_id/sublocation/:product_id/product/product-scan', getDataSerial);
 

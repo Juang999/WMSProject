@@ -106,7 +106,7 @@ class InventoryService {
         return result;
     }
 
-    createSerialNumber = async (body, transaction) => {
+    createSerialNumber = async (body, username, transaction) => {
         await InvcdDet.create({
             invcd_oid: uuidV4(),
             invcd_dom_id: 1,
@@ -118,7 +118,7 @@ class InventoryService {
             invcd_locs_id: body.locs_id,
             invcd_um: 9964,
             invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-            invcd_add_by: 'system',
+            invcd_add_by: username,
             invcd_date: moment().format('YYYY-MM-DD'),
             invcd_is_verified: 'Y',
             invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -246,7 +246,7 @@ class InventoryService {
         return result;
     }
 
-    updateSerial = async (invcdOid, body, transaction) => {
+    updateSerial = async (invcdOid, body, username, transaction) => {
         await InvcdDet.update({
             invcd_dom_id: 1,
             invcd_qty: 1,
@@ -255,9 +255,8 @@ class InventoryService {
             invcd_qrbarcode: body.serial_number,
             invcd_is_verified: 'Y',
             invcd_um: 9964,
-            invcd_upd_by: 'system',
+            invcd_upd_by: username,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-            invcd_upd_by: 'system',
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
             invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {

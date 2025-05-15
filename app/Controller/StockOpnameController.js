@@ -6,6 +6,7 @@ const {
     ProductService, OpnameService
 } = require('../Services/ServiceContainer');
 const {info, error: errorLog, errorMinor} = require('../../helper/Logging');
+const { Authentication } = require('../../helper/helper')
 
 class StockOpnameController {
     getLocationOpname = (req, res) => {

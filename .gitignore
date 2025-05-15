@@ -3,7 +3,6 @@ node_modules
 config/config.json
 app/Controller/TestController.js
 app/Controller/Controller.js
-helper/AuthV2.js
 .env.development
 .env.testing
 .env.production

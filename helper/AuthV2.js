@@ -1,7 +1,7 @@
 const { get } = require('express-http-context');
 
 class Auth {
-    static async user (token) {
+    user = () => {
         let dataProfile = get('user');
 
         return dataProfile;
