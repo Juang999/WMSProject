@@ -3,10 +3,11 @@ const {sequelize, Sequelize} = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
 const {error: errorLog} = require('../../helper/Logging');
+const { Authentication } = require('../../helper/helper')
 
 class ScanoutController {
     createHeader = (req, res) => {
-        ScanoutService.createHeaderScanout(req.body)
+        ScanoutService.createHeaderScanout(req.body, Authentication.user().usernama)
         .then(result => {
             res.status(200).json({
                 status: 'success',
@@ -65,7 +66,7 @@ class ScanoutController {
             let newDataSerial = await InventoryService.newFindRegisteredSerialNumber(req.body.uniq, t);
 
             await Promise.all([
-                InventoryService.scanoutSerial(newDataSerial.dataValues.invcd_oid, req.body.scanout_oid, t),
+                InventoryService.scanoutSerial(newDataSerial.dataValues.invcd_oid, Authentication.user().usernama, req.body.scanout_oid, t),
                 ScanoutService.createDetailScanout({
                     entity_id: newDataSerial.dataValues.entity_id,
                     scanout_oid: req.body.scanout_oid,
@@ -73,6 +74,7 @@ class ScanoutController {
                     location_id: newDataSerial.dataValues.invcd_loc_id,
                     sublocation_id: newDataSerial.dataValues.invcd_locs_id,
                     serial: req.body.uniq,
+                    username: Authentication.user().usernama
                 }, t),
                 InventoryService.createHistory([{
                     invcdh_oid: uuidv4(),
@@ -84,7 +86,7 @@ class ScanoutController {
                     invcdh_qrbarcode: newDataSerial.dataValues.uniq,
                     invcdh_status: 'scanned out!',
                     invcdh_remarks: 'scanned out',
-                    invcdh_created_by: 'system',
+                    invcdh_created_by: Authentication.user().usernama,
                     invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
                 }], t)
             ])
@@ -152,7 +154,7 @@ class ScanoutController {
                     invcdh_qrbarcode: dataSerial.dataValues.invcd_qrbarcode,
                     invcdh_status: 'released scanned out!',
                     invcdh_remarks: 'released scanned out',
-                    invcdh_created_by: 'system',
+                    invcdh_created_by: Authentication.user().usernama,
                     invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
                 }], t)
             ])
@@ -194,7 +196,8 @@ class ScanoutController {
                 pack_code: (req.body.pack_code) ? req.body.pack_code : dataHeader.dataValues.sc_pack_code,
                 so_code: (req.body.so_code) ? req.body.so_code : dataHeader.dataValues.sc_so_code,
                 receiver: (req.body.receiver) ? req.body.receiver : dataHeader.dataValues.sc_receiver_name,
-                transaction_id: (req.body.transaction_id) ? req.body.transaction_id : dataHeader.dataValues.sc_trans_id
+                transaction_id: (req.body.transaction_id) ? req.body.transaction_id : dataHeader.dataValues.sc_trans_id,
+                username: Authentication.user().usernama
             })
 
             return res.status(200).json({

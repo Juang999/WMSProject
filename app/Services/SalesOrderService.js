@@ -142,7 +142,7 @@ class SalesOrderService {
         return dataValues;
     }
 
-    insertSerialSalesOrder = async (body, dataSerial, transaction) => {
+    insertSerialSalesOrder = async (body, dataSerial, username, transaction) => {
         let sequence = await this.totalSerialBySodOid(body.sod_oid);
 
         let result = await SodsSerial.create({
@@ -153,7 +153,8 @@ class SalesOrderService {
             sods_si_id: 992,
             sods_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
             sods_serial: body.serial,
-            sods_seq: sequence
+            sods_seq: sequence,
+            sods_add_by: username
         }, {
             transaction,
         })

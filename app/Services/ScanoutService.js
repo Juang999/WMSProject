@@ -4,12 +4,12 @@ const moment = require('moment');
 const {Op} = require('sequelize');
 
 class ScanoutService {
-    createHeaderScanout = async (data) => {
+    createHeaderScanout = async (data, username) => {
         let result = await ScanOutMstr.create({
             sc_oid: uuidv4(),
             sc_en_id: data.entity_id,
             sc_code: await this.scanoutCode({entity_id: data.entity_id}),
-            sc_created_by: 'system',
+            sc_created_by: username,
             sc_created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
             sc_remarks: data.remarks,
             sc_date: data.date,
@@ -125,7 +125,7 @@ class ScanoutService {
             scd_sc_oid: data.scanout_oid,
             scd_pt_id: data.product_id,
             scd_qty: 1,
-            scd_created_by: 'system',
+            scd_created_by: data.username,
             scd_created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
             scd_loc_id: data.location_id,
             scd_locs_id: data.sublocation_id,
@@ -135,7 +135,7 @@ class ScanoutService {
 
     updateHeaderScanout = async (scanoutOid, data) => {
         await ScanOutMstr.update({
-            sc_updated_by: 'system',
+            sc_updated_by: data.username,
             sc_updated_at: moment().format('YYYY-MM-DD HH:mm:ss'),
             sc_remarks: data.remarks,
             sc_pack_code: data.pack_code,

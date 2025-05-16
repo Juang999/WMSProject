@@ -1,6 +1,7 @@
 const {ShipmentService, SalesOrderService, OpnameService, LocationService, InventoryService} = require('../Services/ServiceContainer');
 const {info, error: errorLog} = require('../../helper/Logging');
 const { sequelize } = require('../../models');
+const {Authentication} = require('../../helper/helper')
 
 class SoShipmentController {
     detail = async (req, res) => {
@@ -122,7 +123,7 @@ class SoShipmentController {
             }
 
             let [result] = await Promise.all([
-                SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, t),
+                SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, Authentication.user().usernama, t),
                 InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, so_oid)
             ])
 
