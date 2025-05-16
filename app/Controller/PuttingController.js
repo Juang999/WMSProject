@@ -50,7 +50,7 @@ class PuttingController {
             }
 
             let [dataSerial, dataCapSublocation, dataTotalQtySublocation, dataPartnumber] = await Promise.all([
-                OpnameService.findSerialNumber(req.body.uniq, dataProduct.dataValues.partnumber, t),
+                OpnameService.funcFindSerialNumber(req.body.uniq, dataProduct.dataValues.partnumber, t),
                 LocationService.findSublocation(req.body.sublocation_id),
                 InventoryService.countSerialSublocation(req.body.sublocation_id),
                 InventoryService.getPartnumberBySerial(req.body.uniq)
@@ -81,7 +81,9 @@ class PuttingController {
             }
 
             if (dataSerial && dataSerial.dataValues.invcd_locs_id != null) {
-                return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
+                if (parseInt(dataSerial.dataValues.invcd_locs_id) != parseInt(req.body.sublocation_id)) {
+                    return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
+                }
             }
 
             if (dataSerial) {

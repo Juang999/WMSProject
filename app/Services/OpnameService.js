@@ -330,6 +330,55 @@ class OpnameService {
         return result;
     }
 
+    funcFindSerialNumber = async (serialNumber, productCode, transaction) => {
+        let result = await InvcdDet.findOne({
+            attributes: [
+                'invcd_oid',
+                [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
+                [Sequelize.col('"product"."pt_code"'), 'product_code'],
+                'invcd_locs_id',
+                ['invcd_qrbarcode', 'uniq'],
+                ['invcd_alias_qrbarcode', 'alias_uniq'],
+                'invcd_is_booked',
+                [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.or]: [
+                    {
+                        invcd_qrbarcode: serialNumber,
+                        invcd_deleted_at: null,
+                        invcd_deleted_by: null,
+                    }, {
+                        [Op.and]: [
+                            Sequelize.where(Sequelize.col('invcd_alias_qrbarcode'), {
+                                [Op.eq]: serialNumber
+                            }),
+                            Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
+                                [Op.eq]: productCode
+                            }),
+                            Sequelize.where(Sequelize.col('invcd_deleted_at'), {
+                                [Op.eq]: null
+                            }),
+                            Sequelize.where(Sequelize.col('invcd_deleted_by'), {
+                                [Op.eq]: null
+                            }),
+                        ]
+                    }
+                ]
+            },
+            transaction
+        })
+
+        return result;
+    }
+
     newFindSerialNumber = async (serialNumber, transaction) => {
         let result = await InvcdDet.findOne({
             attributes: [
