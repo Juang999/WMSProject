@@ -60,7 +60,7 @@ class ScanoutController {
             }
 
             if (dataSerial.dataValues.invcd_locs_id == null) {
-                await this.registerSerial(dataSerial, req.body.uniq, t);
+                await this.registerSerial(dataSerial, req.body.uniq, Authentication.user().usernama, t);
             }
 
             let newDataSerial = await InventoryService.newFindRegisteredSerialNumber(req.body.uniq, t);
