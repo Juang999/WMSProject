@@ -222,7 +222,7 @@ class ScanoutController {
 		return {code, json: {status, message, data, error: null}}
 	}
 
-    registerSerial = async (dataSerial, uniqSerial, transaction) => {
+    registerSerial = async (dataSerial, uniqSerial, username, transaction) => {
         let sublocationId = null;
 
         switch (dataSerial.dataValues.invcd_en_id) {
@@ -244,7 +244,7 @@ class ScanoutController {
                 location_id: Sequelize.literal(`"invcd_loc_id"`),
                 sublocation_id: sublocationId,
                 serial_number: uniqSerial
-            }, transaction),
+            }, username, transaction),
             InventoryService.createHistory([{
                 invcdh_oid: uuidv4(),
                 invcdh_dom_id: 1,
@@ -255,7 +255,7 @@ class ScanoutController {
                 invcdh_qrbarcode: uniqSerial,
                 invcdh_status: 'registered!',
                 invcdh_remarks: 'registered',
-                invcdh_created_by: 'system',
+                invcdh_created_by: username,
                 invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
             }], transaction)
         ])
