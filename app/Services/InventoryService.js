@@ -723,9 +723,7 @@ class InventoryService {
                 }
             ],
             where: {
-                invcdh_status: {
-                    [Op.in]: ['registered!', 'moved!']
-                },
+                invcdh_status: 'registered!',
                 [Op.and]: [
                     Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
                         [Op.eq]: date
@@ -733,7 +731,10 @@ class InventoryService {
                 ],
                 invcdh_qrbarcode: {
                     [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
-                }
+                },
+                invcdh_pt_id: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                },
             },
             group: [
                 'operator_id',
@@ -748,18 +749,45 @@ class InventoryService {
         return result;
     }
 
-    reportRegisterByUser = async (dataUser, date) => {
-        let result = await InvcdDet.findAll({
+    countDataUniq = async (dataUser, status, date) => {
+        let result = await InvcdhHist.findOne({
             attributes: [
-                [Sequelize.literal(`CASE WHEN invcd_upd_by IS NOT NULL THEN invcd_upd_by ELSE invcd_add_by END`), 'operator'],
+                [Sequelize.literal(`COUNT(DISTINCT(invcdh_qrbarcode))`), 'total_data']
+            ],
+            where: {
+                invcdh_created_by: dataUser.username,
+                invcdh_status: status,
+                [Op.and]: [
+                    Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
+                        [Op.eq]: date
+                    })
+                ],
+                invcdh_qrbarcode: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                },
+                invcdh_pt_id: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                },
+            },
+            replacements: { date },
+        })
+
+        return result;
+    }
+
+    reportRegisterByUser = async (dataUser, date) => {
+        let result = await InvcdhHist.findAll({
+            attributes: [
+                [Sequelize.literal(`invcdh_created_by`), 'operator'],
                 [Sequelize.literal(`"product"."pt_id"`), 'product_id'],
                 [Sequelize.literal(`"product"."pt_code"`), 'product_code'],
                 [Sequelize.literal(`"product"."pt_desc1"`), 'product_name'],
-                ['invcd_loc_id', 'location_id'],
-                [Sequelize.literal(`"location"."loc_desc"`), 'location_name'],
-                ['invcd_locs_id', 'sublocation_id'],
-                [Sequelize.literal(`"sublocation"."locs_name"`), 'sublocation_name'],
-                [Sequelize.literal(`COUNT(*)`), 'total_scan'],
+                [Sequelize.literal(`invcdh_status`), 'status'],
+                [Sequelize.col(`invcdh_loc_to_id`), 'location_id'],
+                [Sequelize.col(`"location_to"."loc_desc"`), 'location_name'],
+                [Sequelize.col(`invcdh_locs_to_id`), 'sublocation_id'],
+                [Sequelize.col(`"sublocation_to"."locs_name"`), 'sublocation_name'],
+                [Sequelize.literal(`COUNT(DISTINCT(invcdh_qrbarcode))`), 'total_scan'],
             ],
             include: [
                 {
@@ -768,46 +796,46 @@ class InventoryService {
                     attributes: []
                 }, {
                     model: LocMstr,
-                    as: 'location',
+                    as: 'location_from',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location_to',
                     attributes: []
                 }, {
                     model: LocsMstr,
-                    as: 'sublocation',
+                    as: 'sublocation_from',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation_to',
                     attributes: []
                 }
             ],
             where: {
-                [Op.or]: [
-                    {
-                        [Op.and]: [
-                            Sequelize.where(Sequelize.col(`invcd_add_by`), {
-                                [Op.eq]: dataUser.username
-                            }),
-                            Sequelize.where(Sequelize.literal(`DATE(invcd_add_date)`), {
-                                [Op.eq]: date
-                            })
-                        ]
-                    }, {
-                        [Op.and]: [
-                            Sequelize.where(Sequelize.col(`invcd_upd_by`), {
-                                [Op.eq]: dataUser.username
-                            }),
-                            Sequelize.where(Sequelize.literal(`DATE(invcd_upd_date)`), {
-                                [Op.eq]: date
-                            })
-                        ]
-                    }
+                invcdh_created_by: dataUser.username,
+                invcdh_status: {
+                    [Op.in]: ['registered!', 'moved!']
+                },
+                [Op.and]: [
+                    Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
+                        [Op.eq]: date
+                    })
                 ],
-                invcd_qty: 1,
-                invcd_locs_id: {
-                    [Op.not]: null
-                }
+                invcdh_qrbarcode: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                },
+                invcdh_pt_id: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                },
             },
+            replacements: { date },
             group: [
                 'operator',
                 'product_id',
                 'product_code',
                 'product_name',
+                'status',
                 'location_id',
                 'location_name',
                 'sublocation_id',
