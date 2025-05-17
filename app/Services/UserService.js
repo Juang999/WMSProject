@@ -14,6 +14,19 @@ class UserService {
 
         return result.dataValues;
     }
+
+    userProfile = async (userId) => {
+        let result = await TConfUser.findOne({
+            attributes: [
+                ['usernama', 'username']
+            ],
+            where: {
+                userid: userId
+            }
+        })
+
+        return result;
+    }
 }
 
 module.exports = new UserService();

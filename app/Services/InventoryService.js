@@ -3,6 +3,7 @@ const {
     LocsMstr, InvcdDet, 
     LocMstr, TConfUser,
     InvcdhHist, Sequelize,
+    sequelize,
 } = require('../../models');
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -173,7 +174,7 @@ class InventoryService {
         return result;
     }
 
-    getSerialSublocation = async (subLocId) => {
+    getSerialSublocation = async (subLocId, uniq) => {
         let result = await InvcdDet.findAndCountAll({
             attributes: [
                 'invcd_oid',
@@ -199,7 +200,10 @@ class InventoryService {
                 invcd_locs_id: subLocId,
                 invcd_qty: 1,
                 invcd_deleted_by: null,
-                invcd_deleted_at: null
+                invcd_deleted_at: null,
+                invcd_qrbarcode: {
+                    [Op.iLike]: `%${uniq}%`
+                }
             },
             order: [
                 ['invcd_add_date', 'DESC']
@@ -740,6 +744,79 @@ class InventoryService {
             group: [
                 'operator_id',
                 'registered_by',
+            ],
+            order: [
+                ['total_scan', 'DESC']
+            ]
+        })
+
+        return result;
+    }
+
+    reportRegisterByUser = async (dataUser, date) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                [Sequelize.literal(`CASE WHEN invcd_upd_by IS NOT NULL THEN invcd_upd_by ELSE invcd_add_by END`), 'operator'],
+                [Sequelize.literal(`"product"."pt_id"`), 'product_id'],
+                [Sequelize.literal(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.literal(`"product"."pt_desc1"`), 'product_name'],
+                ['invcd_loc_id', 'location_id'],
+                [Sequelize.literal(`"location"."loc_desc"`), 'location_name'],
+                ['invcd_locs_id', 'sublocation_id'],
+                [Sequelize.literal(`"sublocation"."locs_name"`), 'sublocation_name'],
+                [Sequelize.literal(`COUNT(*)`), 'total_scan'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.or]: [
+                    {
+                        [Op.and]: [
+                            Sequelize.where(Sequelize.col(`invcd_add_by`), {
+                                [Op.eq]: dataUser.username
+                            }),
+                            Sequelize.where(Sequelize.literal(`DATE(invcd_add_date)`), {
+                                [Op.eq]: date
+                            })
+                        ]
+                    }, {
+                        [Op.and]: [
+                            Sequelize.where(Sequelize.col(`invcd_upd_by`), {
+                                [Op.eq]: dataUser.username
+                            }),
+                            Sequelize.where(Sequelize.literal(`DATE(invcd_upd_date)`), {
+                                [Op.eq]: date
+                            })
+                        ]
+                    }
+                ],
+                invcd_qty: 1,
+                invcd_locs_id: {
+                    [Op.not]: null
+                }
+            },
+            group: [
+                'operator',
+                'product_id',
+                'product_code',
+                'product_name',
+                'location_id',
+                'location_name',
+                'sublocation_id',
+                'sublocation_name'
             ],
             order: [
                 ['total_scan', 'DESC']

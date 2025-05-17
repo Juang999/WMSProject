@@ -11,7 +11,9 @@ const {Authentication} = require('../../helper/helper')
 
 class PuttingController {
     index = (req, res) => {
-        Promise.all([InventoryService.getSerialSublocation(req.params.sublocation_id), LocationService.findSublocation(req.params.sublocation_id)])
+        let uniq = (req.query.uniq) ? req.query.uniq : '';
+
+        Promise.all([InventoryService.getSerialSublocation(req.params.sublocation_id, uniq), LocationService.findSublocation(req.params.sublocation_id)])
         .then(([resultScan, dataSublocation]) => {
             resultScan.maximum_capacity = (dataSublocation != null) ? dataSublocation.dataValues.capacity : 0
 
@@ -72,7 +74,7 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', 'cannot input article with another entity!', null, null)
             }
 
-            if (dataTotalQtySublocation >= dataCapSublocation.dataValues.capacity) {
+            if (dataCapSublocation.dataValues.capacity != null && dataTotalQtySublocation >= dataCapSublocation.dataValues.capacity) {
                 return this.returnResponse(300, 'rejected', 'sublocation already full', null, null)
             }
 

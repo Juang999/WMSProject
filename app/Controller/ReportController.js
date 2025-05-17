@@ -1,4 +1,4 @@
-const {InventoryService} = require('../Services/ServiceContainer');
+const {InventoryService, UserService} = require('../Services/ServiceContainer');
 const moment = require('moment')
 
 class ReportController {
@@ -24,6 +24,33 @@ class ReportController {
                     error: err.message
                 })
         })
+    }
+
+    registerReportByUser = async (req, res) => {
+        try {
+            const date = (req.query.date) ? moment(req.query.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+            const dataUser = await UserService.userProfile(req.params.user_id);
+            const dataScanned = await InventoryService.reportRegisterByUser(dataUser.dataValues, date);
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: {
+                        username: dataUser.dataValues.username,
+                        scanned_product: dataScanned
+                    },
+                    error: null
+                })
+        } catch (error) {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
     }
 }
 
