@@ -2,6 +2,7 @@ const {InventoryService, PuttingService, OpnameService} = require('../Services/S
 const {sequelize} = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
+const {Authentication} = require('../../helper/helper');
 
 class RegisterController {
     move = (req, res) => {
@@ -33,13 +34,13 @@ class RegisterController {
                     invcdh_qrbarcode: data.invcd_qrbarcode,
                     invcdh_status: 'moved!',
                     invcdh_remarks: 'moved',
-                    invcdh_created_by: 'system',
+                    invcdh_created_by: Authentication.user().usernama,
                     invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
                 }
             })
 
             await Promise.all([
-                OpnameService.moveSerial(uuidSerial, destinationSublocation.dataValues.location_id, sublocation_to, t),
+                OpnameService.moveSerial(uuidSerial, destinationSublocation.dataValues.location_id, sublocation_to, Authentication.user().usernama, t),
                 OpnameService.createHistory(dataHistorySerial, t)
             ])
 
