@@ -46,6 +46,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'en_id',
         foreignKey: 'invcdh_en_id'
       })
+
+      InvcdhHist.belongsTo(models.TConfUser, {
+        as: 'operator',
+        targetKey: 'usernama',
+        foreignKey: 'invcdh_created_by'
+      })
     }
   }
   InvcdhHist.init({

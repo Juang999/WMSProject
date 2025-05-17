@@ -709,45 +709,40 @@ class InventoryService {
     }
 
     reportRegistering = async (date) => {
-        let result = await InvcdDet.findAll({
+        let result = await InvcdhHist.findAll({
             attributes: [
-                [Sequelize.literal(`CASE WHEN invcd_upd_by IS NOT NULL THEN "update_operator"."userid" ELSE "creator_operator"."userid" END`), 'operator_id'],
-                [Sequelize.literal(`CASE WHEN invcd_upd_by IS NOT NULL THEN invcd_upd_by ELSE invcd_add_by END`), 'registered_by'],
-                [Sequelize.literal(`COUNT(*)`), 'total_scan'],
+                [Sequelize.literal(`"operator"."userid"`), 'operator_id'],
+                [Sequelize.literal(`invcdh_created_by`), 'registered_by'],
+                [Sequelize.literal(`COUNT(DISTINCT(invcdh_qrbarcode))`), 'total_scan'],
             ],
             include: [
                 {
                     model: TConfUser,
-                    as: 'creator_operator',
-                    attributes: []
-                }, {
-                    model: TConfUser,
-                    as: 'update_operator',
+                    as: 'operator',
                     attributes: []
                 }
             ],
             where: {
-                invcd_qty: 1,
-                invcd_is_verified: 'Y',
-                invcd_locs_id: {
-                    [Op.not]: null
+                invcdh_status: {
+                    [Op.in]: ['registered!', 'moved!']
                 },
-                [Op.or]: [
-                    Sequelize.where(Sequelize.literal(`DATE(invcd_add_date)`), {
-                        [Op.eq]: date
-                    }),
-                    Sequelize.where(Sequelize.literal(`DATE(invcd_upd_date)`), {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
                         [Op.eq]: date
                     })
-                ]
+                ],
+                invcdh_qrbarcode: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                }
             },
             group: [
                 'operator_id',
                 'registered_by',
             ],
+            replacements: {date},
             order: [
                 ['total_scan', 'DESC']
-            ]
+            ],
         })
 
         return result;

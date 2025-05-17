@@ -40,6 +40,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'usernama',
         foreignKey: 'invcd_upd_by'
       })
+
+      InvcdDet.hasOne(models.InvcdhHist, {
+        as: 'singular_history',
+        sourceKey: 'invcd_qrbarcode',
+        foreignKey: 'invcdh_serial'
+      })
     }
   }
   InvcdDet.init({

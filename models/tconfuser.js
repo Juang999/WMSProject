@@ -28,6 +28,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'en_id',
         foreignKey: 'en_id'
       })
+
+      TConfUser.hasMany(models.InvcdDet, {
+        as: 'registered_serial',
+        sourceKey: 'usernama',
+        foreignKey: 'invcd_add_by'
+      })
     }
   }
   TConfUser.init({
