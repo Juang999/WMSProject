@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
       InvcdDet.hasOne(models.InvcdhHist, {
         as: 'singular_history',
         sourceKey: 'invcd_qrbarcode',
-        foreignKey: 'invcdh_serial'
+        foreignKey: 'invcdh_qrbarcode'
       })
     }
   }
