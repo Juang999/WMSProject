@@ -753,7 +753,7 @@ class InventoryService {
             ],
             where: {
                 invcdh_created_by: dataUser.username,
-                invcdh_status: 'registered!',
+                invcdh_status: status,
                 [Op.and]: [
                     Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
                         [Op.eq]: date
