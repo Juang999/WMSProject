@@ -753,7 +753,7 @@ class InventoryService {
             ],
             where: {
                 invcdh_created_by: dataUser.username,
-                invcdh_status: status,
+                invcdh_status: 'registered!',
                 [Op.and]: [
                     Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
                         [Op.eq]: date
@@ -811,9 +811,7 @@ class InventoryService {
             ],
             where: {
                 invcdh_created_by: dataUser.username,
-                invcdh_status: {
-                    [Op.in]: ['registered!', 'moved!']
-                },
+                invcdh_status: 'registered!',
                 [Op.and]: [
                     Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
                         [Op.eq]: date
@@ -834,6 +832,83 @@ class InventoryService {
                 'location_name',
                 'sublocation_id',
                 'sublocation_name'
+            ],
+            order: [
+                ['total_scan', 'DESC']
+            ]
+        })
+
+        return result;
+    }
+
+    reportMoveByUser = async (dataUser, date) => {
+        let result = await InvcdhHist.findAll({
+            attributes: [
+                [Sequelize.literal(`invcdh_created_by`), 'operator'],
+                [Sequelize.literal(`"product"."pt_id"`), 'product_id'],
+                [Sequelize.literal(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.literal(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.literal(`invcdh_status`), 'status'],
+                [Sequelize.col(`invcdh_loc_from_id`), 'source_location_id'],
+                [Sequelize.col(`invcdh_loc_to_id`), 'destination_location_id'],
+                [Sequelize.col(`"location_from"."loc_desc"`), 'source_location_name'],
+                [Sequelize.col(`"location_to"."loc_desc"`), 'destination_location_name'],
+                [Sequelize.col(`invcdh_locs_from_id`), 'source_sublocation_id'],
+                [Sequelize.col(`invcdh_locs_to_id`), 'destination_sublocation_id'],
+                [Sequelize.col(`"sublocation_from"."locs_name"`), 'source_sublocation_name'],
+                [Sequelize.col(`"sublocation_to"."locs_name"`), 'destination_sublocation_name'],
+                [Sequelize.literal(`COUNT(DISTINCT(invcdh_qrbarcode))`), 'total_scan'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location_from',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location_to',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation_from',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation_to',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcdh_created_by: dataUser.username,
+                invcdh_status: 'moved!',
+                [Op.and]: [
+                    Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
+                        [Op.eq]: date
+                    })
+                ],
+                invcdh_qrbarcode: {
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                },
+            },
+            replacements: { date },
+            group: [
+                'operator',
+                'product_id',
+                'product_code',
+                'product_name',
+                'status',
+                'source_location_id',
+                'source_location_name',
+                'destination_location_id',
+                'destination_location_name',
+                'source_sublocation_id',
+                'source_sublocation_name',
+                'destination_sublocation_id',
+                'destination_sublocation_name'
             ],
             order: [
                 ['total_scan', 'DESC']

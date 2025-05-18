@@ -46,11 +46,13 @@ class ReportController {
             const [
                 totalDataRegistered, 
                 totalDataMoved, 
-                dataScanned
+                dataScanned,
+                dataMoved,
             ] = await Promise.all([
                     InventoryService.countDataUniq(dataUser.dataValues, 'registered!', date), 
                     InventoryService.countDataUniq(dataUser.dataValues, 'moved!', date), 
-                    InventoryService.reportRegisterByUser(dataUser.dataValues, date)
+                    InventoryService.reportRegisterByUser(dataUser.dataValues, date),
+                    InventoryService.reportMoveByUser(dataUser.dataValues, date),
                 ]);
 
             res.status(200)
@@ -61,7 +63,8 @@ class ReportController {
                         username: dataUser.dataValues.username,
                         total_registered: (totalDataRegistered) ? totalDataRegistered.dataValues.total_data : 0,
                         total_moved: (totalDataMoved) ? totalDataMoved.dataValues.total_data : 0,
-                        scanned_product: dataScanned
+                        scanned_product: dataScanned,
+                        moved_product: dataMoved
                     },
                     error: null
                 })
