@@ -732,9 +732,6 @@ class InventoryService {
                 invcdh_qrbarcode: {
                     [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
                 },
-                invcdh_pt_id: {
-                    [Op.in]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
-                },
             },
             group: [
                 'operator_id',
@@ -824,9 +821,6 @@ class InventoryService {
                 ],
                 invcdh_qrbarcode: {
                     [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
-                },
-                invcdh_pt_id: {
-                    [Op.in]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
                 },
             },
             replacements: { date },
