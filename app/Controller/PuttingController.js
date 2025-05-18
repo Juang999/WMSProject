@@ -78,44 +78,67 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', 'sublocation already full', null, null)
             }
 
-            if (!dataSerial) {
-                    return this.returnResponse(300, 'rejected', 'serial not found!', null, null);
-            }
-
-            if (dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != req.body.partnumber) {
+            if (dataSerial && dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != req.body.partnumber) {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
-            if (dataSerial.dataValues.invcd_locs_id != null) {
+            if (dataSerial && dataSerial.dataValues.invcd_locs_id != null) {
                 if (parseInt(dataSerial.dataValues.invcd_locs_id) != parseInt(req.body.sublocation_id)) {
                     return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
                 }
             }
 
-            await Promise.all([
-                InventoryService.updateSerial(
-                dataSerial.dataValues.invcd_oid, 
-                {
-                    location_id: req.body.location_id,
-                    sublocation_id: req.body.sublocation_id,
-                    serial_number: req.body.uniq
-                }, Authentication.user().usernama, t),
-                InventoryService.createHistory([
+            if (!dataSerial) {
+                await Promise.all([
+                    InventoryService.createSerialNumber({
+                        en_id: req.body.entity_id,
+                        pt_id: dataProduct.dataValues.pt_id,
+                        qrbarcode: req.body.uniq,
+                        loc_id: req.body.location_id,
+                        locs_id: req.body.sublocation_id
+                    }, Authentication.user().usernama, t),
+                    InventoryService.createHistory([
+                        {
+                            invcdh_oid: uuidv4(),
+                            invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
+                            invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+                            invcdh_pt_id: dataProduct.dataValues.invcd_pt_id,
+                            invcdh_loc_to_id: req.body.location_id,
+                            invcdh_locs_to_id: req.body.sublocation_id,
+                            invcdh_qrbarcode: req.body.uniq,
+                            invcdh_status: 'registered!',
+                            invcdh_remarks: 'registered',
+                            invcdh_created_by: Authentication.user().usernama,
+                            invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    ])
+                ])
+            } else {
+                await Promise.all([
+                    InventoryService.updateSerial(
+                    dataSerial.dataValues.invcd_oid, 
                     {
-                        invcdh_oid: uuidv4(),
-                        invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
-                        invcdh_en_id: dataSerial.dataValues.invcd_en_id,
-                        invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
-                        invcdh_loc_to_id: req.body.location_id,
-                        invcdh_locs_to_id: req.body.sublocation_id,
-                        invcdh_qrbarcode: req.body.uniq,
-                        invcdh_status: 'registered!',
-                        invcdh_remarks: 'registered',
-                        invcdh_created_by: Authentication.user().usernama,
-                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
-                    }
-                ], t)
-            ])
+                        location_id: req.body.location_id,
+                        sublocation_id: req.body.sublocation_id,
+                        serial_number: req.body.uniq
+                    }, Authentication.user().usernama, t),
+                    InventoryService.createHistory([
+                        {
+                            invcdh_oid: uuidv4(),
+                            invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
+                            invcdh_en_id: dataSerial.dataValues.invcd_en_id,
+                            invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+                            invcdh_loc_to_id: req.body.location_id,
+                            invcdh_locs_to_id: req.body.sublocation_id,
+                            invcdh_qrbarcode: req.body.uniq,
+                            invcdh_status: 'registered!',
+                            invcdh_remarks: 'registered',
+                            invcdh_created_by: Authentication.user().usernama,
+                            invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    ], t)
+                ])
+            }
 
             return this.returnResponse(200, 'success', 'ok', null, null)
         })
