@@ -125,9 +125,9 @@ class PuttingController {
                     InventoryService.createHistory([
                         {
                             invcdh_oid: uuidv4(),
-                            invcdh_dom_id: dataSerial.dataValues.invcd_dom_id,
-                            invcdh_en_id: dataSerial.dataValues.invcd_en_id,
-                            invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
+                            invcdh_dom_id: 1,
+                            invcdh_en_id: dataProduct.dataValues.pt_en_id,
+                            invcdh_pt_id: dataProduct.dataValues.pt_id,
                             invcdh_loc_to_id: req.body.location_id,
                             invcdh_locs_to_id: req.body.sublocation_id,
                             invcdh_qrbarcode: req.body.uniq,
