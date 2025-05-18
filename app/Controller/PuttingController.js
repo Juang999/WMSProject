@@ -111,7 +111,7 @@ class PuttingController {
                             invcdh_created_by: Authentication.user().usernama,
                             invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
                         }
-                    ])
+                    ], t)
                 ])
             } else {
                 await Promise.all([
