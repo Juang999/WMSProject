@@ -74,7 +74,6 @@ module.exports = (sequelize, DataTypes) => {
     invcd_upd_date: DataTypes.DATE,
     invcd_upd_by: DataTypes.STRING,
     invcd_qty_old: DataTypes.INTEGER,
-    invcd_si_id: DataTypes.INTEGER,
     invcd_date: DataTypes.DATEONLY,
     invcd_is_verified: DataTypes.STRING,
     invcd_is_booked: DataTypes.STRING,
