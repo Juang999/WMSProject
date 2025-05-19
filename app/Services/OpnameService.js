@@ -424,7 +424,6 @@ class OpnameService {
             invcd_loc_id: locId,
             invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_add_by: 'system',
-            invcd_si_id: 992,
             invcd_date: moment().format('YYYY-MM-DD'),
             invcd_is_verified: 'Y',
         }, {
