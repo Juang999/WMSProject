@@ -20,7 +20,7 @@ class PuttingService {
             invcd_add_by: 'system',
             invcd_date: moment().format('YYYY-MM-DD'),
             invcd_is_verified: 'Y',
-            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+    
         }, {
             transaction
         })
@@ -195,7 +195,6 @@ class PuttingService {
             invcd_um: 9964,
             invcd_upd_by: 'system',
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
-            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             where: {
                 invcd_oid: invcdOid,

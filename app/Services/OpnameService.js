@@ -657,7 +657,6 @@ class OpnameService {
             invcd_locs_id: locsId,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_upd_by: username,
-            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
         }, {
             where: {
                 invcd_oid: {
