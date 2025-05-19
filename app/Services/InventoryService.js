@@ -916,6 +916,65 @@ class InventoryService {
 
         return result;
     }
+
+    serialByDate = async (date, productName, productCode, location, subLocation) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                'invcd_oid',
+                ['invcd_pt_id', 'product_name'],
+                [Sequelize.literal(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.literal(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.literal(`"location"."loc_desc"`), 'location_name'],
+                [Sequelize.literal(`"sublocation"."locs_name"`), 'sublocation_name'],
+                [Sequelize.literal(`CASE WHEN invcd_upd_date IS NOT NULL THEN invcd_upd_date ELSE invcd_add_date END`), 'timestamp']
+            ],
+            include: [
+                {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }, {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcd_qty: 1,
+                [Op.or]: [
+                    Sequelize.where(Sequelize.literal(`DATE(invcd_upd_date)`), {
+                        [Op.eq]: date
+                    }),
+                    Sequelize.where(Sequelize.literal(`DATE(invcd_add_date)`), {
+                        [Op.eq]: date
+                    })
+                ],
+                [Op.and]: [
+                    Sequelize.where(Sequelize.col(`"product"."pt_desc1"`), {
+                        [Op.iLike]: `%${productName}%`
+                    }),
+                    Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
+                        [Op.iLike]: `%${productCode}%`
+                    }),
+                    Sequelize.where(Sequelize.col(`"location"."loc_desc"`), {
+                        [Op.iLike]: `%${location}%`
+                    }),
+                    Sequelize.where(Sequelize.col(`"sublocation"."locs_name"`), {
+                        [Op.iLike]: `%${subLocation}%`
+                    }),
+                ]
+            },
+            order: [
+                ['timestamp', 'DESC']
+            ]
+        })
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();

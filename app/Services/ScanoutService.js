@@ -1,7 +1,13 @@
-const {ScanOutMstr, Sequelize, sequelize, PtMstr, ScanOutdDet, TransStatus} = require('../../models');
+const {
+    LocMstr, LocsMstr,
+    sequelize, PtMstr, 
+    ScanOutMstr, Sequelize, 
+    ScanOutdDet, TransStatus,
+} = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
 const {Op} = require('sequelize');
+const scanoutddet = require('../../models/scanoutddet');
 
 class ScanoutService {
     createHeaderScanout = async (data, username) => {
@@ -149,7 +155,7 @@ class ScanoutService {
         })
     }
 
-    getAllHeaderr = async (search) => {
+    getAllHeaderr = async (date, scanoutCode, soCode, status) => {
         let result = await ScanOutMstr.findAll({
             attributes: [
                 'sc_oid', 
@@ -177,9 +183,20 @@ class ScanoutService {
                 }
             ],
             where: {
-                sc_code: {
-                    [Op.iLike]: `%${search}%`
-                }
+                [Op.and]: [
+                    Sequelize.where(Sequelize.literal(`DATE(sc_created_at)`), {
+                        [Op.eq]: date
+                    }),
+                    Sequelize.literal(Sequelize.col('sc_code'), {
+                        [Op.iLike]: `%${scanoutCode}%`
+                    }),
+                    Sequelize.literal(Sequelize.col('sc_so_code'), {
+                        [Op.iLike]: `%${soCode}%`
+                    }),
+                    Sequelize.literal(Sequelize.col('sc_trans_id'), {
+                        [Op.iLike]: `%${status}%`
+                    }),
+                ]
             },
             group: [
                 'sc_oid',
@@ -193,7 +210,8 @@ class ScanoutService {
                 Sequelize.col(`"transaction_status"."trans_desc"`)
             ],
             order: [
-                ['sc_created_at', 'DESC']
+                ['sc_created_at', 'DESC'],
+                ['sc_trans_id', 'DESC'],
             ]
         })
 
@@ -215,6 +233,66 @@ class ScanoutService {
             where: {
                 scd_oid: scdOid
             }
+        })
+
+        return result;
+    }
+
+    serialScanOutByDate = async (date, scanoutCode, productName, productCode, locationName, subLocationName ) => {
+        let result = await ScanOutdDet.findAll({
+            attributes: [
+                [Sequelize.col('"master_scanout"."sc_code"'), 'scanout_code'],
+                ['scd_pt_id', 'product_id'],
+                [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
+                [Sequelize.col('"product"."pt_desc1"'), 'product_code'],
+                [Sequelize.col('"location"."loc_desc"'), 'location_name'],
+                [Sequelize.col('"sublocation"."locs_name"'), 'sublocation_name'],
+                ['scd_created_at', 'timestamp']
+            ],
+            include: [
+                {
+                    model: ScanOutMstr,
+                    as: 'master_scanout',
+                    attributes: []
+                }, {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.literal(`DATE(scd_created_at)`), {
+                        [Op.eq]: date
+                    }),
+                    Sequelize.where(Sequelize.literal(`"master_scanout"."sc_code"`), {
+                        [Op.iLike]: `%${scanoutCode}%`
+                    }),
+                    Sequelize.where(Sequelize.literal(`"product"."pt_desc1"`), {
+                        [Op.iLike]: `%${productName}%`
+                    }),
+                    Sequelize.where(Sequelize.literal(`"product"."pt_code"`), {
+                        [Op.iLike]: `%${productCode}%`
+                    }),
+                    Sequelize.where(Sequelize.literal(`"location"."loc_desc"`), {
+                        [Op.iLike]: `%${locationName}%`
+                    }),
+                    Sequelize.where(Sequelize.literal(`"sublocation"."locs_name"`), {
+                        [Op.iLike]: `%${subLocationName}%`
+                    }),
+                ]
+            },
+            order: [
+                ['timestamp', 'DESC']
+            ]
         })
 
         return result;

@@ -111,9 +111,12 @@ class ScanoutController {
     }
 
     getHeader = (req, res) => {
-        let search = req.query.search || '';
+        let date = (req.query.date) ? moment(req.query.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+        let scanoutCode = (req.query.scanout_code) ? req.query.scanout_code : '';
+        let soCode = (req.query.so_code) ? req.query.so_code : '';
+        let status = (req.query.status) ? req.query.status : '';
 
-        ScanoutService.getAllHeaderr(search)
+        ScanoutService.getAllHeaderr(date, scanoutCode, soCode, status)
         .then(result => {
             res.status(200).json({
                 status: 'success',

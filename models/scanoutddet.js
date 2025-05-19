@@ -16,6 +16,24 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'scd_pt_id',
         targetKey: 'pt_id',
       })
+
+      ScanOutdDet.belongsTo(models.LocMstr, {
+        as: 'location',
+        foreignKey: 'scd_loc_id',
+        targetKey: 'loc_id',
+      })
+
+      ScanOutdDet.belongsTo(models.LocsMstr, {
+        as: 'sublocation',
+        foreignKey: 'scd_locs_id',
+        targetKey: 'locs_id',
+      })
+
+      ScanOutdDet.belongsTo(models.ScanOutMstr, {
+        as: 'master_scanout',
+        targetKey: 'sc_oid',
+        foreignKey: 'scd_sc_oid'
+      })
     }
   }
   ScanOutdDet.init({
