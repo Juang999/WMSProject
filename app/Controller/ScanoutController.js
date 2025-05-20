@@ -27,7 +27,10 @@ class ScanoutController {
     }
 
     findScanoutHeader = (req, res) => {
-        ScanoutService.findScanoutHeader(req.params.scanout_code)
+        let orderValue = (req.query.order_value) ? req.query.order_value : 'scd_created_at';
+        let orderDirection = (req.query.order_direction) ? req.query.order_direction : 'DESC';
+
+        ScanoutService.findScanoutHeader(req.params.scanout_code, orderValue, orderDirection)
         .then(result => {
             if (result) {
                 res.status(200).json({

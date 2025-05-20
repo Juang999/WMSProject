@@ -55,7 +55,7 @@ class ScanoutService {
         return result;
     }
 
-    findScanoutHeader = async (scCode) => {
+    findScanoutHeader = async (scCode, orderValue, orderDirection) => {
         let result = await ScanOutMstr.findAll({
             attributes: [
                 'sc_oid',
@@ -81,7 +81,8 @@ class ScanoutService {
                         'scd_oid',
                         'scd_serial',
                         [Sequelize.literal(`"details->product"."pt_desc1"`), 'product_name'],
-                        [Sequelize.literal(`"details->product"."pt_code"`), 'product_code']
+                        [Sequelize.literal(`"details->product"."pt_code"`), 'product_code'],
+                        ['scd_created_at', 'timestamp']
                     ],
                     include: [
                         {
@@ -89,7 +90,7 @@ class ScanoutService {
                             as: 'product',
                             attributes: []
                         }
-                    ]
+                    ],
                 }, {
                     model: ScanOutdDet,
                     as: 'singular_details',
@@ -118,7 +119,10 @@ class ScanoutService {
                 Sequelize.literal(`"details->product"."pt_desc1"`),
                 Sequelize.literal(`"details->product"."pt_code"`),
             ],
-            subQuery: false
+            subQuery: false,
+            order: [
+                [Sequelize.literal(`${orderValue}`), orderDirection]
+            ]
         })
 
         return result[0];
