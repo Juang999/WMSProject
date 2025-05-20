@@ -213,9 +213,6 @@ class ScanoutService {
                 ['sc_created_at', 'DESC'],
                 ['sc_trans_id', 'DESC'],
             ],
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
         })
 
         return result;
