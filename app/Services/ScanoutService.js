@@ -257,6 +257,7 @@ class ScanoutService {
                 [Sequelize.col('"location"."loc_desc"'), 'location_name'],
                 [Sequelize.col('"sublocation"."locs_name"'), 'sublocation_name'],
                 ['scd_serial', 'uniq'],
+                ['scd_created_by', 'operator'],
                 ['scd_created_at', 'timestamp']
             ],
             include: [

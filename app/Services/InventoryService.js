@@ -928,6 +928,7 @@ class InventoryService {
                 [Sequelize.literal(`"location"."loc_desc"`), 'location_name'],
                 [Sequelize.literal(`"sublocation"."locs_name"`), 'sublocation_name'],
                 ['invcd_qrbarcode', 'uniq'],
+                [Sequelize.literal(`CASE WHEN invcd_upd_by IS NULL THEN invcd_add_by ELSE invcd_upd_by END`), 'operator'],
                 [Sequelize.literal(`CASE WHEN invcd_upd_date IS NOT NULL THEN invcd_upd_date ELSE invcd_add_date END`), 'timestamp']
             ],
             include: [
