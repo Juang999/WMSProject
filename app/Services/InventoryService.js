@@ -933,7 +933,7 @@ class InventoryService {
         return result;
     }
 
-    serialByDate = async (date, productName, productCode, location, subLocation) => {
+    serialByDate = async (date, productName, productCode, location, subLocation, operator, unique) => {
         let result = await InvcdDet.findAll({
             attributes: [
                 'invcd_oid',
@@ -962,18 +962,12 @@ class InventoryService {
                 }
             ],
             where: {
-                invcd_qty: 1,
-                [Op.or]: [
-                    Sequelize.where(Sequelize.literal(`DATE(invcd_upd_date)`), {
-                        [Op.eq]: date
-                    }),
-                    Sequelize.where(Sequelize.literal(`DATE(invcd_add_date)`), {
-                        [Op.eq]: date
-                    })
-                ],
                 [Op.and]: [
                     Sequelize.where(Sequelize.col(`"product"."pt_desc1"`), {
                         [Op.iLike]: `%${productName}%`
+                    }),
+                    Sequelize.where(Sequelize.col(`invcd_qty`), {
+                        [Op.eq]: 1
                     }),
                     Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
                         [Op.iLike]: `%${productCode}%`
@@ -984,11 +978,33 @@ class InventoryService {
                     Sequelize.where(Sequelize.col(`"sublocation"."locs_name"`), {
                         [Op.iLike]: `%${subLocation}%`
                     }),
+                    Sequelize.where(Sequelize.col(`invcd_qrbarcode`), {
+                        [Op.iLike]: `%${unique}%`
+                    }),
+                    {
+                        [Op.or]: [
+                            Sequelize.where(Sequelize.literal(`DATE(invcd_upd_date)`), {
+                                [Op.eq]: date
+                            }),
+                            Sequelize.where(Sequelize.literal(`DATE(invcd_add_date)`), {
+                                [Op.eq]: date
+                            })
+                        ]
+                    }, {
+                        [Op.or]: [
+                            Sequelize.where(Sequelize.col(`invcd_add_by`), {
+                                [Op.iLike]: `%${operator}%`
+                            }),
+                            Sequelize.where(Sequelize.col(`invcd_upd_by`), {
+                                [Op.iLike]: `%${operator}%`
+                            })
+                        ]
+                    }
                 ]
             },
             order: [
                 ['timestamp', 'DESC']
-            ]
+            ],
         })
 
         return result;

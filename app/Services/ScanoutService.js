@@ -247,7 +247,7 @@ class ScanoutService {
         return result;
     }
 
-    serialScanOutByDate = async (date, scanoutCode, productName, productCode, locationName, subLocationName ) => {
+    serialScanOutByDate = async ( date, scanoutCode, productName, productCode, locationName, subLocationName, operator, unique ) => {
         let result = await ScanOutdDet.findAll({
             attributes: [
                 [Sequelize.col('"master_scanout"."sc_code"'), 'scanout_code'],
@@ -298,6 +298,12 @@ class ScanoutService {
                     }),
                     Sequelize.where(Sequelize.literal(`"sublocation"."locs_name"`), {
                         [Op.iLike]: `%${subLocationName}%`
+                    }),
+                    Sequelize.where(Sequelize.literal(`scd_created_by`), {
+                        [Op.iLike]: `%${operator}%`
+                    }),
+                    Sequelize.where(Sequelize.literal(`scd_serial`), {
+                        [Op.iLike]: `%${unique}%`
                     }),
                 ]
             },

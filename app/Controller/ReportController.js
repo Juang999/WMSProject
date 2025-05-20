@@ -85,8 +85,10 @@ class ReportController {
         let productCode = (req.query.product_code) ? req.query.product_code : '';
         let location = (req.query.location) ? req.query.location : '';
         let subLocation = (req.query.sublocation) ? req.query.sublocation : '';
+        let operator = (req.query.operator) ? req.query.operator : '';
+        let unique = (req.query.unique) ? req.query.unique : '';
 
-        InventoryService.serialByDate(date, productName, productCode, location, subLocation)
+        InventoryService.serialByDate(date, productName, productCode, location, subLocation, operator, unique)
         .then(result => {
             res.status(200)
                 .json({
@@ -114,8 +116,10 @@ class ReportController {
         let productCode = (req.query.product_code) ? req.query.product_code : '';
         let locationName = (req.query.location) ? req.query.location : '';
         let subLocationName = (req.query.sublocation) ? req.query.sublocation : '';
+        let operator = (req.query.operator) ? req.query.operator : '';
+        let unique = (req.query.unique) ? req.query.unique : '';
 
-        ScanoutService.serialScanOutByDate(date, scanoutCode, productName, productCode, locationName, subLocationName)
+        ScanoutService.serialScanOutByDate(date, scanoutCode, productName, productCode, locationName, subLocationName. operator, unique)
         .then(result => {
             res.status(200)
                 .json({
