@@ -27,7 +27,7 @@ class ScanoutController {
     }
 
     findScanoutHeader = (req, res) => {
-        let orderValue = (req.query.order_value) ? req.query.order_value : '"details"."scd_created_at"';
+        let orderValue = (req.query.order_value) ? decodeURIComponent(req.query.order_value) : '"details"."scd_created_at"';
         let orderDirection = (req.query.order_direction) ? req.query.order_direction : 'DESC';
 
         ScanoutService.findScanoutHeader(req.params.scanout_code, orderValue, orderDirection)
