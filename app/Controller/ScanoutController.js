@@ -186,7 +186,7 @@ class ScanoutController {
 
     updateHeader = async (req, res) => {
         try {
-            let dataHeader = await ScanoutService.findScanoutHeader(req.params.scanout_code);
+            let dataHeader = await ScanoutService.findScanoutHeader(req.params.scanout_code, '"details"."scd_created_at"', 'DESC');
 
             if (!dataHeader) {
                 return res.status(404).json({
