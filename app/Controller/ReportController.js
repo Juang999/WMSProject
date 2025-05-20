@@ -119,7 +119,7 @@ class ReportController {
         let operator = (req.query.operator) ? req.query.operator : '';
         let unique = (req.query.unique) ? req.query.unique : '';
 
-        ScanoutService.serialScanOutByDate(date, scanoutCode, productName, productCode, locationName, subLocationName. operator, unique)
+        ScanoutService.serialScanOutByDate(date, scanoutCode, productName, productCode, locationName, subLocationName, operator, unique)
         .then(result => {
             res.status(200)
                 .json({
