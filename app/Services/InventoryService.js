@@ -262,7 +262,7 @@ class InventoryService {
             invcd_upd_by: username,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
-            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_scanned_at: Sequelize.literal(`CASE WHEN invcd_scanned_at IS NOT NULL THEN invcd_scanned_at ELSE CURRENT_TIMESTAMP END`),
         }, {
             where: {
                 invcd_oid: invcdOid
@@ -615,6 +615,7 @@ class InventoryService {
     getPartnumberBySerial = async (serialNumber) => {
         let result = await InvcdDet.findAll({
             attributes: [
+                'invcd_oid',
                 'invcd_qrbarcode',
                 'invcd_alias_qrbarcode',
                 [Sequelize.col(`"product"."pt_code"`), 'pt_code']
