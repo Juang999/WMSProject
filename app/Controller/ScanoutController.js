@@ -111,7 +111,7 @@ class ScanoutController {
     }
 
     getHeader = (req, res) => {
-        let date = (req.query.date) ? moment(req.query.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+        let date = (req.query.date) ? moment(req.query.date).format('YYYY-MM-DD') : null;
         let scanoutCode = (req.query.scanout_code) ? req.query.scanout_code : '';
         let soCode = (req.query.so_code) ? req.query.so_code : '';
         let status = (req.query.status) ? req.query.status : '';

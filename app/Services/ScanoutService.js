@@ -6,7 +6,7 @@ const {
 } = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
-const {Op} = require('sequelize');
+const {Op, where} = require('sequelize');
 const scanoutddet = require('../../models/scanoutddet');
 
 class ScanoutService {
@@ -156,6 +156,26 @@ class ScanoutService {
     }
 
     getAllHeader = async (date, scanoutCode, soCode, status) => {
+        let whereClause = {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.col('sc_code'), {
+                        [Op.iLike]: `%${scanoutCode}%`
+                    }),
+                    Sequelize.where(Sequelize.col('sc_so_code'), {
+                        [Op.iLike]: `%${soCode}%`
+                    }),
+                    Sequelize.where(Sequelize.col('sc_trans_id'), {
+                        [Op.iLike]: `%${status}%`
+                    }),
+                ]
+            }
+
+            if (date != null) {
+                whereClause[Op.and].push(Sequelize.where(Sequelize.literal(`DATE(sc_created_at)`), {
+                        [Op.eq]: date
+                    }))
+            }
+
         let result = await ScanOutMstr.findAll({
             attributes: [
                 'sc_oid', 
@@ -182,22 +202,7 @@ class ScanoutService {
                     attributes: []
                 }
             ],
-            where: {
-                [Op.and]: [
-                    Sequelize.where(Sequelize.literal(`DATE(sc_created_at)`), {
-                        [Op.eq]: date
-                    }),
-                    Sequelize.where(Sequelize.col('sc_code'), {
-                        [Op.iLike]: `%${scanoutCode}%`
-                    }),
-                    Sequelize.where(Sequelize.col('sc_so_code'), {
-                        [Op.iLike]: `%${soCode}%`
-                    }),
-                    Sequelize.where(Sequelize.col('sc_trans_id'), {
-                        [Op.iLike]: `%${status}%`
-                    }),
-                ]
-            },
+            where: whereClause,
             group: [
                 'sc_oid',
                 'sc_created_by',
@@ -247,6 +252,7 @@ class ScanoutService {
                 [Sequelize.col('"product"."pt_code"'), 'product_code'],
                 [Sequelize.col('"location"."loc_desc"'), 'location_name'],
                 [Sequelize.col('"sublocation"."locs_name"'), 'sublocation_name'],
+                ['scd_serial', 'uniq'],
                 ['scd_created_at', 'timestamp']
             ],
             include: [
