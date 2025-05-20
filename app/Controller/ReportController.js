@@ -49,8 +49,8 @@ class ReportController {
                 dataScanned,
                 dataMoved,
             ] = await Promise.all([
-                    InventoryService.countDataUniq(dataUser.dataValues, 'registered!', date), 
-                    InventoryService.countDataUniq(dataUser.dataValues, 'moved!', date), 
+                    InventoryService.countRegisteredUniq(dataUser.dataValues, date), 
+                    InventoryService.countMovedUniq(dataUser.dataValues, date), 
                     InventoryService.reportRegisterByUser(dataUser.dataValues, date),
                     InventoryService.reportMoveByUser(dataUser.dataValues, date),
                 ]);

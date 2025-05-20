@@ -745,7 +745,7 @@ class InventoryService {
                     })
                 ],
                 invcdh_qrbarcode: {
-                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_scanned_at) = :date)`)
                 },
             },
             group: [
@@ -761,25 +761,42 @@ class InventoryService {
         return result;
     }
 
-    countDataUniq = async (dataUser, status, date) => {
+    countRegisteredUniq = async (dataUser, date) => {
         let result = await InvcdhHist.findOne({
             attributes: [
                 [Sequelize.literal(`COUNT(DISTINCT(invcdh_qrbarcode))`), 'total_data']
             ],
             where: {
                 invcdh_created_by: dataUser.username,
-                invcdh_status: status,
+                invcdh_status: 'registered!',
                 [Op.and]: [
                     Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
                         [Op.eq]: date
                     })
                 ],
                 invcdh_qrbarcode: {
-                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_scanned_at) = :date)`)
                 },
-                invcdh_pt_id: {
-                    [Op.in]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
-                },
+            },
+            replacements: { date },
+        })
+
+        return result;
+    }
+
+    countMovedUniq = async (dataUser, date) => {
+        let result = await InvcdhHist.findOne({
+            attributes: [
+                [Sequelize.literal(`COUNT(DISTINCT(invcdh_qrbarcode))`), 'total_data']
+            ],
+            where: {
+                invcdh_created_by: dataUser.username,
+                invcdh_status: 'moved!',
+                [Op.and]: [
+                    Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
+                        [Op.eq]: date
+                    })
+                ],
             },
             replacements: { date },
         })
@@ -833,7 +850,7 @@ class InventoryService {
                     })
                 ],
                 invcdh_qrbarcode: {
-                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
+                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_scanned_at) = :date)`)
                 },
             },
             replacements: { date },
@@ -904,10 +921,7 @@ class InventoryService {
                     Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
                         [Op.eq]: date
                     })
-                ],
-                invcdh_qrbarcode: {
-                    [Op.in]: Sequelize.literal(`(SELECT invcd_qrbarcode FROM public.invcd_det WHERE DATE(invcd_add_date) = :date OR DATE(invcd_upd_date) = :date AND invcd_locs_id IS NOT NULL)`)
-                },
+                ]
             },
             replacements: { date },
             group: [
