@@ -84,7 +84,7 @@ class PuttingController {
 
             if (dataSerial && dataSerial.dataValues.invcd_locs_id != null) {
                 if (parseInt(dataSerial.dataValues.invcd_locs_id) != parseInt(req.body.sublocation_id)) {
-                    return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', null, null);
+                    return this.returnResponse(300, 'rejected', 'serial has been registered into another sublocation', dataSerial, null);
                 }
             }
 
@@ -291,21 +291,45 @@ class PuttingController {
     checkPartnumberSerial = (dataPartnumber, uniq, partnumberRequest) => {
         for (const {dataValues: dataSingular} of dataPartnumber) {
             if (dataSingular.invcd_qrbarcode != null) {
-                return this.compareSerial(dataSingular.invcd_qrbarcode, uniq)
+                return this.compareSerial(dataSingular, uniq)
             } else if (dataSingular.invcd_alias_qrbarcode == uniq && dataSingular.pt_code != partnumberRequest) {
-                return this.returnResponse(300, 'rejected', `alias uniq already registered with another partnumber!`, null, null)
+                return this.returnResponse(300, 'rejected', `alias uniq already registered with another partnumber!`, dataPartnumber, null)
             }
         }
     }
 
     compareSerial = (serialDatabase, serialRequest) => {
-        if (serialDatabase != serialRequest) {
-            return {statusCode: 300, json: {status: 'rejected', message: `uniq already registered with another partnumber!`, data: null, error: null}}
+        if (serialDatabase.invcd_qrbarcode != serialRequest) {
+            return this.returnResponse(300, 'rejected', 'uniq already registered with another partnumber!', [serialDatabase], null)
         }
     }
 
     returnResponse = (statusCode, status, message, data, error) => {
         return {statusCode, json: {status, message, data, error}}
+    }
+
+    getUniqAndPartnumber = (req, res) => {
+        let uniq = req.params.uniq
+
+        InventoryService.getPartnumberBySerial(uniq)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
     }
 }
 

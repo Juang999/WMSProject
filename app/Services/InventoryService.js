@@ -618,12 +618,26 @@ class InventoryService {
                 'invcd_oid',
                 'invcd_qrbarcode',
                 'invcd_alias_qrbarcode',
-                [Sequelize.col(`"product"."pt_code"`), 'pt_code']
+                ['invcd_pt_id', 'product_id'],
+                [Sequelize.col(`"product"."pt_code"`), 'pt_code'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
+                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
+                ['invcd_qty', 'qty'],
             ],
             include: [
                 {
                     model: PtMstr,
                     as: 'product',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
                     attributes: []
                 }
             ],
