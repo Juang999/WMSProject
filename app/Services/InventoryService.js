@@ -624,6 +624,7 @@ class InventoryService {
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
                 [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
+                [Sequelize.literal(`CASE WHEN invcd_qrbarcode IS NOT NULL THEN FALSE ELSE TRUE END`), 'delete_status'],
                 ['invcd_qty', 'qty'],
             ],
             include: [
