@@ -9,6 +9,60 @@ const moment = require('moment');
 const {Op} = require('sequelize');
 
 class SalesOrderService {
+    getHeaderSalesOrder = async (salesOrderCode, buyerName, salesName, status, year) => {
+        let result = await SoMstr.findAll({
+            attributes: [
+                'so_oid',
+                'so_code',
+                [Sequelize.col(`"buyer"."ptnr_name"`), 'partner_name'],
+                [Sequelize.col(`"sales"."ptnr_name"`), 'sales_person'],
+                ['so_trans_id', 'status_code'],
+                [Sequelize.col(`"status_so"."trans_desc"`), 'status'],
+                ['so_add_date', 'created_at'],
+            ],
+            include: [
+                {
+                    model: PtnrMstr,
+                    as: 'buyer',
+                    attributes: []
+                }, {
+                    model: PtnrMstr,
+                    as: 'sales',
+                    attributes: []
+                }, {
+                    model: TransStatus,
+                    as: 'status_so',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.col(`"buyer"."ptnr_name"`), {
+                        [Op.iLike]: `%${buyerName}%`
+                    }),
+                    Sequelize.where(Sequelize.col(`"sales"."ptnr_name"`), {
+                        [Op.iLike]: `%${salesName}%`
+                    }),
+                    Sequelize.where(Sequelize.col(`so_code`), {
+                        [Op.iLike]: `%${salesOrderCode}`
+                    }),
+                    Sequelize.where(Sequelize.col(`so_trans_id`), {
+                        [Op.iLike]: `%${status}%`
+                    }),
+                    Sequelize.where(Sequelize.literal(`year(so_add_date)`), {
+                        [Op.eq]: year
+                    }),
+                ]
+            },
+            order: [
+                ['so_trans_id', 'DESC'],
+                ['created_at', 'DESC'],
+            ]
+        });
+
+        return result;
+    }
+
     getDetailSalesOrder = async (salesOrderCode) => {
         let result = await SoMstr.findAll({
             attributes: [

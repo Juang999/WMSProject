@@ -34,6 +34,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'trans_id',
         foreignKey: 'so_trans_id'
       })
+
+      SoMstr.belongsTo(models.PtnrMstr, {
+        as: 'sales',
+        targetKey: 'ptnr_id',
+        foreignKey: 'so_sales_person'
+      })
     }
   }
   SoMstr.init({

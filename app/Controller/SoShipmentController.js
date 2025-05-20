@@ -1,9 +1,38 @@
 const {ShipmentService, SalesOrderService, OpnameService, LocationService, InventoryService} = require('../Services/ServiceContainer');
 const {info, error: errorLog} = require('../../helper/Logging');
 const { sequelize } = require('../../models');
-const {Authentication} = require('../../helper/helper')
+const {Authentication} = require('../../helper/helper');
+const moment = require('moment');
 
 class SoShipmentController {
+    searchHeaderSalesOrder = (req, res) => {
+        let salesOrderCode = (req.query.sales_order_code) ? req.query.sales_order_code : '';
+        let buyerName = (req.query.buyer_name) ? req.query.buyer_name : '';
+        let salesName = (req.query.sales_name) ? req.query.sales_name : '';
+        let status = (req.query.status) ? req.query.status : '';
+        let year = (req.query.year) ? req.query.year : moment().format('YYYY');
+
+        SalesOrderService.getHeaderSalesOrder(salesOrderCode, buyerName, salesName, status, year)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     detail = async (req, res) => {
         try {
             let dataShipment = await ShipmentService.getDetailShipment(req.params.shipment_code);
