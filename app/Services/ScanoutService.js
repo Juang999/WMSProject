@@ -210,9 +210,9 @@ class ScanoutService {
                 Sequelize.col(`"transaction_status"."trans_desc"`)
             ],
             order: [
-                ['sc_created_at', 'DESC'],
                 ['sc_trans_id', 'DESC'],
-            ],
+                ['sc_created_at', 'DESC'],
+            ]
         })
 
         return result;
