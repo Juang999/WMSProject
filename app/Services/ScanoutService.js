@@ -244,7 +244,7 @@ class ScanoutService {
                 [Sequelize.col('"master_scanout"."sc_code"'), 'scanout_code'],
                 ['scd_pt_id', 'product_id'],
                 [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
-                [Sequelize.col('"product"."pt_desc1"'), 'product_code'],
+                [Sequelize.col('"product"."pt_code"'), 'product_code'],
                 [Sequelize.col('"location"."loc_desc"'), 'location_name'],
                 [Sequelize.col('"sublocation"."locs_name"'), 'sublocation_name'],
                 ['scd_created_at', 'timestamp']

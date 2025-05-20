@@ -922,11 +922,12 @@ class InventoryService {
         let result = await InvcdDet.findAll({
             attributes: [
                 'invcd_oid',
-                ['invcd_pt_id', 'product_name'],
+                ['invcd_pt_id', 'product_id'],
                 [Sequelize.literal(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.literal(`"product"."pt_code"`), 'product_code'],
                 [Sequelize.literal(`"location"."loc_desc"`), 'location_name'],
                 [Sequelize.literal(`"sublocation"."locs_name"`), 'sublocation_name'],
+                ['invcd_qrbarcode', 'uniq'],
                 [Sequelize.literal(`CASE WHEN invcd_upd_date IS NOT NULL THEN invcd_upd_date ELSE invcd_add_date END`), 'timestamp']
             ],
             include: [
