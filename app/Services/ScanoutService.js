@@ -155,7 +155,7 @@ class ScanoutService {
         })
     }
 
-    getAllHeaderr = async (date, scanoutCode, soCode, status) => {
+    getAllHeader = async (date, scanoutCode, soCode, status) => {
         let result = await ScanOutMstr.findAll({
             attributes: [
                 'sc_oid', 
@@ -187,13 +187,13 @@ class ScanoutService {
                     Sequelize.where(Sequelize.literal(`DATE(sc_created_at)`), {
                         [Op.eq]: date
                     }),
-                    Sequelize.literal(Sequelize.col('sc_code'), {
+                    Sequelize.where(Sequelize.col('sc_code'), {
                         [Op.iLike]: `%${scanoutCode}%`
                     }),
-                    Sequelize.literal(Sequelize.col('sc_so_code'), {
+                    Sequelize.where(Sequelize.col('sc_so_code'), {
                         [Op.iLike]: `%${soCode}%`
                     }),
-                    Sequelize.literal(Sequelize.col('sc_trans_id'), {
+                    Sequelize.where(Sequelize.col('sc_trans_id'), {
                         [Op.iLike]: `%${status}%`
                     }),
                 ]
@@ -212,7 +212,10 @@ class ScanoutService {
             order: [
                 ['sc_created_at', 'DESC'],
                 ['sc_trans_id', 'DESC'],
-            ]
+            ],
+            logging: (sqlCommand) => {
+                console.info(sqlCommand)
+            }
         })
 
         return result;

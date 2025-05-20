@@ -116,7 +116,7 @@ class ScanoutController {
         let soCode = (req.query.so_code) ? req.query.so_code : '';
         let status = (req.query.status) ? req.query.status : '';
 
-        ScanoutService.getAllHeaderr(date, scanoutCode, soCode, status)
+        ScanoutService.getAllHeader(date, scanoutCode, soCode, status)
         .then(result => {
             res.status(200).json({
                 status: 'success',
