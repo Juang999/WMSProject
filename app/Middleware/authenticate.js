@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
-const {config} = require('../../config/environment');
 const {set} = require('express-http-context');
+const {config} = require('../../config/environment');
 
 const authenticate = async (req, res, next) => {
 	let authHeader = req.headers['authorization']

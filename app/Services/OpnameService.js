@@ -341,11 +341,21 @@ class OpnameService {
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
                 'invcd_is_booked',
                 [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
+                [Sequelize.literal(`"location"."loc_desc"`), 'location_name'],
+                [Sequelize.literal(`"sublocation"."locs_name"`), 'sublocation_name'],
             ],
             include: [
                 {
                     model: PtMstr,
                     as: 'product',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
                     attributes: []
                 }
             ],

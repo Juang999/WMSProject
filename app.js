@@ -8,19 +8,6 @@ var logger = require('morgan');
 var upload = require('express-fileupload')
 var expressHttpContext = require('express-http-context');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var masterRouter = require('./routes/master');
-var productRouter = require('./routes/product');
-var salesOrderRouter = require('./routes/sales_order');
-var subLocationRouter = require('./routes/sublocation');
-var setLocationRouter = require('./routes/set_location');
-var pickingListRouter = require('./routes/picking_list');
-var stockOpnameRouter = require('./routes/stock_opname');
-var moveLocationRouter = require('./routes/move_location');
-var purchaseOrderRouter = require('./routes/purchase_order');
-var inventoryReceiptRouter = require('./routes/inventory_receipt');
-
 var app = express();
 
 // view engine setup
@@ -36,10 +23,7 @@ app.use(upload());
 app.use(expressHttpContext.middleware);
 
 app.use('/', require('./routes/index'));
-app.use('/stock-opname', stockOpnameRouter);
 app.use('/users', require('./routes/users'));
-app.use('/move-location', moveLocationRouter);
-app.use('/purchase-order', purchaseOrderRouter);
 app.use('/report', require('./routes/report'));
 app.use('/master', require('./routes/master'));
 app.use('/so-ship', require('./routes/soship'));
@@ -51,7 +35,10 @@ app.use('/sales-order', require('./routes/sales_order'));
 app.use('/sublocation', require('./routes/sublocation'));
 app.use('/set-location', require('./routes/set_location'));
 app.use('/picking-list', require('./routes/picking_list'));
-app.use('/inventory-receipt', inventoryReceiptRouter);
+app.use('/stock-opname', require('./routes/stock_opname'));
+app.use('/move-location', require('./routes/move_location'));
+app.use('/purchase-order', require('./routes/purchase_order'));
+app.use('/inventory-receipt', require('./routes/inventory_receipt'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
