@@ -1,4 +1,4 @@
-const {TConfUser, Sequelize} = require('../../models');
+const {TConfUser, TConfGroup, Sequelize} = require('../../models');
 const {Op} = require('sequelize');
 
 class UserService {
@@ -17,13 +17,35 @@ class UserService {
 
     userProfile = async (userId) => {
         let result = await TConfUser.findOne({
-            attributes: [
-                ['usernama', 'username']
-            ],
-            where: {
-                userid: userId
-            }
-        })
+			attributes: [
+					'userid',
+					'usernama',
+					['usernama', 'username'],
+					'groupid',
+					[Sequelize.col('tconfgroup.groupnama'), 'groupnama'],
+				],
+			include: [
+					{
+						model: TConfGroup,
+						as: 'tconfgroup',
+						attributes: []
+					}
+				],
+			where: {
+				userid: userId
+			},
+		});
+
+        return result;
+    }
+
+    findUserByUsername = async (username) => {
+        let result = await TConfUser.findOne({
+			attributes: ['usernama', 'password', 'userid', 'user_ptnr_id'],
+			where: {
+				usernama: username
+			},
+		})
 
         return result;
     }

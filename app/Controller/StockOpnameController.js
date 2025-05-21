@@ -1,12 +1,10 @@
-const Auth = require('../../helper/auth');
 const {sequelize} = require('../../models');
 const {
-    LocationService, GetDescService,
-    InventoryService, UserService, 
-    ProductService, OpnameService
+    ProductService, OpnameService,
+    LocationService, GetDescService, 
 } = require('../Services/ServiceContainer');
-const {info, error: errorLog, errorMinor} = require('../../helper/Logging');
-const { Authentication } = require('../../helper/helper')
+const { Authentication, Logging } = require('../../helper/helper');
+const { info, error: errorLog, errorMinor } = require('../../helper/Logging');
 
 class StockOpnameController {
     getLocationOpname = (req, res) => {
@@ -23,7 +21,7 @@ class StockOpnameController {
                 })
         })
         .catch(err => {
-            errorLog('GET LOCATION OPNAME', err.message);
+            Logging.error('LOCATION OPNAME', err.message);
 
             res.status(400)
                 .json({
@@ -34,7 +32,7 @@ class StockOpnameController {
                 })
         })
     }
-    
+
     getProductOpname = (req, res) => {
         let location_id = (req.params.location_id == 0 || isNaN(parseInt(req.params.location_id))) ? null : req.params.location_id;
         let search = (req.query.search) ? req.query.search : '';
@@ -50,7 +48,7 @@ class StockOpnameController {
                 })
         })
         .catch(err => {
-            errorLog('GET PRODUCT OPNAME', err.message);
+            Logging.error('PRODUCT OPNAME', err.message);
 
             res.status(400)
                 .json({
@@ -77,7 +75,7 @@ class StockOpnameController {
                 });
         })
         .catch(err => {
-            errorLog('GET SERIAL OPNAME', err.message);
+            Logging.error('GET SERIAL OPNAME', err.message);
 
             res.status(400)
                 .json({
@@ -105,7 +103,7 @@ class StockOpnameController {
                 })
         })
         .catch(err => {
-            errorLog('GET INVENTORY MASTER', err.message)
+            Logging.error('INVENTORY MASTER', err.message)
 
             res.status(400)
                 .json({

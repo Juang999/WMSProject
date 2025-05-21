@@ -1,75 +1,52 @@
-// package
-const {config} = require('../../config/environment')
-const jwt = require('jsonwebtoken')
-const {v4: uuidv4} = require('uuid')
-const {Op} = require('sequelize')
-// model
-const {TConfUser, TokenStorage, TConfGroup, Sequelize} = require('../../models')
+const jwt = require('jsonwebtoken');
+const { config } = require('../../config/environment');
+const { UserService } = require('../Services/ServiceContainer');
+const { Authentication, Logging } = require('../../helper/helper');
 
 class UserController {
-	login = async (req, res) => {
-		try {
-			let getUserAccount = await TConfUser.findOne({
-				attributes: ['usernama', 'password', 'userid', 'user_ptnr_id'],
-				where: {
-					usernama: req.body.usernama
-				},
-			})
-
-			if (req.body.password != getUserAccount['password']) {
+	login = (req, res) => {
+		UserService.findUserByUsername(req.body.usernama)
+		.then(result => {
+			
+			if (!result || req.body.password != result.dataValues.password) {
 				res.status(300)
 					.json({
 						status: 'failed',
-						message: 'ok',
-						data: null,
-						error: 'wrong username or password!'
+						message: 'wrong username or password',
+						token: null,
+						error: 'wrong username or password'
 					})
-				return
+
+				return;
 			}
 
-			let token = jwt.sign(getUserAccount['dataValues'], config.parsed.ACCESS_TOKEN_SECRET, {expiresIn: '24h'})
-			await this.deleteOldToken(token, getUserAccount['dataValues']['userid'])
+			let token = jwt.sign(result.dataValues, config.parsed.ACCESS_TOKEN_SECRET, {expiresIn: '24h'});
+
+			Logging.info('LOGIN', `user ${result.dataValues.usernama} logged in!`, result.dataValues);
 
 			res.status(200)
 				.json({
 					status: 'success',
 					message: 'ok',
-					token: token,
+					token,
 					error: null
 				})
-		} catch (error) {
+		})
+		.catch(err => {
+			Logging.error('LOGIN', err.message);
+
 			res.status(400)
 				.json({
 					status: 'failed',
-					pesan: 'gagal untuk masuk',
-					galat: error.message
+					message: 'error',
+					token: null,
+					error: err.message
 				})
-		}
+		})
 	}
 
 	profile = (req, res) => {
-		let token = req.headers['authorization'].split(' ')[1]
-
-		TConfUser.findOne({
-			attributes: [
-					'userid',
-					'usernama',
-					'groupid',
-					[Sequelize.col('tconfgroup.groupnama'), 'groupnama'],
-				],
-			include: [
-					{
-						model: TConfGroup,
-						as: 'tconfgroup',
-						attributes: []
-					}
-				],
-			where: {
-				userid: {
-					[Op.eq]: Sequelize.literal(`(SELECT token_user_id FROM public.token_storage WHERE token_token = '${token}')`)
-				}
-			},
-		})
+		UserService.userProfile(Authentication.user().userid)
 		.then(result => {
 			res.status(200)
 				.json({
@@ -79,34 +56,14 @@ class UserController {
 				})
 		})
 		.catch(err => {
+			Logging.error('PROFILE', err.message);
+
 			res.status(400)
 				.json({
 					status: 'failed',
 					message: 'failed to get profile',
 					error: err.message
 				})
-		})
-	}
-
-	deleteOldToken = async (token, userid) => {
-		let currentToken = await TokenStorage.findOne({
-			where: {
-				token_user_id: userid
-			}
-		})
-
-		if (currentToken) {
-			await TokenStorage.destroy({
-				where: {
-					token_user_id: userid,
-				}
-			})
-		}
-
-		await TokenStorage.create({
-			token_user_id: userid,
-			token_token: token,
-			token_oid: uuidv4()
 		})
 	}
 }

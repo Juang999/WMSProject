@@ -2,8 +2,9 @@ class Helper {
 	constructor () {
 		return {
 			Auth: require('./auth'),
-			Query: require('./Query'),
 			Page: require('./page'),
+			Query: require('./Query'),
+			Logging: require('./Logging'),
 			Authentication: require('./AuthV2')
 		}
 	}
