@@ -31,7 +31,7 @@ class InventoryService {
                 'invcd_pt_id',
                 'invcd_loc_id',
                 'invcd_locs_id',
-                'invcd_qrbarcode',
+                [Sequelize.literal('CASE WHEN invcd_qrbarcode IS NOT NULL THEN invcd_qrbarcode ELSE invcd_alias_qrbarcode END'), 'invcd_qrbarcode'],
             ],
             where: {
                 invcd_oid: invcdOid
