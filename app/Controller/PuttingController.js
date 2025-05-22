@@ -247,7 +247,7 @@ class PuttingController {
                 InventoryService.createHistory([historySerial], t)
             ])
 
-            return this.returnResponse(200, 'success', 'deleted', true, 0)
+            return this.returnResponse(200, 'success', 'deleted', true, null)
         })
         .then(result => {
             res.status(result.statusCode)
