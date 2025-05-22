@@ -723,6 +723,21 @@ class InventoryService {
         })
     }
 
+    bulkReleaseSerial = async (bulkQrBarcode, transaction) => {
+        await InvcdDet.update({
+            invcd_qty: 1,
+            invcd_is_booked: 0,
+            invcd_transaction_oid: null
+        }, {
+            where: {
+                invcd_qrbarcode: {
+                    [Op.in]: bulkQrBarcode
+                }
+            },
+            transaction
+        })
+    }
+
     reportRegistering = async (date) => {
         let result = await InvcdhHist.findAll({
             attributes: [

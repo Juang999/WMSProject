@@ -268,7 +268,16 @@ class ScanoutController {
     }
 
     deleteHeaderScanOut = (req, res) => {
-        ScanoutService.deleteScanOutHeader(req.params.scanout_oid)
+        sequelize.transaction(async t => {
+            let dataUnique = await ScanoutService.getAllSerialInByScanOutOid(req.params.scanout_oid);
+            
+            if (dataUnique.length != 0) {
+                this.LogDeletionHistory(dataUnique, Authentication.user().usernama, t);
+                this.restoreQuantity(dataUnique, t);
+            }
+
+            await ScanoutService.deleteScanOutHeader(req.params.scanout_oid, t);
+        })
         .then(result => {
             res.status(200)
                 .json({
@@ -287,6 +296,32 @@ class ScanoutController {
                     error: err.message
                 })
         })
+    }
+
+    LogDeletionHistory = async (dataUnique, username, transaction) => {
+        let dataHistory = dataUnique.map(({dataValues: element}) => {
+            return {
+                invcdh_oid: uuidv4(),
+                invcdh_dom_id: 1,
+                invcdh_en_id: element.scd_en_id,
+                invcdh_pt_id: element.scd_pt_id,
+                invcdh_loc_from_id: element.scd_loc_id,
+                invcdh_locs_from_id: element.scd_locs_id,
+                invcdh_qrbarcode: element.scd_serial,
+                invcdh_status: 'released scanned out!',
+                invcdh_remarks: 'released scanned out',
+                invcdh_created_by: username,
+                invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            }
+        });
+
+        await InventoryService.createHistory(dataHistory, transaction);
+    }
+
+    restoreQuantity = async (dataUnique, transaction) => {
+        let dataSerial = dataUnique.map(({dataValues: element}) => element.scd_serial);
+
+        await InventoryService.bulkReleaseSerial(dataSerial, transaction);
     }
 }
 

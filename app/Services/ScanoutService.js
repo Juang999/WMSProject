@@ -315,12 +315,24 @@ class ScanoutService {
         return result;
     }
 
-    deleteScanOutHeader = async (scanoutOid) => {
+    deleteScanOutHeader = async (scanoutOid, transaction) => {
         let result = await ScanOutMstr.destroy({
             where: {
                 sc_oid: scanoutOid
-            }
+            },
+            transaction
         })
+
+        return result;
+    }
+
+    getAllSerialInByScanOutOid = async (scanoutOid) => {
+        let result = await ScanOutdDet.findAll({
+            attributes: ['scd_en_id', 'scd_pt_id', 'scd_serial', 'scd_loc_id', 'scd_locs_id'],
+            where: {
+                scd_sc_oid: scanoutOid
+            }
+        });
 
         return result;
     }
