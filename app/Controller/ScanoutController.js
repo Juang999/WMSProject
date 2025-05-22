@@ -272,8 +272,10 @@ class ScanoutController {
             let dataUnique = await ScanoutService.getAllSerialInByScanOutOid(req.params.scanout_oid);
             
             if (dataUnique.length != 0) {
-                this.LogDeletionHistory(dataUnique, Authentication.user().usernama, t);
-                this.restoreQuantity(dataUnique, t);
+                await Promise.all([
+                    this.LogDeletionHistory(dataUnique, Authentication.user().usernama, t),
+                    this.restoreQuantity(dataUnique, t)
+                ])
             }
 
             await ScanoutService.deleteScanOutHeader(req.params.scanout_oid, t);
