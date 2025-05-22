@@ -314,6 +314,16 @@ class ScanoutService {
 
         return result;
     }
+
+    deleteScanOutHeader = async (scanoutOid) => {
+        let result = await ScanOutMstr.destroy({
+            where: {
+                sc_oid: scanoutOid
+            }
+        })
+
+        return result;
+    }
 }
 
 module.exports = new ScanoutService();

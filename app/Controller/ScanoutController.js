@@ -266,6 +266,28 @@ class ScanoutController {
             }], transaction)
         ])
     }
+
+    deleteHeaderScanOut = (req, res) => {
+        ScanoutService.deleteScanOutHeader(req.params.scanout_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'scanout header deleted',
+                    data: true,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new ScanoutController();
