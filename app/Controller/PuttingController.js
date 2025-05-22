@@ -237,7 +237,7 @@ class PuttingController {
                 invcdh_locs_from_id: dataSerial.dataValues.invcd_locs_id,
                 invcdh_qrbarcode: dataSerial.dataValues.invcd_qrbarcode,
                 invcdh_status: 'deleted!',
-                invcdh_remarks: 'deleted',
+                invcdh_remarks: (dataSerial.dataValues.invcd_locs_id != null) ? 'deleted' : 'unique has registered into another partnumber',
                 invcdh_created_by: Authentication.user().usernama,
                 invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
             }
