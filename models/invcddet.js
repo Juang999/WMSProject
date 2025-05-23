@@ -83,7 +83,8 @@ module.exports = (sequelize, DataTypes) => {
     invcd_scanned_at: DataTypes.DATE,
     invcd_deleted_at: DataTypes.DATE,
     invcd_deleted_by: DataTypes.STRING,
-    invcd_transaction_oid: DataTypes.UUID
+    invcd_transaction_oid: DataTypes.UUID,
+    invcd_status: DataTypes.STRING,
   }, {
     sequelize,
     schema: 'public',

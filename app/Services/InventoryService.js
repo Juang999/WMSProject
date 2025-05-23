@@ -123,6 +123,7 @@ class InventoryService {
             invcd_date: moment().format('YYYY-MM-DD'),
             invcd_is_verified: 'Y',
             invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_status: 'registered'
         }, {
             transaction
         })
@@ -263,6 +264,7 @@ class InventoryService {
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
             invcd_scanned_at: Sequelize.literal(`CASE WHEN invcd_scanned_at IS NOT NULL THEN invcd_scanned_at ELSE CURRENT_TIMESTAMP END`),
+            invcd_status: 'registered',
         }, {
             where: {
                 invcd_oid: invcdOid
@@ -666,7 +668,8 @@ class InventoryService {
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
             invcd_is_booked: 1,
-            invcd_transaction_oid: transactionOid
+            invcd_transaction_oid: transactionOid,
+            invcd_status: 'shipped'
         }, {
             where: {
                 invcd_oid: invcdOid
@@ -714,7 +717,8 @@ class InventoryService {
         await InvcdDet.update({
             invcd_qty: 1,
             invcd_is_booked: 0,
-            invcd_transaction_oid: null
+            invcd_transaction_oid: null,
+            invcd_status: 'registered'
         }, {
             where: {
                 invcd_qrbarcode: invcdQrBarcode
