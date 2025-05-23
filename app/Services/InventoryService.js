@@ -731,7 +731,8 @@ class InventoryService {
         await InvcdDet.update({
             invcd_qty: 1,
             invcd_is_booked: 0,
-            invcd_transaction_oid: null
+            invcd_transaction_oid: null,
+            invcd_status: 'registered'
         }, {
             where: {
                 invcd_qrbarcode: {
