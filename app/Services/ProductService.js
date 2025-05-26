@@ -48,6 +48,23 @@ class ProductService {
 
         return result;
     }
+
+    findBulkPartnumber = async (bulkPartnumber) => {
+        let result = await PtMstr.findAll({
+            attributes: [
+                ['pt_id', 'product_id'],
+                ['pt_desc1', 'product_name'],
+                ['pt_code', 'partnumber']
+            ],
+            where: {
+                pt_code: {
+                    [Op.in]: bulkPartnumber
+                }
+            }
+        });
+
+        return result;
+    }
 }
 
 module.exports = new ProductService();

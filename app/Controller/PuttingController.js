@@ -331,6 +331,36 @@ class PuttingController {
                 })
         })
     }
+
+    getAllPartnumberBySn = async (req, res) => {
+        try {
+            let result = [];
+
+            let resultDataSn = GetDescService.findAllOldProductBySerialNumber(req.params.serial_number);
+
+            if (resultDataSn) {
+                let partnumberSn = (await resultDataSn).map(({dataValues: singularDataSn}) => singularDataSn.pn);
+                
+                result = await ProductService.findBulkPartnumber(partnumberSn);
+            }
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        } catch (error) {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
+    }
 }
 
 module.exports = new PuttingController();

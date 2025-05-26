@@ -11,6 +11,17 @@ class GetDescService {
 
         return result;
     }
+
+    findAllOldProductBySerialNumber = async (serialNumber) => {
+        let result = await DbBarangSn.findAll({
+            attributes: ['pn'],
+            where: {
+                sn: serialNumber
+            }
+        })
+
+        return result;
+    }
 }
 
 module.exports = new GetDescService();
