@@ -22,6 +22,17 @@ class GetDescService {
 
         return result;
     }
+
+    deleteSn = async (partNumber, serialNumber) => {
+        let result = await DbBarangSn.destroy({
+            where: {
+                pn: partNumber,
+                sn: serialNumber
+            }
+        });
+
+        return result;
+    }
 }
 
 module.exports = new GetDescService();

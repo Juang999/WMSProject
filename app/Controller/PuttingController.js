@@ -370,6 +370,28 @@ class PuttingController {
                 })
         }
     }
+
+    deleteSn = (req, res) => {
+        GetDescService.deleteSn(req.params.partnumber, req.params.serial_number)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'deleted',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new PuttingController();
