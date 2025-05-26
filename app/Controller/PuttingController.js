@@ -340,8 +340,17 @@ class PuttingController {
 
             if (resultDataSn) {
                 let partnumberSn = (await resultDataSn).map(({dataValues: singularDataSn}) => singularDataSn.pn);
-                
-                result = await ProductService.findBulkPartnumber(partnumberSn);
+
+                let raw = await ProductService.findBulkPartnumber(partnumberSn);
+
+                result = raw.map(({dataValues: singularSn}) => {
+                    return {
+                        product_id: singularSn.product_id,
+                        product_name: singularSn.product_name,
+                        sn: req.params.serial_number,
+                        partnumber: singularSn.partnumber
+                    }
+                })
             }
 
             res.status(200)
