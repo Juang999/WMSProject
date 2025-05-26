@@ -3,7 +3,7 @@ const { DbBarangSn } = require('../../modules/GetDesc/models');
 class GetDescService {
     findOldProductBySerialNumber = async (serialNumber) => {
         let result = await DbBarangSn.findOne({
-            attributes: ['pn'],
+            attributes: ['pn', 'sn', 'nama_barang'],
             where: {
                 sn: serialNumber
             }
@@ -23,11 +23,24 @@ class GetDescService {
         return result;
     }
 
-    deleteSn = async (partNumber, serialNumber) => {
+    findOldProductBySerialNumberAndPartnumber = async (serialNumber, partNumber) => {
+        let result = await DbBarangSn.findOne({
+            attributes: ['pn', 'sn', 'nama_barang'],
+            where: {
+                sn: serialNumber,
+                pn: partNumber
+            }
+        })
+
+        return result;
+    }
+
+    deleteSn = async (partNumber, serialNumber, productName) => {
         let result = await DbBarangSn.destroy({
             where: {
                 pn: partNumber,
-                sn: serialNumber
+                sn: serialNumber,
+                nama_barang: productName
             }
         });
 

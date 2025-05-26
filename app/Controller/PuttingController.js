@@ -371,26 +371,40 @@ class PuttingController {
         }
     }
 
-    deleteSn = (req, res) => {
-        GetDescService.deleteSn(req.params.partnumber, req.params.serial_number)
-        .then(result => {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'deleted',
-                    data: result,
-                    error: null
-                })
-        })
-        .catch(err => {
-            res.status(400)
+    deleteSn = async (req, res) => {
+        try {
+            let dataSn = await GetDescService.findOldProductBySerialNumberAndPartnumber(req.params.serial_number, req.params.partnumber);
+
+            if (!dataSn) {
+                res.status(404)
+                    .json({
+                        status: 'not found',
+                        message: 'sn not found',
+                        data: null,
+                        error: 'sn not found'
+                    });
+
+                return;
+            }
+
+        let result = await GetDescService.deleteSn(dataSn.dataValues.pn, dataSn.dataValues.sn, dataSn.dataValues.nama_barang)
+
+        res.status(200)
+            .json({
+                status: 'success',
+                message: 'deleted',
+                data: result,
+                error: null
+            })
+    } catch (error) {
+        res.status(400)
                 .json({
                     status: 'failed',
                     message: 'error',
                     data: null,
                     error: err.message
                 })
-        })
+    }
     }
 }
 
