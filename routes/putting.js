@@ -17,6 +17,6 @@ router.get('/:sublocation_id/data-product', getDataProduct);
 router.get('/:serial_number/search-sn', getAllPartnumberBySn);
 router.delete('/:invcd_oid/delete-scan', [authMiddleware], deleteDataSerial);
 router.get('/:sublocation_id/sublocation/:product_id/product/product-scan', getDataSerial);
-router.delete('/:partnumber/partnumber/:serial_number/sn/delete', [authMiddleware], deleteSn);
+// router.delete('/:partnumber/partnumber/:serial_number/sn/delete', [authMiddleware], deleteSn);
 
 module.exports = router;
