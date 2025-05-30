@@ -16,6 +16,8 @@ const {
 	LocsMstr, LocsTemporary,
 } = require('../../models')
 
+const { InventoryReceiptService, ProductService, LocationService } = require('../Services/ServiceContainer');
+
 class InventoryReceiptController {
 	getDataTemporary (req, res) {
 		LocsTemporary.findAll({
@@ -454,6 +456,177 @@ class InventoryReceiptController {
 					error: error.message
 				})
 		}
+	}
+
+	findAllInventoryReceript = (req, res) => {		
+		const search = (req.query.search) ? req.query.search : '';
+		const startDate = (req.query.start_date) ? moment(req.query.start_date).format('YYYY-MM-DD') : moment().startOf('months').format('YYYY-MM-DD');
+		const endDate = (req.query.end_date) ? moment(req.query.end_date).format('YYYY-MM-DD') : moment().endOf('months').format('YYYY-MM-DD');
+
+		InventoryReceiptService.findAllHeaderInventoryReceipt(search, startDate, endDate)
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	findInventoryReceript = (req, res) => {
+		InventoryReceiptService.findHeaderInventoryReceipt(req.params.riu_oid)
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	findDetailInventoryReceipt = (req, res) => {
+		InventoryReceiptService.findDetailInventoryReceript(req.params.riud_oid)
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: err.message
+				})
+		})
+	}
+
+	storeUniqueInventoryReceipt = async (req, res) => {
+		try {
+			let [dataDetail, dataProduct, dataLocation, dataUnique] = await Promise.all([
+				InventoryReceiptService.findDetailInventoryReceript(req.body.riud_oid),
+				ProductService.findProductById(req.body.product_id),
+				LocationService.findLocation(req.body.location_id),
+				InventoryReceiptService.findUniqueInventoryReceipt(req.body.riud_oid, req.body.unique)
+			])
+
+			if (parseInt(dataDetail.dataValues.qty_checked) >= parseInt(dataDetail.dataValues.qty_real)) {
+				res.status(300)
+					.json({
+						status: 'rejected!',
+						message: 'the number exceeds the provisions',
+						data: null,
+						error: 'the number exceeds the provisions'
+					});
+
+				return;
+			}
+
+			if (!dataProduct) {
+				res.status(404)
+					.json({
+						status: 'not found',
+						message: 'product not found!',
+						data: null,
+						error: 'product not found!'
+					});
+
+				return;
+			}
+
+			if (!dataLocation) {
+				res.status(404)
+					.json({
+						status: 'failed',
+						message: 'location not found',
+						data: null,
+						error: 'location not found'
+					})
+
+				return;
+			}
+
+			if (dataUnique && parseInt(req.body.product_id) != parseInt(dataUnique.dataValues.riuds_pt_id)) {
+				res.status(300)
+					.json({
+						status: 'rejected',
+						message: 'unique already registered with another partnumber',
+						data: null,
+						error: 'unique already registered with another partnumber',
+					})
+
+				return;
+			}
+
+			if (!dataUnique) {
+				await InventoryReceiptService.storeSerialInventoryReceipt(req.body);
+			}
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'created!',
+					data: null,
+					error: null
+				})
+		} catch (error) {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: error.message
+				})
+		}
+	}
+
+	destroyUniqueInventoryReceipt = (req, res) => {
+		InventoryReceiptService.deleteUnique(req.params.riuds_oid)
+		.then(result => {
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'deleted!',
+					data: null,
+					error: null
+				})
+		})
+		.catch(err => {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: err.message
+				})
+		})
 	}
 
 	/*

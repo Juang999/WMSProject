@@ -13,6 +13,12 @@ router.put('/:riumd_oid/update', [authenticate], InventoryReceiptController.upda
 router.put('/temporary/:locstOid/update', [authenticate], InventoryReceiptController.updateDataTemporary)
 router.delete('/temporary/:locstOid/delete', [authenticate], InventoryReceiptController.deleteDataTemporary)
 
+router.get('/', InventoryReceiptController.findAllInventoryReceript);
+router.get('/:riu_oid/find-header', InventoryReceiptController.findInventoryReceript);
+router.get('/:riud_oid/find-detail', InventoryReceiptController.findDetailInventoryReceipt);
+router.post('/store-unique', [authenticate], InventoryReceiptController.storeUniqueInventoryReceipt);
+router.delete('/:riuds_oid/destroy-unique', [authenticate], InventoryReceiptController.destroyUniqueInventoryReceipt);
+
 // api to get data from exapro
 router.get('/exapro', [authenticate], InventoryReceiptController.getInventoryReceiptExapro)
 router.get('/exapro/:riu_oid/detail', [authenticate], InventoryReceiptController.getDetailInventoryReceiptExapro)

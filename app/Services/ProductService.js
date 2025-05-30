@@ -17,6 +17,21 @@ class ProductService {
         return result;
     }
 
+    findProductById = async (productId) => {
+        let result = await PtMstr.findOne({
+            attributes: [
+                'pt_en_id',
+                'pt_id',
+                ['pt_code', 'partnumber']
+            ],
+            where: {
+                pt_id: productId
+            }
+        })
+
+        return result;
+    }
+
     getSimpleDataProduct = async (entity_id, location_id, search) => {
         let locationIdClause = (location_id == null) ? {[Op.not]: null} 
                                             : {[Op.eq]: location_id};

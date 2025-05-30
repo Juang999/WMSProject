@@ -40,6 +40,18 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'loc_id',
         foreignKey: 'riud_loc_id'
       })
+
+      RiudDet.hasOne(models.RiudsSerial, {
+        as: 'singular_serial_inventory_receipt',
+        sourceKey: 'riud_oid',
+        foreignKey: 'riuds_riud_oid'
+      })
+
+      RiudDet.hasMany(models.RiudsSerial, {
+        as: 'serial_inventory_receipt',
+        sourceKey: 'riud_oid',
+        foreignKey: 'riuds_riud_oid'
+      })
     }
   }
   RiudDet.init({
