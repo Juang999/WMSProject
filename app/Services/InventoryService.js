@@ -3,7 +3,8 @@ const {
     LocsMstr, InvcdDet, 
     LocMstr, TConfUser,
     InvcdhHist, Sequelize,
-    sequelize,
+    sequelize, ScanOutMstr,
+    ScanOutdDet,
 } = require('../../models');
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -628,6 +629,9 @@ class InventoryService {
                 [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
                 [Sequelize.literal(`CASE WHEN invcd_qrbarcode IS NOT NULL THEN FALSE ELSE TRUE END`), 'delete_status'],
                 ['invcd_qty', 'qty'],
+                [Sequelize.literal(`"detail_scanout->master_scanout"."sc_code"`), 'scanout_code'],
+                [Sequelize.literal(`"detail_scanout->master_scanout"."sc_trans_id"`), 'status_id'],
+                [Sequelize.literal(`MAX("detail_scanout->master_scanout"."sc_created_at")`), 'scanout_date'],
             ],
             include: [
                 {
@@ -642,6 +646,17 @@ class InventoryService {
                     model: LocsMstr,
                     as: 'sublocation',
                     attributes: []
+                }, {
+                    model: ScanOutdDet,
+                    as: 'detail_scanout',
+                    attributes: [],
+                    include: [
+                        {
+                            model: ScanOutMstr,
+                            as: 'master_scanout',
+                            attributes: []
+                        }
+                    ]
                 }
             ],
             where: {
@@ -653,6 +668,21 @@ class InventoryService {
                     }
                 ]
             },
+            group: [
+                'invcd_oid',
+                'invcd_qrbarcode',
+                'invcd_alias_qrbarcode',
+                'product_id',
+                'pt_code',
+                'product_code',
+                'product_name',
+                'location_name',
+                'sublocation_name',
+                'delete_status',
+                'qty',
+                'scanout_code',
+                'status_id',
+            ],
             order: [
                 ['invcd_qrbarcode', 'ASC']
             ]
