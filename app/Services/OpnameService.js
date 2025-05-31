@@ -97,7 +97,7 @@ class OpnameService {
                 }),
             ],
             order: [
-                ['total_qty', 'DESC']
+                ['product_code', 'DESC']
             ],
             group: [
                 Sequelize.col(`"product"."pt_id"`),
