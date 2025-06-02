@@ -1,4 +1,4 @@
-const { ReturnScanOutMstr, ReturnScanOutdDet, ScanOutMstr, Sequelize } = require('../../models');
+const { ReturnScanOutMstr, ReturnScanOutdDet, ScanOutMstr, TConfUser, Sequelize } = require('../../models');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 const { Op } = require('sequelize');
@@ -13,7 +13,9 @@ class ReturnService {
             rsc_sc_code: body.sc_code,
             rsc_status_id: 'D',
             rsc_code: await this.returnScanOutCode(body.entity_id),
-            rsc_en_id: body.entity_id
+            rsc_en_id: body.entity_id,
+            rsc_userid: body.userid,
+            rsc_remarks: body.remarks
         })
 
         return result;
@@ -24,7 +26,7 @@ class ReturnService {
 
         let scCode = 'RSC';
         let scEntity = `${entityId}0`;
-        let seqNumber = (returnSeq != null) ? returnSeq + 1 : 1;
+        let seqNumber = (returnSeq != null) ? returnSeq.dataValues.scanout_seq + 1 : 1;
         let monthCode = '00';
         let serverCode = '02';
         let scYearMonth = moment().format('YYMMDD');
@@ -49,14 +51,20 @@ class ReturnService {
             attributes: [
                 'rsc_oid',
                 'rsc_code',
-                'rsc_created_by',
+                ['rsc_created_by', 'created_by'],
+                [Sequelize.literal(`"user"."usernama"`), 'pic'],
                 [Sequelize.literal(`"header_scanout"."sc_so_code"`), 'so_code'],
-                ['rsc_status_id', 'status_id']
+                ['rsc_status_id', 'status_id'],
+                ['rsc_remarks', 'remarks']
             ],
             include: [
                 {
                     model: ScanOutMstr,
                     as: 'header_scanout',
+                    attributes: []
+                }, {
+                    model: TConfUser,
+                    as: 'user',
                     attributes: []
                 }
             ],

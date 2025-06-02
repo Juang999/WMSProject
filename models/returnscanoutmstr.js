@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'sc_oid',
         foreignKey: 'rsc_sc_oid'
       })
+
+      ReturnScanOutMstr.belongsTo(models.TConfUser, {
+        as: 'user',
+        targetKey: 'userid',
+        foreignKey: 'rsc_userid'
+      })
     }
   }
   ReturnScanOutMstr.init({
@@ -29,7 +35,9 @@ module.exports = (sequelize, DataTypes) => {
     rsc_sc_code: DataTypes.STRING,
     rsc_status_id: DataTypes.STRING,
     rsc_code: DataTypes.STRING,
-    rsc_en_id: DataTypes.INTEGER
+    rsc_en_id: DataTypes.INTEGER,
+    rsc_userid: DataTypes.INTEGER,
+    rsc_remarks: DataTypes.STRING
   }, {
     sequelize,
     schema: 'public',

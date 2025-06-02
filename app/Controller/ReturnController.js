@@ -47,7 +47,9 @@ class ReturnController {
             let result = await ReturnService.insertHeader({
                 sc_oid: dataScanOut.dataValues.sc_oid,
                 sc_code: dataScanOut.dataValues.sc_code,
-                entity_id: dataScanOut.dataValues.sc_en_id
+                entity_id: dataScanOut.dataValues.sc_en_id,
+                userid: req.body.userid,
+                remarks: req.body.remarks
             }, Authentication.user());
 
             res.status(200)
