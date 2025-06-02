@@ -39,6 +39,7 @@ app.use('/picking-list', require('./routes/picking_list'));
 app.use('/stock-opname', require('./routes/stock_opname'));
 app.use('/move-location', require('./routes/move_location'));
 app.use('/purchase-order', require('./routes/purchase_order'));
+app.use('/return-product', require('./routes/return_product'));
 app.use('/inventory-receipt', require('./routes/inventory_receipt'));
 
 // catch 404 and forward to error handler

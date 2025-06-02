@@ -1,6 +1,7 @@
 module.exports = {
     UserService: require('./UserService'),
     MasterService: require('./MasterService'),
+    ReturnService: require('./ReturnService'),
     OpnameService: require('./OpnameService'),
     ProductService: require('./ProductService'),
     GetDescService: require('./GetDescService'),
