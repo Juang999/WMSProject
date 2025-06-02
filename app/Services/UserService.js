@@ -49,6 +49,20 @@ class UserService {
 
         return result;
     }
+
+	getDataUser = async () => {
+		let result = await TConfUser.findAll({
+			attributes: [
+				['userid', 'id'],
+				['usernama', 'username']
+			],
+			order: [
+				['userid', 'ASC']
+			]
+		});
+
+		return result;
+	}
 }
 
 module.exports = new UserService();
