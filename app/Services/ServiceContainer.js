@@ -8,6 +8,7 @@ module.exports = {
     PuttingService: require('./PuttingService'),
     ShipmentService: require('./ShipmentService'),
     LocationService: require('./LocationService'),
+    TransferService: require('./TransferService'),
     InventoryService: require('./InventoryService'),
     SalesOrderService: require('./SalesOrderService'),
     InventoryReceiptService: require('./InventoryReceiptService'),
