@@ -97,7 +97,7 @@ class OpnameService {
                 }),
             ],
             order: [
-                ['product_code', 'DESC']
+                ['product_code', 'ASC']
             ],
             group: [
                 Sequelize.col(`"product"."pt_id"`),
@@ -109,10 +109,7 @@ class OpnameService {
                 Sequelize.col(`invcd_deleted_at`),
                 Sequelize.col(`invcd_deleted_by`),
                 Sequelize.col(`invcd_locs_id`),
-            ],
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
+            ]
         })
 
         return result;
