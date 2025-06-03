@@ -61,7 +61,8 @@ class ReturnService {
                 [Sequelize.literal(`"user"."usernama"`), 'pic'],
                 [Sequelize.literal(`"header_scanout"."sc_so_code"`), 'so_code'],
                 ['rsc_status_id', 'status_id'],
-                ['rsc_remarks', 'remarks']
+                ['rsc_remarks', 'remarks'],
+                ['rsc_created_at', 'created_at']
             ],
             include: [
                 {
