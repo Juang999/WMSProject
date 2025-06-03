@@ -281,6 +281,15 @@ class SalesOrderService {
 
         return result;
     }
+
+    findDataHeaderSalesOrder = async (soOid) => {
+        let result = await SoMstr.findOne({
+            attributes: ['so_oid', 'so_code'],
+            where: {
+                so_oid: soOid
+            }
+        })
+    }
 }
 
 module.exports = new SalesOrderService();

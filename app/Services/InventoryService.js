@@ -530,10 +530,12 @@ class InventoryService {
         })
     }
 
-    bookSerial = async (invcdOid, soOid) => {
+    bookSerial = async (invcdOid, soCode, soOid) => {
         await InvcdDet.update({
             invcd_is_booked: 1,
-            invcd_transaction_oid: soOid
+            invcd_transaction_code: soCode,
+            invcd_transaction_oid: soOid,
+            invcd_status: 'reserved'
         }, {
             where: {
                 invcd_oid: invcdOid

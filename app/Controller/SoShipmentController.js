@@ -119,12 +119,14 @@ class SoShipmentController {
                 DATA_SERIAL_NUMBER,
                 DATA_SERIAL_IN_SALES_ORDER,
                 TOTAL_SERIAL_SALES_ORDER,
-                QTY_NEEDED
+                QTY_NEEDED,
+                DATA_HEADER_SO
             ] = await Promise.all([
                 OpnameService.findSerialNumber(serial, product_code, t),
                 SalesOrderService.checkSerialSalesOrder(sod_oid, serial),
                 SalesOrderService.countSerialSalesOrder(sod_oid),
-                SalesOrderService.findDetailSalesOrder(sod_oid)
+                SalesOrderService.findDetailSalesOrder(sod_oid),
+                SalesOrderService.findDataHeaderSalesOrder(so_oid),
             ])
 
             if (TOTAL_SERIAL_SALES_ORDER >= parseInt(QTY_NEEDED.sod_qty)) {
@@ -153,7 +155,7 @@ class SoShipmentController {
 
             let [result] = await Promise.all([
                 SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, Authentication.user().usernama, t),
-                InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, so_oid)
+                InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, DATA_HEADER_SO.dataValues.so_code, so_oid)
             ])
 
             return this.returnResponse(200, 'success', 'Data is included in the list', result);
