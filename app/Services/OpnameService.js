@@ -287,6 +287,7 @@ class OpnameService {
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
                 'invcd_is_booked',
                 [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
+                'invcd_status'
             ],
             include: [
                 {
@@ -302,7 +303,7 @@ class OpnameService {
                         invcd_deleted_at: null,
                         invcd_deleted_by: null,
                         invcd_is_booked: '0',
-                        invcd_transaction_oid: null
+                        invcd_transaction_oid: null,
                     }, {
                         [Op.and]: [
                             Sequelize.where(Sequelize.col('invcd_alias_qrbarcode'), {

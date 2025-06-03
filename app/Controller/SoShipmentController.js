@@ -149,6 +149,10 @@ class SoShipmentController {
                 return this.returnResponse(405, 'not found', 'serial has been shipped', null)
             }
 
+            if (DATA_SERIAL_NUMBER.dataValues.invcd_status != 'available') {
+                return this.returnResponse(300, 'the serial has not been adjusted yet', 'the serial has not been adjusted yet', null);
+            }
+
             if (DATA_SERIAL_IN_SALES_ORDER != null) {
                 return this.returnResponse(300, 'data already exist', 'series already included in the list', {serial});
             }
