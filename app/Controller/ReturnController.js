@@ -69,6 +69,34 @@ class ReturnController {
                 })
         }
     }
+
+    createReturnDetail = (req, res) => {
+
+    }
+
+    getHeaderScanOut = (req, res) => {
+        let search = (req.query.search) ? req.query.search : '';
+
+        ScanoutService.getHeaderScanOut(search)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new ReturnController();

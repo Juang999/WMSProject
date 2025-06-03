@@ -347,6 +347,20 @@ class ScanoutService {
 
         return result;
     }
+
+    getHeaderScanOut = async (search) => {
+        let result = await ScanOutMstr.findAll({
+            attributes: [['sc_oid', 'scanout_oid'], ['sc_code', 'scanout_code'], ['sc_created_at', 'created_at']],
+            where: {
+                sc_code: {
+                    [Op.iLike]: `%${search}%`
+                }
+            },
+            order: [['created_at', 'DESC']]
+        });
+
+        return result;
+    }
 }
 
 module.exports = new ScanoutService();
