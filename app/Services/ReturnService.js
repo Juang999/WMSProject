@@ -165,6 +165,17 @@ class ReturnService {
 
         return result;
     }
+
+    deleteDetail = async (rscdRscOid, rscdOid) => {
+        let result = await ReturnScanOutdDet.destroy({
+            where: {
+                rscd_rsc_oid: rscdRscOid,
+                rscd_oid: rscdOid
+            }
+        })
+
+        return result;
+    }
 }
 
 module.exports = new ReturnService();

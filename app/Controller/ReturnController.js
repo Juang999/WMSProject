@@ -164,6 +164,28 @@ class ReturnController {
                 })
         })
     }
+
+    deleteDetail = (req, res) => {
+        ReturnService.deleteDetail(req.params.rscd_rsc_oid, req.params.rscd_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'deleted!',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new ReturnController();
