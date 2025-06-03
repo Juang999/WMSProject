@@ -11,6 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      ReturnScanOutdDet.belongsTo(models.PtMstr, {
+        as: 'product',
+        targetKey: 'pt_id',
+        foreignKey: 'rscd_pt_id'
+      })
     }
   }
   ReturnScanOutdDet.init({
@@ -26,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     schema: 'public',
-    tableName: 'returnscannoutd_det',
+    tableName: 'returnscanoutd_det',
     timestamps: false,
     modelName: 'ReturnScanOutdDet',
   });

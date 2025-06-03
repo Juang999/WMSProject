@@ -1,4 +1,9 @@
-const { ReturnScanOutMstr, ReturnScanOutdDet, ScanOutMstr, TConfUser, Sequelize } = require('../../models');
+const { 
+    ReturnScanOutMstr, ReturnScanOutdDet, 
+    ScanOutMstr, TConfUser, 
+    TransStatus, Sequelize,
+    PtMstr
+} = require('../../models');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 const { Op } = require('sequelize');
@@ -79,6 +84,84 @@ class ReturnService {
                 ]
             }
         });
+
+        return result;
+    }
+
+    findHeader = async (returnScanOutOid) => {
+        let result = await ReturnScanOutMstr.findOne({
+            attributes: [
+                'rsc_oid',
+                ['rsc_code', 'return_product_code'],
+                ['rsc_userid', 'pic_id'],
+                [Sequelize.literal(`"user"."usernama"`), 'pic_name'],
+                ['rsc_status_id', 'status_id'],
+                [Sequelize.literal(`"status"."trans_desc"`), 'status_name'],
+                ['rsc_remarks', 'remarks'],
+                ['rsc_created_by', 'created_by'],
+                ['rsc_created_at', 'created_at'],
+            ],
+            include: [
+                {
+                    model: TConfUser,
+                    as: 'user',
+                    attributes: []
+                }, {
+                    model: TransStatus,
+                    as: 'status',
+                    attributes: []
+                }, {
+                    model: ReturnScanOutdDet,
+                    as: 'detail_return_product',
+                    attributes: [
+                        'rscd_oid',
+                        [Sequelize.literal(`"detail_return_product->product"."pt_desc1"`), 'product_name'],
+                        ['rscd_qrbarcode', 'unique'],
+                        ['rscd_created_by', 'created_by'],
+                        ['rscd_created_at', 'created_at']
+                    ],
+                    include: [
+                        {
+                            model: PtMstr,
+                            as: 'product',
+                            attributes: []
+                        }
+                    ]
+                }
+            ],
+            where: {
+                rsc_oid: returnScanOutOid
+            }
+        });
+        
+        return result;
+    }
+
+    insertDetail = async (body, username) => {
+
+        let result = await ReturnScanOutdDet.create({
+            rscd_oid: uuidv4(),
+            rscd_rsc_oid: body.rsc_oid,
+            rscd_pt_id: body.pt_id,
+            rscd_qrbarcode: body.qrbarcode,
+            rscd_created_by: username,
+            rscd_created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+        })
+
+        return result;
+    }
+
+    findDetail = async (rscOid, qrbarcode, productCode) => {
+        let result = await ReturnScanOutdDet.findOne({
+            attributes: ['rscd_oid', 'rscd_pt_id'],
+            where: {
+                rscd_rsc_oid: rscOid,
+                rscd_qrbarcode: qrbarcode
+            },
+            replacements: {
+                product_code: productCode
+            }
+        })
 
         return result;
     }

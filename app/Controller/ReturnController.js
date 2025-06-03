@@ -1,4 +1,4 @@
-const { ScanoutService, ReturnService } = require('../Services/ServiceContainer');
+const { ScanoutService, ReturnService, ProductService } = require('../Services/ServiceContainer');
 const { Authentication } = require('../../helper/helper');
 
 class ReturnController {
@@ -24,6 +24,19 @@ class ReturnController {
                     message: 'error',
                     data: null,
                     error: err.message
+                })
+        })
+    }
+
+    findHeader = (req, res) => {
+        ReturnService.findHeader(req.params.return_header_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
                 })
         })
     }
@@ -70,8 +83,62 @@ class ReturnController {
         }
     }
 
-    createReturnDetail = (req, res) => {
+    createReturnDetail = async (req, res) => {
+        try {
+            let [ dataProduct, dataDetailReturn ] = await Promise.all([
+                ProductService.findProductByPartnumber(req.body.partnumber),
+                ReturnService.findDetail(req.body.header_return_oid, req.body.qrbarcode)
+            ]);
 
+            if (!dataProduct) {
+                res.status(404)
+                    .json({
+                        status: 'not found',
+                        message: 'product not found',
+                        data: null,
+                        error: 'product not found'
+                    })
+
+                return;
+            }
+
+            if (dataDetailReturn && dataDetailReturn.dataValues.rscd_pt_id != dataProduct.dataValues.pt_id) {
+                res.status(300)
+                    .json({
+                        status: 'rejected',
+                        message: 'qrbarcode for this return already exist with another partnumber',
+                        data: null,
+                        error: 'qrbarcode for this return already exist with another partnumber'
+                    });
+
+                return;
+            }
+
+            
+            if (!dataDetailReturn) {
+                await ReturnService.insertDetail({
+                    rsc_oid: req.body.header_return_oid,
+                    pt_id: dataProduct.dataValues.pt_id,
+                    qrbarcode: req.body.qrbarcode
+                }, Authentication.user().usernama)
+            }
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'created!',
+                    data: null,
+                    error: null
+                })
+        } catch (error) {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
     }
 
     getHeaderScanOut = (req, res) => {

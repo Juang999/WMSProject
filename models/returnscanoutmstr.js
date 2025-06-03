@@ -22,6 +22,18 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'userid',
         foreignKey: 'rsc_userid'
       })
+
+      ReturnScanOutMstr.belongsTo(models.TransStatus, {
+        as: 'status',
+        targetKey: 'trans_id',
+        foreignKey: 'rsc_status_id'
+      })
+
+      ReturnScanOutMstr.hasMany(models.ReturnScanOutdDet, {
+        as: 'detail_return_product',
+        sourceKey: 'rsc_oid',
+        foreignKey: 'rscd_rsc_oid'
+      })
     }
   }
   ReturnScanOutMstr.init({
