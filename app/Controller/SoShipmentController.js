@@ -150,7 +150,11 @@ class SoShipmentController {
             }
 
             if (DATA_SERIAL_NUMBER.dataValues.invcd_status != 'available') {
-                return this.returnResponse(300, 'the serial has not been adjusted yet', 'the serial has not been adjusted yet', null);
+                if (DATA_SERIAL_NUMBER.dataValues.invcd_status == 'registered') {
+                    return this.returnResponse(300, 'the serial has not been adjusted yet', 'the serial has not been adjusted yet', null);
+                } else {
+                    return this.returnResponse(300, `serial is ${DATA_SERIAL_NUMBER.dataValues.invcd_status}`, `serial is ${DATA_SERIAL_NUMBER.dataValues.invcd_status}`, null);
+                }
             }
 
             if (DATA_SERIAL_IN_SALES_ORDER != null) {
