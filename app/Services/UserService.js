@@ -56,6 +56,11 @@ class UserService {
 				['userid', 'id'],
 				['usernama', 'username']
 			],
+			where: {
+				userid: {
+					[Op.in]: [266, 267, 269, 270, 255, 305, 306]
+				}
+			},
 			order: [
 				['userid', 'ASC']
 			]
