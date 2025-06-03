@@ -57,6 +57,7 @@ class ReturnService {
                 'rsc_oid',
                 'rsc_code',
                 ['rsc_created_by', 'created_by'],
+                ['rsc_userid', 'pic_id'],
                 [Sequelize.literal(`"user"."usernama"`), 'pic'],
                 [Sequelize.literal(`"header_scanout"."sc_so_code"`), 'so_code'],
                 ['rsc_status_id', 'status_id'],
