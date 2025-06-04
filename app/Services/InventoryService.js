@@ -546,7 +546,9 @@ class InventoryService {
     releaseSerial = async (sodsOid, transaction) => {
         await InvcdDet.update({
             invcd_is_booked: 0,
-            invcd_transaction_oid: null
+            invcd_transaction_code: null,
+            invcd_transaction_oid: null,
+            invcd_status: 'available'
         }, {
             where: {
                 invcd_qrbarcode: {
