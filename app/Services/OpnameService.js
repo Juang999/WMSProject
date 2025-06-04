@@ -302,7 +302,6 @@ class OpnameService {
                         invcd_qrbarcode: serialNumber,
                         invcd_deleted_at: null,
                         invcd_deleted_by: null,
-                        invcd_is_booked: '0',
                         invcd_transaction_oid: null,
                     }, {
                         [Op.and]: [
@@ -322,7 +321,10 @@ class OpnameService {
                     }
                 ]
             },
-            transaction
+            transaction,
+            logging: (sqlCommand) => {
+                console.info(sqlCommand)
+            }
         })
 
         return result;
