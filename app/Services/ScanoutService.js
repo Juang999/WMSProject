@@ -248,69 +248,71 @@ class ScanoutService {
     }
 
     serialScanOutByDate = async ( date, scanoutCode, productName, productCode, locationName, subLocationName, operator, unique ) => {
-        let result = await ScanOutdDet.findAll({
-            attributes: [
-                [Sequelize.col('"master_scanout"."sc_code"'), 'scanout_code'],
-                ['scd_pt_id', 'product_id'],
-                [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
-                [Sequelize.col('"product"."pt_code"'), 'product_code'],
-                [Sequelize.col('"location"."loc_desc"'), 'location_name'],
-                [Sequelize.col('"sublocation"."locs_name"'), 'sublocation_name'],
-                ['scd_serial', 'uniq'],
-                ['scd_created_by', 'operator'],
-                ['scd_created_at', 'timestamp']
-            ],
-            include: [
-                {
-                    model: ScanOutMstr,
-                    as: 'master_scanout',
-                    attributes: []
-                }, {
-                    model: PtMstr,
-                    as: 'product',
-                    attributes: []
-                }, {
-                    model: LocMstr,
-                    as: 'location',
-                    attributes: []
-                }, {
-                    model: LocsMstr,
-                    as: 'sublocation',
-                    attributes: []
-                }
-            ],
-            where: {
-                [Op.and]: [
-                    Sequelize.where(Sequelize.literal(`DATE(scd_created_at)`), {
-                        [Op.eq]: date
-                    }),
-                    Sequelize.where(Sequelize.literal(`"master_scanout"."sc_code"`), {
-                        [Op.iLike]: `%${scanoutCode}%`
-                    }),
-                    Sequelize.where(Sequelize.literal(`"product"."pt_desc1"`), {
-                        [Op.iLike]: `%${productName}%`
-                    }),
-                    Sequelize.where(Sequelize.literal(`"product"."pt_code"`), {
-                        [Op.iLike]: `%${productCode}%`
-                    }),
-                    Sequelize.where(Sequelize.literal(`"location"."loc_desc"`), {
-                        [Op.iLike]: `%${locationName}%`
-                    }),
-                    Sequelize.where(Sequelize.literal(`"sublocation"."locs_name"`), {
-                        [Op.iLike]: `%${subLocationName}%`
-                    }),
-                    Sequelize.where(Sequelize.literal(`scd_created_by`), {
-                        [Op.iLike]: `%${operator}%`
-                    }),
-                    Sequelize.where(Sequelize.literal(`scd_serial`), {
-                        [Op.iLike]: `%${unique}%`
-                    }),
-                ]
-            },
-            order: [
-                ['timestamp', 'DESC']
-            ]
-        })
+        let query = `
+            SELECT 
+                master_scanout.sc_code AS scanout_code,
+                detail_scanout.scd_pt_id AS product_id,
+                product.pt_desc1 AS product_name,
+                product.pt_code AS product_code,
+                location.loc_desc AS location_name,
+                sublocation.locs_name AS sublocation_name,
+                detail_scanout.scd_serial AS uniq,
+                detail_scanout.scd_created_by AS operator,
+                detail_scanout.scd_created_at AS timestamp
+            FROM public.scanoutd_det detail_scanout
+            LEFT JOIN public.scanout_mstr master_scanout ON master_scanout.sc_oid = detail_scanout.scd_sc_oid
+            LEFT JOIN public.pt_mstr product ON product.pt_id = detail_scanout.scd_pt_id
+            LEFT JOIN public.loc_mstr location ON location.loc_id = detail_scanout.scd_loc_id
+            LEFT JOIN public.locs_mstr sublocation ON sublocation.locs_id = detail_scanout.scd_locs_id
+            WHERE DATE(detail_scanout.scd_created_at) = :date
+            AND master_scanout.sc_code ILIKE :scanout_code
+            AND product.pt_desc1 ILIKE :product_name
+            AND product.pt_code ILIKE :product_code
+            AND location.loc_desc ILIKE :location_name
+            AND sublocation.locs_name ILIKE :sublocation_name
+            AND detail_scanout.scd_created_by ILIKE :pic_name
+            AND detail_scanout.scd_serial ILIKE :serial
+            UNION
+            SELECT
+                master_so.so_code AS scanout_code,
+                detail_so.sod_pt_id AS product_id,
+                product.pt_desc1 AS product_name,
+                product.pt_code AS product_code,
+                location.loc_desc AS location_name,
+                sublocation.locs_name AS sublocation_name,
+                serial_so.sods_serial AS uniq,
+                serial_so.sods_add_by AS operator,
+                serial_so.sods_dt AS timestamp
+            FROM public.sods_serial serial_so
+            LEFT JOIN public.sod_det detail_so ON detail_so.sod_oid = serial_so.sods_sod_oid
+            LEFT JOIN public.so_mstr master_so ON master_so.so_oid = detail_so.sod_so_oid
+            LEFT JOIN public.invcd_det serial ON serial.invcd_qrbarcode = serial_so.sods_serial
+            LEFT JOIN public.loc_mstr location ON location.loc_id = serial.invcd_loc_id
+            LEFT JOIN public.locs_mstr sublocation ON sublocation.locs_id = serial.invcd_locs_id
+            LEFT JOIN public.pt_mstr product ON product.pt_id = serial.invcd_pt_id
+            WHERE DATE(serial_so.sods_dt) = :date
+            AND master_so.so_code ILIKE :scanout_code
+            AND product.pt_desc1 ILIKE :product_name
+            AND product.pt_code ILIKE :product_code
+            AND location.loc_desc ILIKE :location_name
+            AND sublocation.locs_name ILIKE :sublocation_name
+            AND serial_so.sods_add_by ILIKE :pic_name
+            AND serial_so.sods_serial ILIKE :serial
+            ORDER BY timestamp DESC
+        `;
+
+        let [result] = await sequelize.query(query, {
+            replacements: {
+                date,
+                scanout_code: `%${scanoutCode}%`,
+                product_name: `%${productName}%`,
+                product_code: `%${productCode}%`,
+                location_name: `%${locationName}%`,
+                sublocation_name: `%${subLocationName}%`,
+                pic_name: `%${operator}%`,
+                serial: `%${unique}%`
+            }
+        });
 
         return result;
     }
