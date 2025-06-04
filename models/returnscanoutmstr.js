@@ -49,7 +49,9 @@ module.exports = (sequelize, DataTypes) => {
     rsc_code: DataTypes.STRING,
     rsc_en_id: DataTypes.INTEGER,
     rsc_userid: DataTypes.INTEGER,
-    rsc_remarks: DataTypes.STRING
+    rsc_remarks: DataTypes.STRING,
+    rsc_updated_by: DataTypes.STRING,
+    rsc_updated_at: DataTypes.DATE
   }, {
     sequelize,
     schema: 'public',

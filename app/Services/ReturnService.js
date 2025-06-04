@@ -6,7 +6,7 @@ const {
 } = require('../../models');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
 class ReturnService {
     insertHeader = async (body, user) => {
@@ -95,6 +95,8 @@ class ReturnService {
             attributes: [
                 'rsc_oid',
                 ['rsc_code', 'return_product_code'],
+                ['rsc_sc_oid', 'scanout_oid'],
+                [Sequelize.literal(`"header_scanout"."sc_code"`), 'scanout_code'],
                 ['rsc_userid', 'pic_id'],
                 [Sequelize.literal(`"user"."usernama"`), 'pic_name'],
                 ['rsc_status_id', 'status_id'],
@@ -111,6 +113,10 @@ class ReturnService {
                 }, {
                     model: TransStatus,
                     as: 'status',
+                    attributes: []
+                }, {
+                    model: ScanOutMstr,
+                    as: 'header_scanout',
                     attributes: []
                 }, {
                     model: ReturnScanOutdDet,
@@ -173,6 +179,34 @@ class ReturnService {
             where: {
                 rscd_rsc_oid: rscdRscOid,
                 rscd_oid: rscdOid
+            }
+        })
+
+        return result;
+    }
+
+    updateHeader = async (body, user, returnScanOutOid) => {
+        let result = await ReturnScanOutMstr.update({
+            rsc_sc_oid: body.scanout_oid,
+            rsc_sc_code: body.scanout_code,
+            rsc_status_id: body.status_id,
+            rsc_userid: body.pic_id,
+            rsc_remarks: body.remarks,
+            rsc_updated_by: user.usernama,
+            rsc_updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                rsc_oid: returnScanOutOid
+            }
+        });
+
+        return result;
+    }
+
+    deleteHeader = async (rscOid) => {
+        let result = await ReturnScanOutMstr.destroy({
+            where: {
+                rsc_oid: rscOid
             }
         })
 

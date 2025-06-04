@@ -186,6 +186,77 @@ class ReturnController {
                 })
         })
     }
+
+    updateHeader = async (req, res) => {
+        try {
+            let returnScanOutOid = req.params.return_product_oid;
+            let dataScanOut = null;
+
+            let headerReturnProduct = await ReturnService.findHeader(returnScanOutOid);
+
+            if (!headerReturnProduct) {
+                res.status(404)
+                    .json({
+                        status: 'rejected',
+                        message: 'header not found!',
+                        data: null,
+                        error: 'header not found!'
+                    })
+            }
+
+            if (req.body.scanout_oid != null) {
+                dataScanOut = await ScanoutService.findDataScanOutByOid(req.body.scanout_oid);
+            }
+
+            let bodyUpdate = {
+                pic_id: (req.body.pic_id == null) ? headerReturnProduct.dataValues.pic_id : req.body.pic_id,
+                remarks: (req.body.remarks == null) ? headerReturnProduct.dataValues.remarks : req.body.remarks,
+                scanout_oid: (dataScanOut == null) ? headerReturnProduct.dataValues.scanout_oid : req.body.scanout_oid,
+                scanout_code: (dataScanOut == null) ? headerReturnProduct.dataValues.scanout_code : dataScanOut.dataValues.sc_code,
+                status_id: (req.body.status_id == null) ? headerReturnProduct.dataValues.status_id : req.body.status_id,
+            }
+
+            let result = await ReturnService.updateHeader(bodyUpdate, Authentication.user(), returnScanOutOid);
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'updated',
+                    data: result,
+                    error: null
+                })
+        } catch (error) {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
+    }
+
+    deleteHeader = (req, res) => {
+        ReturnService.deleteHeader(req.params.rsc_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new ReturnController();
