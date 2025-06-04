@@ -289,6 +289,8 @@ class SalesOrderService {
                 so_oid: soOid
             }
         })
+
+        return result;
     }
 }
 
