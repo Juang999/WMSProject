@@ -552,6 +552,8 @@ class InventoryService {
                 [Sequelize.literal(`"detail_scanout->master_scanout"."sc_code"`), 'scanout_code'],
                 [Sequelize.literal(`"detail_scanout->master_scanout"."sc_trans_id"`), 'status_id'],
                 [Sequelize.literal(`MAX("detail_scanout->master_scanout"."sc_created_at")`), 'scanout_date'],
+                ['invcd_scanned_at', 'scanned_at'],
+                [Sequelize.literal(`"singular_history"."invcdh_created_by"`), 'history_created_by'],
             ],
             include: [
                 {
@@ -577,6 +579,10 @@ class InventoryService {
                             attributes: []
                         }
                     ]
+                }, {
+                    model: InvcdhHist,
+                    as: 'singular_history',
+                    attributes: [],
                 }
             ],
             where: {
@@ -602,6 +608,7 @@ class InventoryService {
                 'qty',
                 'scanout_code',
                 'status_id',
+                Sequelize.literal(`"singular_history"."invcdh_created_by"`)
             ],
             order: [
                 ['invcd_qrbarcode', 'ASC']
