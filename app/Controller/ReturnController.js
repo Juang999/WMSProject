@@ -1,5 +1,6 @@
-const { ScanoutService, ReturnService, ProductService } = require('../Services/ServiceContainer');
 const { Authentication } = require('../../helper/helper');
+const { sequelize } = require('../../models');
+const { ScanoutService, ReturnService, ProductService, InventoryService } = require('../Services/ServiceContainer');
 
 class ReturnController {
     getAllHeader = (req, res) => {
@@ -83,62 +84,80 @@ class ReturnController {
         }
     }
 
-    createReturnDetail = async (req, res) => {
-        try {
-            let [ dataProduct, dataDetailReturn ] = await Promise.all([
-                ProductService.findProductByPartnumber(req.body.partnumber),
+    createReturnDetail = (req, res) => {
+        sequelize.transaction(async t => {
+            let [dataSerial, detailDataReturn] = await Promise.all([
+                InventoryService.findSerialNumber(req.body.qrbarcode, t), 
                 ReturnService.findDetail(req.body.header_return_oid, req.body.qrbarcode)
             ]);
 
-            if (!dataProduct) {
-                res.status(404)
-                    .json({
+            if (!dataSerial) {
+                return {
+                    statusCode: 404,
+                    json: {
                         status: 'not found',
-                        message: 'product not found',
+                        message: 'serial number not found',
                         data: null,
-                        error: 'product not found'
-                    })
-
-                return;
+                        error: 'serial number not found'
+                    }
+                }
             }
 
-            if (dataDetailReturn && dataDetailReturn.dataValues.rscd_pt_id != dataProduct.dataValues.pt_id) {
-                res.status(300)
-                    .json({
+            if (dataSerial.dataValues.uniq == null) {
+                return {
+                    statusCode: 300,
+                    json: {
+                        status: 'rejected',
+                        message: 'unregistered serial number',
+                        data: null,
+                        error: 'unregistered serial number',
+                    }
+                }
+            }
+
+            if (detailDataReturn && detailDataReturn.dataValues.rscd_pt_id != dataSerial.dataValues.invcd_pt_id) {
+                return {
+                    statusCode: 300,
+                    json: {
                         status: 'rejected',
                         message: 'qrbarcode for this return already exist with another partnumber',
                         data: null,
                         error: 'qrbarcode for this return already exist with another partnumber'
-                    });
-
-                return;
+                    }
+                }
             }
 
-            
             if (!dataDetailReturn) {
                 await ReturnService.insertDetail({
                     rsc_oid: req.body.header_return_oid,
-                    pt_id: dataProduct.dataValues.pt_id,
+                    pt_id: dataSerial.dataValues.invcd_pt_id,
                     qrbarcode: req.body.qrbarcode
                 }, Authentication.user().usernama)
             }
 
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: 'created!',
-                    data: null,
-                    error: null
-                })
-        } catch (error) {
+            return {
+                    statusCode: 200,
+                    json: {
+                        status: 'success',
+                        message: 'created!',
+                        data: null,
+                        error: null
+                    }
+                }
+        })
+        .then(result => {
+            res.status(result.statusCode)
+                .json(result.json);
+        })
+        .catch(err => {
             res.status(400)
                 .json({
                     status: 'failed',
                     message: 'error',
                     data: null,
-                    error: error.message
-                })
-        }
+                    error: err.message
+                });
+        })
     }
 
     getHeaderScanOut = (req, res) => {

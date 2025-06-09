@@ -52,7 +52,7 @@ class ScanoutController {
 
     createDetail = (req, res) => {
         sequelize.transaction(async t => {
-            let dataSerial = await InventoryService.newFindRegisteredSerialNumber(req.body.uniq, t);
+            let dataSerial = await InventoryService.findSerialNumber(req.body.uniq, t);
 
             if (!dataSerial) {
                 return this.returnResponse(300, 'rejected', 'serial not found', null)
@@ -66,7 +66,7 @@ class ScanoutController {
                 await this.registerSerial(dataSerial, req.body.uniq, Authentication.user().usernama, t);
             }
 
-            let newDataSerial = await InventoryService.newFindRegisteredSerialNumber(req.body.uniq, t);
+            let newDataSerial = await InventoryService.findSerialNumber(req.body.uniq, t);
 
             await Promise.all([
                 InventoryService.scanoutSerial(newDataSerial.dataValues.invcd_oid, Authentication.user().usernama, req.body.scanout_oid, t),
@@ -141,7 +141,7 @@ class ScanoutController {
     deleteScannedOut = (req, res) => {
         sequelize.transaction(async t => {
             let dataScannedOut = await ScanoutService.findSerialAlreadyScanned(req.params.scd_oid);
-            let dataSerial = await InventoryService.newFindRegisteredSerialNumber(dataScannedOut.dataValues.scd_serial, t);
+            let dataSerial = await InventoryService.findSerialNumber(dataScannedOut.dataValues.scd_serial, t);
 
             if (!dataScannedOut) {
                 return this.returnResponse(300, 'rejected', 'serial not found', null)
