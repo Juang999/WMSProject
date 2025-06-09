@@ -127,7 +127,7 @@ class ReturnController {
                 }
             }
 
-            if (!dataDetailReturn) {
+            if (!detailDataReturn) {
                 await ReturnService.insertDetail({
                     rsc_oid: req.body.header_return_oid,
                     pt_id: dataSerial.dataValues.invcd_pt_id,
