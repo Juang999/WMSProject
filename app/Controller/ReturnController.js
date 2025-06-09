@@ -40,6 +40,15 @@ class ReturnController {
                     error: null
                 })
         })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
     }
     
     createReturnHeader = async (req, res) => {

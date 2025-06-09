@@ -123,7 +123,9 @@ class ReturnService {
                     as: 'detail_return_product',
                     attributes: [
                         'rscd_oid',
+                        ['rscd_pt_id', 'product_id'],
                         [Sequelize.literal(`"detail_return_product->product"."pt_desc1"`), 'product_name'],
+                        [Sequelize.literal(`"detail_return_product->product"."pt_code"`), 'product_code'],
                         ['rscd_qrbarcode', 'unique'],
                         ['rscd_created_by', 'created_by'],
                         ['rscd_created_at', 'created_at']
