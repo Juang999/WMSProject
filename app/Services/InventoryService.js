@@ -1023,6 +1023,19 @@ class InventoryService {
             transaction
         })
     }
+
+    bulkFindSerials = async (serials) => {
+        let result = await InvcdDet.findAll({
+            attributes: ['invcd_dom_id', 'invcd_en_id', 'invcd_pt_id', 'invcd_qrbarcode'],
+            where: {
+                invcd_qrbarcode: {
+                    [Op.in]: serials
+                }
+            }
+        });
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();

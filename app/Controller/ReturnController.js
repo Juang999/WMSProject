@@ -1,6 +1,8 @@
 const { Authentication } = require('../../helper/helper');
 const { sequelize } = require('../../models');
 const { ScanoutService, ReturnService, ProductService, InventoryService } = require('../Services/ServiceContainer');
+const { v4: uuidv4 } = require('uuid');
+const moment = require('moment');
 
 class ReturnController {
     getAllHeader = (req, res) => {
@@ -323,10 +325,28 @@ class ReturnController {
 
         try {
             let dataSerials = serials.split(',');
+            let dataQrCode = await InventoryService.bulkFindSerials(dataSerials);
+
+            let dataHistories = dataQrCode.map(({dataValues: element}) => {
+                return {
+                    invcdh_oid: uuidv4(),
+                    invcdh_dom_id: element.invcd_en_id,
+                    invcdh_en_id: element.invcd_en_id,
+                    invcdh_pt_id: element.invcd_pt_id,
+                    invcdh_loc_to_id: location_id,
+                    invcdh_locs_to_id: sublocation_id,
+                    invcdh_qrbarcode: element.invcd_qrbarcode,
+                    invcdh_status: 'return!',
+                    invcdh_remarks: 'return',
+                    invcdh_created_by: Authentication.user().usernama,
+                    invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                }
+            })
 
             await Promise.all([
                 InventoryService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, Authentication.user().usernama, transaction),
-                ReturnService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, header_return_oid, Authentication.user().usernama, transaction)
+                ReturnService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, header_return_oid, Authentication.user().usernama, transaction),
+                InventoryService.createHistory(dataHistories, transaction)
             ])
 
             await transaction.commit();
