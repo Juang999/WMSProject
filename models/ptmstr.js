@@ -76,6 +76,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pt_id',
         foreignKey: 'invcd_pt_id'
       })
+
+      PtMstr.hasMany(models.ReturnScanOutdDet, {
+        as: 'detail_return_product',
+        sourceKey: 'pt_id',
+        foreignKey: 'rscd_pt_id'
+      })
     }
   }
   PtMstr.init({

@@ -36,7 +36,11 @@ class ReturnController {
             ReturnService.getSerialHeader(req.params.return_header_oid)
         ])
         .then(( [ headerReturn, serialReturn ] ) => {
-            headerReturn.dataValues.detail_return_product = serialReturn;
+            if (!headerReturn) {
+                headerReturn = [];
+            } else {
+                headerReturn.dataValues.detail_return_product = serialReturn;
+            }
 
             res.status(200)
                 .json({
