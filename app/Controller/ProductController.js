@@ -3,6 +3,7 @@ const {Op} = require('sequelize')
 const {v4: uuidv4} = require('uuid')
 const moment = require('moment')
 const {Auth, Query} = require('../../helper/helper')
+const { ProductService } = require('../Services/ServiceContainer');
 
 // models
 const {
@@ -60,6 +61,30 @@ class ProductController {
 					data: err.message
 				})
 		})
+	}
+
+	getProductsQuantity = (req, res) => {
+		let search = req.query.search || '';
+
+		ProductService.getProductsQuantity(search)
+			.then(result => {
+				res.status(200)
+					.json({
+						status: 'success',
+						message: 'product found!',
+						data: result,
+						error: null
+					})
+			})
+			.catch(err => {
+				res.status(400)
+					.json({
+						status: 'failed',
+						message: 'error!',
+						data: null,
+						error: err.message
+					})
+			})
 	}
 }
 
