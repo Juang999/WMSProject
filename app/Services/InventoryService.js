@@ -465,7 +465,7 @@ class InventoryService {
             invcd_is_booked: 0,
             invcd_transaction_code: null,
             invcd_transaction_oid: null,
-            invcd_status: 'available'
+            invcd_status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN 'registered' ELSE 'available' END`)
         }, {
             where: {
                 invcd_qrbarcode: {
@@ -676,7 +676,7 @@ class InventoryService {
             invcd_qty: 1,
             invcd_is_booked: 0,
             invcd_transaction_oid: null,
-            invcd_status: 'registered'
+            invcd_status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN 'registered' ELSE 'available' END`)
         }, {
             where: {
                 invcd_qrbarcode: invcdQrBarcode

@@ -146,7 +146,9 @@ class ReturnService {
                         ['rscd_created_at', 'created_at']
                     ],
                     where: {
-                        rscd_rsc_oid: returnScanOutOid
+                        rscd_rsc_oid: returnScanOutOid,
+                        rscd_loc_id: null,
+                        rscd_locs_id: null
                     }
                 }
             ],
