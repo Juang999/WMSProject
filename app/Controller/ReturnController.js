@@ -316,6 +316,40 @@ class ReturnController {
                 })
         })
     }
+
+    returnSerials = async (req, res) => {
+        let { header_return_oid, location_id, sublocation_id, serials } = req.body;
+        let transaction = await sequelize.transaction();
+
+        try {
+            let dataSerials = serials.split(',');
+
+            await Promise.all([
+                InventoryService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, Authentication.user().usernama, transaction),
+                ReturnService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, header_return_oid, Authentication.user().usernama, transaction)
+            ])
+
+            await transaction.commit();
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'updated',
+                    data: null,
+                    error: null
+                })
+        } catch (error) {
+            await transaction.rollback();
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                });
+        }
+    }
 }
 
 module.exports = new ReturnController();

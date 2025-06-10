@@ -2,7 +2,7 @@ const { Router } = require('express');
 const router = Router();
 const authMiddleware = require('../app/Middleware/authenticate');
 const { 
-    findReport,
+    findReport, returnSerials,
     updateHeader, deleteHeader,
     findHeader, getHeaderScanOut, 
     createReturnHeader, getAllHeader, 
@@ -14,6 +14,7 @@ router.get('/', getAllHeader);
 router.get('/:return_header_oid/find-header', findHeader);
 router.get('/:return_header_oid/find-report', findReport);
 router.get('/header-scanout', getHeaderScanOut);
+router.put('/return-serials', [ authMiddleware ], returnSerials);
 router.post('/create-detail', [ authMiddleware ], createReturnDetail);
 router.delete('/:rscd_rsc_oid/header-oid/:rscd_oid/detail-oid/delete-detail', [ authMiddleware ], deleteDetail);
 router.put('/:return_product_oid/update-header', [ authMiddleware ], updateHeader);

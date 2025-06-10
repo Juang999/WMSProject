@@ -1,3 +1,4 @@
+const { when } = require('joi');
 const {
     PtMstr, EnMstr,
     LocsMstr, InvcdDet, 
@@ -999,6 +1000,28 @@ class InventoryService {
         })
 
         return result;
+    }
+
+    bulkUpdateSerials = async (serials, locationId, subLocationId, username, transaction) => {
+        await InvcdDet.update({
+            invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
+            invcd_qty: 1,
+            invcd_loc_id: locationId,
+            invcd_locs_id: subLocationId,
+            invcd_is_booked: 0,
+            invcd_transaction_code: null,
+            invcd_transaction_oid: null,
+            invcd_status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN 'registered' ELSE 'available' END`),
+            invcd_upd_by: username,
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+        }, {
+            where: {
+                invcd_qrbarcode: {
+                    [Op.in]: serials
+                }
+            },
+            transaction
+        })
     }
 }
 

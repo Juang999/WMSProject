@@ -27,7 +27,11 @@ module.exports = (sequelize, DataTypes) => {
     rscd_pt_id: DataTypes.INTEGER,
     rscd_qrbarcode: DataTypes.STRING,
     rscd_created_by: DataTypes.STRING,
-    rscd_created_at: DataTypes.DATE
+    rscd_created_at: DataTypes.DATE,
+    rscd_loc_id: DataTypes.INTEGER,
+    rscd_locs_id: DataTypes.INTEGER,
+    rscd_updated_by: DataTypes.STRING,
+    rscd_updated_at: DataTypes.DATE,
   }, {
     sequelize,
     schema: 'public',
