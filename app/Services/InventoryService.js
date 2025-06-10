@@ -539,8 +539,8 @@ class InventoryService {
     getPartnumberBySerial = async (serialNumber) => {
         let result = await InvcdDet.findAll({
             attributes: [
+                Sequelize.literal('distinct on(invcd_qrbarcode) invcd_qrbarcode'),
                 'invcd_oid',
-                'invcd_qrbarcode',
                 'invcd_alias_qrbarcode',
                 ['invcd_pt_id', 'product_id'],
                 [Sequelize.col(`"product"."pt_code"`), 'pt_code'],
@@ -554,6 +554,7 @@ class InventoryService {
                 [Sequelize.literal(`"detail_scanout->master_scanout"."sc_trans_id"`), 'status_id'],
                 [Sequelize.literal(`MAX("detail_scanout->master_scanout"."sc_created_at")`), 'scanout_date'],
                 ['invcd_scanned_at', 'scanned_at'],
+                [Sequelize.literal(`"singular_history"."invcdh_status"`), 'status'],
                 [Sequelize.literal(`"singular_history"."invcdh_created_by"`), 'history_created_by'],
             ],
             include: [
@@ -609,11 +610,9 @@ class InventoryService {
                 'qty',
                 'scanout_code',
                 'status_id',
+                'status',
                 Sequelize.literal(`"singular_history"."invcdh_created_by"`)
             ],
-            order: [
-                ['invcd_qrbarcode', 'ASC']
-            ]
         })
 
         return result;
