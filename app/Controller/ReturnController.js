@@ -31,12 +31,18 @@ class ReturnController {
 
     findHeader = (req, res) => {
         ReturnService.findHeader(req.params.return_header_oid)
-        .then(result => {
+        Promise.all([
+            ReturnService.findHeader(req.params.return_header_oid),
+            ReturnService.getSerialHeader(req.params.return_header_oid)
+        ])
+        .then(( [ headerReturn, serialReturn ] ) => {
+            headerReturn.dataValues.detail_return_product = serialReturn;
+
             res.status(200)
                 .json({
                     status: 'success',
                     message: 'ok',
-                    data: result,
+                    data: headerReturn,
                     error: null
                 })
         })

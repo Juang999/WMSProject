@@ -118,25 +118,6 @@ class ReturnService {
                     model: ScanOutMstr,
                     as: 'header_scanout',
                     attributes: []
-                }, {
-                    model: ReturnScanOutdDet,
-                    as: 'detail_return_product',
-                    attributes: [
-                        'rscd_oid',
-                        ['rscd_pt_id', 'product_id'],
-                        [Sequelize.literal(`"detail_return_product->product"."pt_desc1"`), 'product_name'],
-                        [Sequelize.literal(`"detail_return_product->product"."pt_code"`), 'product_code'],
-                        ['rscd_qrbarcode', 'unique'],
-                        ['rscd_created_by', 'created_by'],
-                        ['rscd_created_at', 'created_at']
-                    ],
-                    include: [
-                        {
-                            model: PtMstr,
-                            as: 'product',
-                            attributes: []
-                        }
-                    ]
                 }
             ],
             where: {
@@ -144,6 +125,41 @@ class ReturnService {
             }
         });
         
+        return result;
+    }
+
+    getSerialHeader = async (returnScanOutOid) => {
+        let result = await PtMstr.findAll({
+            attributes: [
+                ['pt_id', 'product_id'],
+                ['pt_code', 'product_code'],
+                ['pt_desc1', 'product_name'],
+            ],
+            include: [
+                {
+                    model: ReturnScanOutdDet,
+                    as: 'detail_return_product',
+                    attributes: [
+                        ['rscd_oid', 'detail_return_oid'],
+                        ['rscd_qrbarcode', 'unique'],
+                        ['rscd_created_by', 'created_by'],
+                        ['rscd_created_at', 'created_at']
+                    ],
+                    where: {
+                        rscd_rsc_oid: returnScanOutOid
+                    }
+                }
+            ],
+            where: {
+                pt_id: {
+                    [Op.in]: Sequelize.literal(`(SELECT rscd_pt_id FROM public.returnscanoutd_det WHERE rscd_rsc_oid = :headerReturnOid)`)
+                }
+            },
+            replacements: {
+                headerReturnOid: returnScanOutOid
+            }
+        });
+
         return result;
     }
 
