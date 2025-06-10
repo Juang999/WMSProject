@@ -30,7 +30,6 @@ class ReturnController {
     }
 
     findHeader = (req, res) => {
-        ReturnService.findHeader(req.params.return_header_oid)
         Promise.all([
             ReturnService.findHeader(req.params.return_header_oid),
             ReturnService.getSerialHeader(req.params.return_header_oid)
@@ -60,7 +59,29 @@ class ReturnController {
                 })
         })
     }
-    
+
+    findReport = (req, res) => {
+        ReturnService.findReportHeader(req.params.return_header_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     createReturnHeader = async (req, res) => {
         try {
             let dataScanOut = await ScanoutService.findDataScanOutByOid(req.body.scanout_oid);

@@ -177,6 +177,64 @@ class ReturnService {
         return result;
     }
 
+    findReportHeader = async (returnScanOutOid) => {
+        let result = await ReturnScanOutMstr.findOne({
+            attributes: [
+                'rsc_oid',
+                ['rsc_code', 'return_product_code'],
+                ['rsc_sc_oid', 'scanout_oid'],
+                [Sequelize.literal(`"header_scanout"."sc_code"`), 'scanout_code'],
+                ['rsc_userid', 'pic_id'],
+                [Sequelize.literal(`"user"."usernama"`), 'pic_name'],
+                ['rsc_status_id', 'status_id'],
+                [Sequelize.literal(`"status"."trans_desc"`), 'status_name'],
+                ['rsc_remarks', 'remarks'],
+                ['rsc_created_by', 'created_by'],
+                ['rsc_created_at', 'created_at'],
+            ],
+            include: [
+                {
+                    model: TConfUser,
+                    as: 'user',
+                    attributes: []
+                }, {
+                    model: TransStatus,
+                    as: 'status',
+                    attributes: []
+                }, {
+                    model: ScanOutMstr,
+                    as: 'header_scanout',
+                    attributes: []
+                }, {
+                    model: ReturnScanOutdDet,
+                    as: 'detail_return_product',
+                    attributes: [
+                        ['rscd_oid', 'detail_return_oid'],
+                        ['rscd_qrbarcode', 'unique'],
+                        ['rscd_created_by', 'created_by'],
+                        ['rscd_created_at', 'created_at'],
+                        [Sequelize.literal(`"detail_return_product->product"."pt_code"`), 'product_code'],
+                        [Sequelize.literal(`"detail_return_product->product"."pt_desc1"`), 'product_name']
+                    ],
+                    include: [
+                        {
+                            model: PtMstr,
+                            as: 'product',
+                            attributes: []
+                        }
+                    ]
+                }
+            ],
+            where: {
+                rsc_oid: returnScanOutOid
+            }
+        });
+
+        console.info(result);
+
+        return result;
+    }
+
     findDetail = async (rscOid, qrbarcode, productCode) => {
         let result = await ReturnScanOutdDet.findOne({
             attributes: ['rscd_oid', 'rscd_pt_id'],
