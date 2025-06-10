@@ -118,7 +118,16 @@ class ProductService {
                 }),
                 Sequelize.where(Sequelize.col(`"location"."loc_desc"`), {
                     [Op.iLike]: `%${locationName}%`
-                })
+                }),
+                Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
+                    [Op.not]: null
+                }),
+                Sequelize.where(Sequelize.col(`"invcd_qty"`), {
+                    [Op.not]: 0
+                }),
+                Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
+                    [Op.eq]: 'Y'
+                }),
             ],
             group: ['product_id', 'entity', 'product_name', 'product_code', 'location_name'],
             order: [['total_quantity', 'DESC']],

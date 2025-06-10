@@ -229,25 +229,29 @@ class ScanoutController {
 	}
 
     registerSerial = async (dataSerial, uniqSerial, username, transaction) => {
+        let locationId = null;
         let sublocationId = null;
 
         switch (dataSerial.dataValues.invcd_en_id) {
             case 1:
+                locationId = 1000555;
                 sublocationId = 10021162;
                 break;
 
             case 2:
-                sublocationId = 20021163;
+                locationId = 2000556;
+                sublocationId = 20021166;
                 break;
 
             case 3:
+                locationId = 3000557;
                 sublocationId = 30021164;
                 break;
         }
 
         await Promise.all([
             InventoryService.updateSerial(dataSerial.dataValues.invcd_oid, {
-                location_id: Sequelize.literal(`"invcd_loc_id"`),
+                location_id: locationId,
                 sublocation_id: sublocationId,
                 serial_number: uniqSerial
             }, username, transaction),
@@ -256,8 +260,8 @@ class ScanoutController {
                 invcdh_dom_id: 1,
                 invcdh_en_id: dataSerial.dataValues.invcd_en_id,
                 invcdh_pt_id: dataSerial.dataValues.invcd_pt_id,
-                invcdh_loc_from_id: dataSerial.dataValues.invcd_loc_id,
-                invcdh_locs_from_id: sublocationId,
+                invcdh_loc_to_id: locationId,
+                invcdh_locs_to_id: sublocationId,
                 invcdh_qrbarcode: uniqSerial,
                 invcdh_status: 'registered!',
                 invcdh_remarks: 'registered',
