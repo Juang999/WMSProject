@@ -288,6 +288,23 @@ class ReturnService {
 
         return result;
     }
+
+    bulkUpdateSerials = async (serials, locationId, subLocationId, headerReturnOid, username, transaction) => {
+        await ReturnScanOutdDet.update({
+            rscd_loc_id: locationId,
+            rscd_locs_id: subLocationId,
+            rscd_updated_by: username,
+            rscd_updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
+        }, {
+            where: {
+                rscd_qrbarcode: {
+                    [Op.in]: serials
+                },
+                rscd_rsc_oid: headerReturnOid
+            },
+            transaction
+        })
+    }
 }
 
 module.exports = new ReturnService();
