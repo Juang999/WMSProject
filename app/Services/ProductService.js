@@ -1,4 +1,4 @@
-const {PtMstr, InvcMstr, InvcdDet, EnMstr, PtCatMstr, Sequelize} = require('../../models');
+const {PtMstr, InvcMstr, InvcdDet, EnMstr, LocMstr, PtCatMstr, Sequelize} = require('../../models');
 const {Op, where} = require('sequelize');
 
 class ProductService {
@@ -88,7 +88,8 @@ class ProductService {
                 [Sequelize.col(`"product->data_entity"."en_desc"`), 'entity'],
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
-                [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_quantity']
+                [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_quantity'],
+                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
             ],
             include: [
                 {
@@ -102,6 +103,10 @@ class ProductService {
                             attributes: []
                         }
                     ]
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
                 }
             ],
             where: {
@@ -114,7 +119,7 @@ class ProductService {
                     })
                 ]
             },
-            group: ['product_id', 'entity', 'product_name', 'product_code'],
+            group: ['product_id', 'entity', 'product_name', 'product_code', 'location_name'],
             order: [['total_quantity', 'DESC']],
         });
 
