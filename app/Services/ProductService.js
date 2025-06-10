@@ -81,7 +81,7 @@ class ProductService {
         return result;
     }
 
-    getProductsQuantity = async (search) => {
+    getProductsQuantity = async (productCode, productName, locationName) => {
         let result = await InvcdDet.findAll({
             attributes: [
                 ['invcd_pt_id', 'product_id'],
@@ -109,16 +109,17 @@ class ProductService {
                     attributes: []
                 }
             ],
-            where: {
-                [Op.or]: [
-                    Sequelize.where(Sequelize.col('"product"."pt_code"'), {
-                        [Op.iLike]: `%${search}%`
-                    }),
-                    Sequelize.where(Sequelize.col('"product"."pt_desc1"'), {
-                        [Op.iLike]: `%${search}%`
-                    })
-                ]
-            },
+            where: [
+                Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
+                    [Op.iLike]: `%${productCode}%`
+                }),
+                Sequelize.where(Sequelize.col(`"product"."pt_desc1"`), {
+                    [Op.iLike]: `%${productName}%`
+                }),
+                Sequelize.where(Sequelize.col(`"location"."loc_desc"`), {
+                    [Op.iLike]: `%${locationName}%`
+                })
+            ],
             group: ['product_id', 'entity', 'product_name', 'product_code', 'location_name'],
             order: [['total_quantity', 'DESC']],
         });

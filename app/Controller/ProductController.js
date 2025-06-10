@@ -64,9 +64,11 @@ class ProductController {
 	}
 
 	getProductsQuantity = (req, res) => {
-		let search = req.query.search || '';
+		let location = req.query.location || '';
+		let productName = req.query.product || '';
+		let productCode = req.query.product_code || '';
 
-		ProductService.getProductsQuantity(search)
+		ProductService.getProductsQuantity(productCode, productName, location)
 			.then(result => {
 				res.status(200)
 					.json({
