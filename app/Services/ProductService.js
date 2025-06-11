@@ -130,7 +130,7 @@ class ProductService {
                 }),
             ],
             group: ['product_id', 'entity', 'product_name', 'product_code', 'location_name'],
-            order: [['product_name', 'ASC']],
+            order: [['product_code', 'ASC']],
         });
 
         return result;
