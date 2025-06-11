@@ -190,6 +190,7 @@ class ReturnService {
                 [Sequelize.literal(`"user"."usernama"`), 'pic_name'],
                 ['rsc_status_id', 'status_id'],
                 [Sequelize.literal(`"status"."trans_desc"`), 'status_name'],
+                [Sequelize.literal(`count("singular_detail_return_product"."rscd_oid")`), 'counted'],
                 ['rsc_remarks', 'remarks'],
                 ['rsc_created_by', 'created_by'],
                 ['rsc_created_at', 'created_at'],
@@ -206,6 +207,10 @@ class ReturnService {
                 }, {
                     model: ScanOutMstr,
                     as: 'header_scanout',
+                    attributes: []
+                }, {
+                    model: ReturnScanOutdDet,
+                    as: 'singular_detail_return_product',
                     attributes: []
                 }, {
                     model: ReturnScanOutdDet,
@@ -229,7 +234,24 @@ class ReturnService {
             ],
             where: {
                 rsc_oid: returnScanOutOid
-            }
+            },
+            group: [
+                'rsc_oid',
+                'return_product_code',
+                'scanout_oid',
+                'scanout_code',
+                'pic_id',
+                'pic_name',
+                'status_id',
+                'status_name',
+                'remarks',
+                'created_by',
+                'created_at',
+                Sequelize.literal('"detail_return_product"."rscd_oid"'),
+                Sequelize.literal('"detail_return_product"."rscd_qrbarcode"'),
+                Sequelize.literal(`"detail_return_product->product"."pt_code"`),
+                Sequelize.literal(`"detail_return_product->product"."pt_desc1"`),
+            ]
         });
 
         console.info(result);
