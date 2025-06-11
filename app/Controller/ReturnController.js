@@ -88,22 +88,10 @@ class ReturnController {
         try {
             let dataScanOut = await ScanoutService.findDataScanOutByOid(req.body.scanout_oid);
 
-            if (!dataScanOut) {
-                res.status(404)
-                    .json({
-                        status: 'not found',
-                        message: 'data scanout not found!',
-                        data: null,
-                        error: 'data scanout not found!'
-                    })
-
-                return;
-            }
-
             let result = await ReturnService.insertHeader({
-                sc_oid: dataScanOut.dataValues.sc_oid,
-                sc_code: dataScanOut.dataValues.sc_code,
-                entity_id: dataScanOut.dataValues.sc_en_id,
+                sc_oid: (dataScanOut) ? dataScanOut.dataValues.sc_oid : null,
+                sc_code: (dataScanOut) ? dataScanOut.dataValues.sc_code: null,
+                entity_id: (dataScanOut) ? dataScanOut.dataValues.sc_en_id : null,
                 userid: req.body.userid,
                 remarks: req.body.remarks
             }, Authentication.user());
