@@ -34,6 +34,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'rsc_oid',
         foreignKey: 'rscd_rsc_oid'
       })
+
+      ReturnScanOutMstr.hasOne(models.ReturnScanOutdDet, {
+        as: 'singular_detail_return_product',
+        sourceKey: 'rsc_oid',
+        foreignKey: 'rscd_rsc_oid'
+      })
     }
   }
   ReturnScanOutMstr.init({
