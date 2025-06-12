@@ -1,6 +1,7 @@
 const { PbMstr, PbdDet, PbdsSerial, PtMstr, Sequelize } = require('../../models');
 const { Op } = require('sequelize');
-const models = require('../../modules/GetDesc/models');
+const moment = require('moment');
+const { v4: uuidv4 } = require('uuid');
 
 class InventoryRequestService {
     retrieveDataInventoryRequest = async (search, startDate, endDate) => {
@@ -80,6 +81,80 @@ class InventoryRequestService {
                 Sequelize.literal(`"detail_inventory_request->product"."pt_code"`),
             ],
             subQuery: false
+        });
+
+        return result;
+    }
+
+    findDetailInventoryRequest = async (irdOid) => {
+        let result = await PbdDet.findOne({
+            attributes: [
+                'pbd_oid',
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.literal(`CAST(pbd_qty AS INTEGER)`), 'qty_needed'],
+
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: PbdsSerial,
+                    as: 'serial_inventory_request',
+                    attributes: [
+                        'pbds_oid',
+                        ['pbds_qrbarcode', 'unique'],
+                        ['pbds_created_by', 'created_by'],
+                        ['pbds_created_at', 'created_at']
+                    ]
+                }
+            ],
+            where: {
+                pbd_oid: irdOid
+            }
+        });
+
+        return result;
+    }
+
+    storeSerialInventoryRequest = async (dataSerial, detailInventoryRequestOid, userName, transaction) => {
+        let result = await PbdsSerial.create({
+            pbds_oid: uuidv4(),
+            pbds_pbd_oid: detailInventoryRequestOid,
+            pbds_pt_id: dataSerial.invcd_pt_id,
+            pbds_qrbarcode: dataSerial.uniq,
+            pbds_created_by: userName,
+            pbds_created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            pbds_loc_id: dataSerial.invcd_loc_id,
+            pbds_locs_id: dataSerial.invcd_locs_id
+        }, {
+            transaction
+        });
+
+        return result;
+    }
+
+    findSerialInventoryRequest = async (serialNumber, detailInventoryRequestOid) => {
+        let result = await PbdsSerial.findOne({
+            attributes: [
+                Sequelize.literal(`1`)
+            ],
+            where: {
+                pbds_qrbarcode: serialNumber,
+                pbds_pbd_oid: detailInventoryRequestOid
+            }
+        });
+
+        return result;
+    }
+
+    deleteSerial = async (serialInventoryRequestOid) => {
+        let result = await PbdsSerial.destroy({
+            where: {
+                pbds_oid: serialInventoryRequestOid
+            }
         });
 
         return result;
