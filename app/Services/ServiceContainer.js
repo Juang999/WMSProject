@@ -12,5 +12,6 @@ module.exports = {
     TransferService: require('./TransferService'),
     InventoryService: require('./InventoryService'),
     SalesOrderService: require('./SalesOrderService'),
+    InventoryRequestService: require('./InventoryRequestService'),
     InventoryReceiptService: require('./InventoryReceiptService'),
 }
