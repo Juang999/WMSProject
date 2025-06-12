@@ -85,6 +85,31 @@ class RegisterController {
         })
     }
 
+    getHistoryByStatus = (req, res) => {
+        let date = (req.query.date) ? moment(req.query.date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD')
+        let status = (req.params.status) ? req.params.status : 'moved';
+
+        InventoryService.getHistoryPerStatus(date, status)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
+
     returnResponse = (statusCode, status, message, data, error) => {
         return {statusCode, json: {status, message, data, error}}
     }

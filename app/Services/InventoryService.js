@@ -1035,6 +1035,65 @@ class InventoryService {
 
         return result;
     }
+
+    getHistoryPerStatus = async (date, status) => {
+        let result = await InvcdhHist.findAll({
+            attributes: [
+                [Sequelize.col(`"location_from"."loc_desc"`), 'origin_location'],
+                [Sequelize.col(`"location_to"."loc_desc"`), 'destination_location'],
+                [Sequelize.literal(`"sublocation_from"."locs_name"`), 'origin_sublocation'],
+                [Sequelize.literal(`"sublocation_to"."locs_name"`), 'destination_sublocation'],
+                ['invcdh_pt_id', 'product_id'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                ['invcdh_qrbarcode', 'serial'],
+                ['invcdh_status', 'status'],
+                ['invcdh_remarks', 'remark'],
+                ['invcdh_created_by', 'created_by'],
+                ['invcdh_created_date', 'created_at']
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: EnMstr,
+                    as: 'entity',
+                    attributes: [],
+                }, {
+                    model: LocMstr,
+                    as: 'location_from',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location_to',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation_from',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation_to',
+                    attributes: []
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.literal(`DATE(invcdh_created_date)`), {
+                    [Op.eq]: date
+                }),
+                Sequelize.where(Sequelize.col(`invcdh_status`), {
+                    [Op.eq]: `${status}!`
+                })
+            ],
+            order: [
+                ['invcdh_created_date', 'desc']
+            ]
+        })
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();
