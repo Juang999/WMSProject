@@ -41,6 +41,7 @@ app.use('/move-location', require('./routes/move_location'));
 app.use('/purchase-order', require('./routes/purchase_order'));
 app.use('/return-product', require('./routes/return_product'));
 app.use('/inventory-receipt', require('./routes/inventory_receipt'));
+app.use('/inventory-request', require('./routes/inventory_request'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
