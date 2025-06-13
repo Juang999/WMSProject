@@ -31,7 +31,7 @@ class InventoryRequestController {
     }
 
     findHeaderInventoryRequest = (req, res) => {
-        InventoryRequestService.findHeaderInventoryReceipt(req.params.inventory_request_oid)
+        InventoryRequestService.findHeaderInventoryReceipt(req.params.inventory_request_code)
         .then(result => {
             res.status(200)
                 .json({

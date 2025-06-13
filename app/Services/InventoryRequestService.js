@@ -30,8 +30,8 @@ class InventoryRequestService {
         return result;
     }
 
-    findHeaderInventoryReceipt = async (irOid) => {
-        let result = await PbMstr.findOne({
+    findHeaderInventoryReceipt = async (irCode) => {
+        let result = await PbMstr.findAll({
             attributes: [
                 'pb_oid',
                 'pb_code',
@@ -66,7 +66,7 @@ class InventoryRequestService {
                 }
             ],
             where: {
-                pb_oid: irOid
+                pb_code: irCode
             },
             group: [
                 'pb_oid',
@@ -83,7 +83,7 @@ class InventoryRequestService {
             subQuery: false
         });
 
-        return result;
+        return result[0];
     }
 
     findDetailInventoryRequest = async (irdOid) => {
