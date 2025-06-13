@@ -2,6 +2,7 @@ const { InventoryRequestService, InventoryService } = require('../Services/Servi
 const { sequelize, Sequelize } = require('../../models');
 const moment = require('moment');
 const {Authentication} = require('../../helper/helper')
+const {v4: uuidv4} = require('uuid');
 
 class InventoryRequestController {
     getHeaderInventoryRequest = (req, res) => {
@@ -195,9 +196,10 @@ class InventoryRequestController {
         sequelize.transaction(async t => {
             let inventoryRequestDataSerial = await InventoryRequestService.findSerialInventoryRequestByOid(req.params.serial_inventory_request_oid);
 
+
             let [ result ] = await Promise.all([
                 InventoryRequestService.deleteSerial(req.params.serial_inventory_request_oid, t),
-                InventoryService.updateSerial(dataSerialNumber.dataValues.invcd_oid, 
+                InventoryService.updateSerial(inventoryRequestDataSerial.dataValues.invcd_oid, 
                     {
                         location_id: inventoryRequestDataSerial.dataValues.pbds_loc_id,
                         sublocation_id: inventoryRequestDataSerial.dataValues.pbds_locs_id,
@@ -211,8 +213,8 @@ class InventoryRequestController {
                         invcdh_pt_id: inventoryRequestDataSerial.dataValues.pbds_pt_id,
                         invcdh_loc_from_id: inventoryRequestDataSerial.dataValues.pbds_loc_git,
                         invcdh_locs_from_id: inventoryRequestDataSerial.dataValues.pbds_locs_git,
-                        invcdh_loc_to_id: dataSubLocation.dataValues.pbds_loc_id,
-                        invcdh_locs_to_id: dataSubLocation.dataValues.pbds_locs_id,
+                        invcdh_loc_to_id: inventoryRequestDataSerial.dataValues.pbds_loc_id,
+                        invcdh_locs_to_id: inventoryRequestDataSerial.dataValues.pbds_locs_id,
                         invcdh_qrbarcode: inventoryRequestDataSerial.dataValues.uniq,
                         invcdh_status: 'moved!',
                         invcdh_remarks: 'release inventory request',

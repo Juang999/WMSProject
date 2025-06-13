@@ -23,6 +23,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'pbd_oid',
         foreignKey: 'pbds_pbd_oid'
       })
+
+      PbdsSerial.belongsTo(models.InvcdDet, {
+        as: 'data_serial',
+        targetKey: 'invcd_qrbarcode',
+        foreignKey: 'pbds_qrbarcode'
+      })
     }
   }
   PbdsSerial.init({

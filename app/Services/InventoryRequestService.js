@@ -1,4 +1,4 @@
-const { PbMstr, PbdDet, PbdsSerial, PbtType, PtMstr, Sequelize } = require('../../models');
+const { PbMstr, PbdDet, PbdsSerial, PbtType, PtMstr, Sequelize, InvcdDet } = require('../../models');
 const { Op } = require('sequelize');
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
@@ -192,11 +192,16 @@ class InventoryRequestService {
                 'pbds_locs_id',
                 'pbds_loc_git',
                 'pbds_locs_git',
+                [Sequelize.literal(`"data_serial"."invcd_oid"`), 'invcd_oid'],
             ],
             include: [
                 {
                     model: PtMstr,
                     as: 'product',
+                    attributes: []
+                }, {
+                    model: InvcdDet,
+                    as: 'data_serial',
                     attributes: []
                 }
             ],

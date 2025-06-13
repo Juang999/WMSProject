@@ -265,8 +265,10 @@ class InventoryService {
             invcd_upd_by: username,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
+            invcd_transaction_code: null,
+            invcd_transaction_oid: null,
             invcd_scanned_at: Sequelize.literal(`CASE WHEN invcd_scanned_at IS NOT NULL THEN invcd_scanned_at ELSE CURRENT_TIMESTAMP END`),
-            invcd_status: 'registered',
+            invcd_status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`),
         }, {
             where: {
                 invcd_oid: invcdOid
