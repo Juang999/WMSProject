@@ -94,6 +94,54 @@ class InventoryRequestService {
         return result[0];
     }
 
+    findCompleteHeaderInventoryReceipt = async (irCode) => {
+        let result = await PbMstr.findAll({
+            attributes: [
+                'pb_oid',
+                'pb_code',
+                ['pb_rmks', 'remarks'],
+                ['pb_pbt_code', 'ir_type'],
+                [Sequelize.literal(`"type_ir"."pbt_desc"`), 'type_name'],
+                ['pb_add_by', 'created_by'],
+                ['pb_add_date', 'created_at'],
+                ['pb_upd_by', 'updated_by'],
+                ['pb_upd_date', 'updated_at'],
+            ],
+            include: [
+                {
+                    model: PbdDet,
+                    as: 'detail_inventory_request',
+                    attributes: [
+                        'pbd_oid',
+                        [Sequelize.literal(`"detail_inventory_request->product"."pt_desc1"`), 'product_name'],
+                        [Sequelize.literal(`"detail_inventory_request->product"."pt_code"`), 'product_code'],
+                        [Sequelize.literal(`CAST("pbd_qty" AS INTEGER)`), 'qty_needed'],
+                    ],
+                    include: [
+                        {
+                            model: PtMstr,
+                            as: 'product',
+                            attributes: []
+                        }, {
+                            model: PbdsSerial,
+                            as: 'serial_inventory_request',
+                            attributes: ['pbds_qrbarcode']
+                        }
+                    ]
+                }, {
+                    model: PbtType,
+                    as: 'type_ir',
+                    attributes: []
+                }
+            ],
+            where: {
+                pb_code: irCode
+            },
+            subQuery: false
+        });
+        return result[0];
+    }
+
     findDetailInventoryRequest = async (irdOid) => {
         let result = await PbdDet.findOne({
             attributes: [

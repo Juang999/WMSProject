@@ -5,7 +5,7 @@ const {
     LocMstr, TConfUser,
     InvcdhHist, Sequelize,
     sequelize, ScanOutMstr,
-    ScanOutdDet,
+    ScanOutdDet, InvcMstr
 } = require('../../models');
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -621,16 +621,17 @@ class InventoryService {
         return result;
     }
 
-    scanoutSerial = async (invcdOid, username, transactionOid, transaction, transactionCode, qty) => {
+    scanoutSerial = async (invcdOid, username, transactionOid, transaction, transactionCode, qty, inventoryOid, status) => {
         await InvcdDet.update({
             invcd_qty: (qty) ? qty : 0,
+            invcd_invc_oid: (inventoryOid) ? inventoryOid : null,
             invcd_upd_by: username,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
             invcd_is_booked: 1,
             invcd_transaction_code: (transactionCode) ? transactionCode : null,
             invcd_transaction_oid: transactionOid,
-            invcd_status: 'shipped'
+            invcd_status: (status) ? status : 'shipped'
         }, {
             where: {
                 invcd_oid: invcdOid
@@ -1107,6 +1108,23 @@ class InventoryService {
                 locs_loc_id: {
                     [Op.in]: [1002745, 2002746, 3002747]
                 }
+            }
+        });
+
+        return result;
+    }
+
+    findDataLocation = async (locationId, productCode) => {
+        let result = await InvcMstr.findOne({
+            attributes: ['invc_oid'],
+            where: {
+                invc_loc_id: locationId,
+                invc_pt_id: {
+                    [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = :product_code)`)
+                }
+            },
+            replacements:{
+                product_code: productCode
             }
         });
 

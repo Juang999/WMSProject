@@ -183,8 +183,8 @@ class InventoryRequestController {
                         invcdh_loc_to_id: dataSubLocation.dataValues.locs_loc_id,
                         invcdh_locs_to_id: dataSubLocation.dataValues.locs_id,
                         invcdh_qrbarcode: dataSerialNumber.dataValues.uniq,
-                        invcdh_status: 'moved!',
-                        invcdh_remarks: 'inventory request',
+                        invcdh_status: 'mutasi!',
+                        invcdh_remarks: 'mutasi inventory request',
                         invcdh_created_by: Authentication.user().usernama,
                         invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
                     }], 

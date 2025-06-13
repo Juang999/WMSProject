@@ -24,7 +24,9 @@ module.exports = (sequelize, DataTypes) => {
     ptsfrds_si_id: DataTypes.INTEGER,
     ptsfrds_loc_id: DataTypes.INTEGER,
     ptsfrds_lot_serial: DataTypes.STRING,
-    ptsfrds_dt: DataTypes.DATE
+    ptsfrds_dt: DataTypes.DATE,
+    ptsfrds_qrbarcode: DataTypes.STRING,
+    ptsfrds_locs_id: DataTypes.INTEGER
   }, {
     sequelize,
     schema: 'public',

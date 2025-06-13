@@ -4,6 +4,8 @@ const {
     PtsfrdsSerial, LocMstr,
     Sequelize, EnMstr, PtMstr
 } = require('../../models');
+const { v4: uuidv4 } = require('uuid');
+const moment = require('moment');
 
 class TransferService {
     findDataTransfer = async (transferCode) => {
@@ -78,7 +80,7 @@ class TransferService {
                             as: 'serial',
                             attributes: [
                                 'ptsfrds_oid',
-                                ['ptsfrds_lot_serial', 'serial_qrbarcode'],
+                                ['ptsfrds_qrbarcode', 'serial_qrbarcode'],
                                 ['ptsfrds_dt', 'timestamp']
                             ]
                         }
@@ -92,6 +94,21 @@ class TransferService {
         });
 
         return result[0];
+    }
+
+    storeUniqueTransfer = async (locationId, subLocationId, qrBarcode, ptsfrdOid) => {
+        let result = await PtsfrdsSerial.create({
+            ptsfrds_oid: uuidv4(),
+            ptsfrds_ptsfrd_oid: ptsfrdOid,
+            ptsfrds_qty: 1,
+            ptsfrds_si_id: 992,
+            ptsfrds_loc_id: locationId,
+            ptsfrds_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+            ptsfrds_qrbarcode: qrBarcode,
+            ptsfrds_locs_id: subLocationId
+        });
+
+        return result;
     }
 }
 
