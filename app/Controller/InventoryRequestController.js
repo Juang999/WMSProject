@@ -244,6 +244,32 @@ class InventoryRequestController {
                 })
         })
     }
+
+    findSerialNumber = (req, res) => {
+        sequelize.transaction(async t => {
+            let result = await InventoryService.findSerialNumber(req.params.unique, t);
+
+            return result;
+        })
+        .then(result => {
+            res.statu(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new InventoryRequestController();
