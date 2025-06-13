@@ -17,6 +17,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'pt_id',
         foreignKey: 'pbds_pt_id'
       })
+
+      PbdsSerial.belongsTo(models.PbdDet, {
+        as: 'detail_ir',
+        targetKey: 'pbd_oid',
+        foreignKey: 'pbds_pbd_oid'
+      })
     }
   }
   PbdsSerial.init({

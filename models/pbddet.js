@@ -29,6 +29,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pbd_oid',
         foreignKey: 'pbds_pbd_oid'
       })
+
+      PbdDet.belongsTo(models.PbMstr, {
+        as: 'master_ir',
+        targetKey: 'pb_oid',
+        foreignKey: 'pbd_pb_oid'
+      })
     }
   }
   PbdDet.init({

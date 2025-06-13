@@ -100,8 +100,7 @@ class InventoryRequestService {
                 'pbd_oid',
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
-                [Sequelize.literal(`CAST(pbd_qty AS INTEGER)`), 'qty_needed'],
-
+                [Sequelize.literal(`CAST(pbd_qty AS INTEGER)`), 'qty_needed']
             ],
             include: [
                 {
@@ -155,6 +154,23 @@ class InventoryRequestService {
                 'pbds_locs_id',
                 'pbds_loc_git',
                 'pbds_locs_git',
+                [Sequelize.literal(`"detail_ir->master_ir"."pb_pbt_type"`), 'pbt_type'],
+                [Sequelize.literal(`"detail_ir"."pbd_pb_oid"`), 'pb_oid'],
+                [Sequelize.literal(`"detail_ir->master_ir"."pb_code"`), 'pb_code'],
+            ],
+            include: [
+                {
+                    model: PbdDet,
+                    as: 'detail_ir',
+                    attributes: [],
+                    include: [
+                        {
+                            model: PbMstr,
+                            as: 'master_ir',
+                            attributes: []
+                        }
+                    ]
+                }
             ],
             where: {
                 pbds_qrbarcode: serialNumber,
@@ -198,6 +214,29 @@ class InventoryRequestService {
                 pbds_oid: serialInventoryRequestOid
             },
             transaction
+        });
+
+        return result;
+    }
+
+    findDataDetail = async (detailInventoryRequestOid) => {
+        let result = await PbdDet.findOne({
+            attributes: [
+                'pbd_oid',
+                ['pbd_pb_oid', 'pb_oid'],
+                [Sequelize.literal(`"master_ir"."pb_code"`), 'pb_code'],
+                [Sequelize.literal(`"master_ir"."pb_pbt_code"`), 'pbt_code'],
+            ],
+            include: [
+                {
+                    model: PbMstr,
+                    as: 'master_ir',
+                    attributes: []
+                }
+            ],
+            where: {
+                pbd_oid: detailInventoryRequestOid
+            }
         });
 
         return result;
