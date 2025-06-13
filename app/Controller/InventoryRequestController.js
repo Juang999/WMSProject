@@ -193,7 +193,37 @@ class InventoryRequestController {
     }
 
     destroySerial = (req, res) => {
-        InventoryRequestService.deleteSerial(req.params.serial_inventory_request_oid)
+        sequelize.transaction(async t => {
+            let inventoryRequestDataSerial = await InventoryRequestService.findSerialInventoryRequestByOid(req.params.serial_inventory_request_oid);
+
+            let [ result ] = await Promise.all([
+                InventoryRequestService.deleteSerial(req.params.serial_inventory_request_oid, t),
+                InventoryService.updateSerial(dataSerialNumber.dataValues.invcd_oid, 
+                    {
+                        location_id: inventoryRequestDataSerial.dataValues.pbds_loc_id,
+                        sublocation_id: inventoryRequestDataSerial.dataValues.pbds_locs_id,
+                        serial_number: Sequelize.literal(`invcd_qrbarcode`)
+                    }, 
+                    Authentication.user().usernama, t),
+                InventoryService.createHistory([{
+                        invcdh_oid: uuidv4(),
+                        invcdh_dom_id: 1,
+                        invcdh_en_id: inventoryRequestDataSerial.dataValues.entity_id,
+                        invcdh_pt_id: inventoryRequestDataSerial.dataValues.pbds_pt_id,
+                        invcdh_loc_from_id: inventoryRequestDataSerial.dataValues.pbds_loc_git,
+                        invcdh_locs_from_id: inventoryRequestDataSerial.dataValues.pbds_locs_git,
+                        invcdh_loc_to_id: dataSubLocation.dataValues.pbds_loc_id,
+                        invcdh_locs_to_id: dataSubLocation.dataValues.pbds_locs_id,
+                        invcdh_qrbarcode: inventoryRequestDataSerial.dataValues.uniq,
+                        invcdh_status: 'moved!',
+                        invcdh_remarks: 'release inventory request',
+                        invcdh_created_by: Authentication.user().usernama,
+                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }], t)
+            ]);
+
+            return result;
+        })
         .then(result => {
             res.status(200)
                 .json({

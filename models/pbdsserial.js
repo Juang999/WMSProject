@@ -11,6 +11,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      PbdsSerial.belongsTo(models.PtMstr, {
+        as: 'product',
+        targetKey: 'pt_id',
+        foreignKey: 'pbds_pt_id'
+      })
     }
   }
   PbdsSerial.init({

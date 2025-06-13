@@ -141,7 +141,12 @@ class InventoryRequestService {
     findSerialInventoryRequest = async (serialNumber, detailInventoryRequestOid) => {
         let result = await PbdsSerial.findOne({
             attributes: [
-                Sequelize.literal(`1`)
+                Sequelize.literal(`1`),
+                'pbds_oid',
+                'pbds_loc_id',
+                'pbds_locs_id',
+                'pbds_loc_git',
+                'pbds_locs_git',
             ],
             where: {
                 pbds_qrbarcode: serialNumber,
@@ -152,11 +157,39 @@ class InventoryRequestService {
         return result;
     }
 
-    deleteSerial = async (serialInventoryRequestOid) => {
+    findSerialInventoryRequestByOid = async (detailInventoryRequestOid) => {
+        let result = await PbdsSerial.findOne({
+            attributes: [
+                Sequelize.literal(`1`),
+                [Sequelize.literal(`"product"."pt_en_id"`), 'entity_id'],
+                'pbds_pt_id',
+                'pbds_oid',
+                'pbds_loc_id',
+                'pbds_locs_id',
+                'pbds_loc_git',
+                'pbds_locs_git',
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                pbds_oid: detailInventoryRequestOid
+            }
+        });
+
+        return result;
+    }
+
+    deleteSerial = async (serialInventoryRequestOid, transaction) => {
         let result = await PbdsSerial.destroy({
             where: {
                 pbds_oid: serialInventoryRequestOid
-            }
+            },
+            transaction
         });
 
         return result;
