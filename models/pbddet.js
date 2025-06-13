@@ -23,6 +23,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pbd_oid',
         foreignKey: 'pbds_pbd_oid'
       })
+
+      PbdDet.hasMany(models.PbdsSerial, {
+        as: 'serial_inventory_request',
+        sourceKey: 'pbd_oid',
+        foreignKey: 'pbds_pbd_oid'
+      })
     }
   }
   PbdDet.init({
