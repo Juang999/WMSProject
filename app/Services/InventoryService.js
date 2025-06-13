@@ -408,6 +408,7 @@ class InventoryService {
                 ['invcd_alias_qrbarcode', 'alias_uniq'],
                 [Sequelize.literal('CAST(invcd_qty AS INTEGER)'), 'qty'],
                 ['invcd_en_id', 'entity_id'],
+                'invcd_status'
             ],
             include: [
                 {
