@@ -8,8 +8,8 @@ const {
 const authMiddleware = require('../app/Middleware/authenticate');
 
 router.get('/', getHeaderInventoryRequest);
-router.get('/:inventory_request_code/find-header', findHeaderInventoryRequest);
 router.post('/store-serial', [ authMiddleware ], storeSerialInventoryRequest);
+router.get('/:inventory_request_code/find-header', findHeaderInventoryRequest);
 router.get('/:detail_inventory_request_oid/find-detail', findDetailInventoryRequest);
 router.delete('/:serial_inventory_request_oid/delete-serial', [ authMiddleware ], destroySerial);
 

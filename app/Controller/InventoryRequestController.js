@@ -192,6 +192,124 @@ class InventoryRequestController {
         }
     }
 
+    storeSerialInventoryRequestBasedOnPrize = async (req, res) => {
+        let transaction = await sequelize.transaction();
+
+        try {
+            let [dataSerialNumber, dataSerialInventoryRequest] = await Promise.all([
+                InventoryService.findSerialNumber(req.body.unique, transaction),
+                InventoryRequestService.findSerialInventoryRequest(req.body.unique, req.body.detail_inventory_request_oid)
+            ]);
+
+            
+            if (dataSerialInventoryRequest) {
+                res.status(300)
+                .json({
+                    status: 'already exist',
+                    message: 'serial already scanned',
+                    data: null,
+                    error: 'serial already scanned'
+                });
+                
+                return;
+            }
+            
+            if (!dataSerialNumber) {
+                res.status(404)
+                .json({
+                    status: 'not found',
+                        message: 'serial not found',
+                        data: null,
+                        error: 'serial not found'
+                    });
+
+                return;
+            }
+            
+            if (dataSerialNumber.dataValues.uniq == null) {
+                res.status(404)
+                .json({
+                    status: 'unregistered',
+                    message: 'unregistered serial',
+                    data: null,
+                    error: 'unregistered serial'
+                });
+                
+                return;
+            }
+            
+            if (parseInt(dataSerialNumber.dataValues.qty) != 1) {
+                res.status(404)
+                .json({
+                    status: 'already gone',
+                    message: 'serial already gone',
+                    data: null,
+                    error: 'serial already gone'
+                });
+                
+                return;
+            }
+
+            let dataSubLocation = await InventoryService.findSublocationTransferByLocation(dataSerialNumber.dataValues.invcd_en_id);
+
+            let [ result ] = await Promise.all([
+                InventoryRequestService.storeSerialInventoryRequest(
+                    dataSerialNumber.dataValues,
+                    dataSubLocation.dataValues,
+                    req.body.detail_inventory_request_oid, 
+                    Authentication.user().usernama, 
+                    transaction
+                ),
+                InventoryService.updateSerial(
+                    dataSerialNumber.dataValues.invcd_oid, 
+                    {
+                        location_id: dataSubLocation.dataValues.locs_loc_id,
+                        sublocation_id: dataSubLocation.dataValues.locs_id,
+                        serial_number: Sequelize.literal(`invcd_qrbarcode`)
+                    }, 
+                    Authentication.user().usernama, transaction
+                ),
+                InventoryService.createHistory([{
+                        invcdh_oid: uuidv4(),
+                        invcdh_dom_id: 1,
+                        invcdh_en_id: dataSerialNumber.dataValues.invcd_en_id,
+                        invcdh_pt_id: dataSerialNumber.dataValues.invcd_pt_id,
+                        invcdh_loc_from_id: dataSerialNumber.dataValues.invcd_loc_id,
+                        invcdh_locs_from_id: dataSerialNumber.dataValues.invcd_locs_id,
+                        invcdh_loc_to_id: dataSubLocation.dataValues.locs_loc_id,
+                        invcdh_locs_to_id: dataSubLocation.dataValues.locs_id,
+                        invcdh_qrbarcode: dataSerialNumber.dataValues.uniq,
+                        invcdh_status: 'moved!',
+                        invcdh_remarks: 'inventory request',
+                        invcdh_created_by: Authentication.user().usernama,
+                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }], 
+                    transaction
+                )
+            ])
+
+            await transaction.commit();
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'stored!',
+                    data: result,
+                    error: null
+                })
+        } catch (error) {
+            await transaction.rollback();
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
+    }
+
     destroySerial = (req, res) => {
         sequelize.transaction(async t => {
             let inventoryRequestDataSerial = await InventoryRequestService.findSerialInventoryRequestByOid(req.params.serial_inventory_request_oid);

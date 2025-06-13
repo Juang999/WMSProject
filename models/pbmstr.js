@@ -17,6 +17,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'pb_oid',
         foreignKey: 'pbd_pb_oid'
       })
+
+      PbMstr.belongsTo(models.PbtType, {
+        as: 'type_ir',
+        targetKey: 'pbt_code',
+        foreignKey: 'pb_pbt_code'
+      })
     }
   }
   PbMstr.init({

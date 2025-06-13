@@ -618,13 +618,14 @@ class InventoryService {
         return result;
     }
 
-    scanoutSerial = async (invcdOid, username, transactionOid, transaction) => {
+    scanoutSerial = async (invcdOid, username, transactionOid, transaction, transactionCode) => {
         await InvcdDet.update({
             invcd_qty: 0,
             invcd_upd_by: username,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
             invcd_is_booked: 1,
+            invcd_transaction_code: (transactionCode) ? transactionCode : null,
             invcd_transaction_oid: transactionOid,
             invcd_status: 'shipped'
         }, {

@@ -1,4 +1,4 @@
-const { PbMstr, PbdDet, PbdsSerial, PtMstr, Sequelize } = require('../../models');
+const { PbMstr, PbdDet, PbdsSerial, PbtType, PtMstr, Sequelize } = require('../../models');
 const { Op } = require('sequelize');
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
@@ -36,6 +36,8 @@ class InventoryRequestService {
                 'pb_oid',
                 'pb_code',
                 ['pb_rmks', 'remarks'],
+                ['pb_pbt_code', 'ir_type'],
+                [Sequelize.literal(`"type_ir"."pbt_desc"`), 'type_name'],
                 ['pb_add_by', 'created_by'],
                 ['pb_add_date', 'created_at'],
                 ['pb_upd_by', 'updated_by'],
@@ -63,6 +65,10 @@ class InventoryRequestService {
                             attributes: []
                         }
                     ]
+                }, {
+                    model: PbtType,
+                    as: 'type_ir',
+                    attributes: []
                 }
             ],
             where: {
@@ -71,6 +77,7 @@ class InventoryRequestService {
             group: [
                 'pb_oid',
                 'pb_code',
+                'pb_pbt_code',
                 'remarks',
                 'created_by',
                 'created_at',
@@ -79,6 +86,7 @@ class InventoryRequestService {
                 'pbd_oid',
                 Sequelize.literal(`"detail_inventory_request->product"."pt_desc1"`),
                 Sequelize.literal(`"detail_inventory_request->product"."pt_code"`),
+                Sequelize.literal(`"type_ir"."pbt_desc"`),
             ],
             subQuery: false
         });
