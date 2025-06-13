@@ -165,13 +165,19 @@ class InventoryRequestController {
                     Authentication.user().usernama, 
                     transaction
                 ),
-                InventoryService.scanoutSerial(
-                    dataSerialNumber.dataValues.invcd_oid,  
+                InventoryService.transferSerial(
+                    dataSerialNumber.dataValues.invcd_oid, 
+                    {
+                        qty: (dataDetailInventoryRequest.dataValues.pbt_code == 'GIFTSPL') ? 0 : 1,
+                        location_id: dataSubLocation.dataValues.locs_loc_id,
+                        sublocation_id: dataSubLocation.dataValues.locs_id,
+                        inventory_oid: Sequelize.literal("invcd_invc_oid"),
+                        transaction_code: dataDetailInventoryRequest.dataValues.pb_code,
+                        transaction_oid: dataDetailInventoryRequest.dataValues.pb_oid,
+                        status: (dataDetailInventoryRequest.dataValues.pbt_code == 'GIFTSPL') ? 'shipped' : 'moved',
+                    },
                     Authentication.user().usernama,
-                    dataDetailInventoryRequest.dataValues.pb_oid,
-                    transaction,
-                    dataDetailInventoryRequest.dataValues.pb_code,
-                    (dataDetailInventoryRequest.dataValues.pbt_code == 'GIFTSPL') ? 0 : 1
+                    transaction
                 ),
                 InventoryService.createHistory([{
                         invcdh_oid: uuidv4(),

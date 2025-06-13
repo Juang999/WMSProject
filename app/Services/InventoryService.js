@@ -1130,6 +1130,27 @@ class InventoryService {
 
         return result;
     }
+
+    transferSerial = async (invcdOid, body, username, transaction) => {
+        await InvcdDet.update({
+            invcd_qty: body.qty,
+            invcd_loc_id: body.location_id,
+            invcd_locs_id: body.sublocation_id,
+            invcd_invc_oid: body.inventory_oid,
+            invcd_upd_by: username,
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
+            invcd_is_booked: 1,
+            invcd_transaction_code: body.transaction_code,
+            invcd_transaction_oid: body.transaction_oid,
+            invcd_status: body.status
+        }, {
+            where: {
+                invcd_oid: invcdOid
+            },
+            transaction
+        })
+    }
 }
 
 module.exports = new InventoryService();
