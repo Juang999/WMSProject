@@ -154,7 +154,7 @@ class InventoryRequestService {
                 'pbds_locs_id',
                 'pbds_loc_git',
                 'pbds_locs_git',
-                [Sequelize.literal(`"detail_ir->master_ir"."pb_pbt_type"`), 'pbt_type'],
+                [Sequelize.literal(`"detail_ir->master_ir"."pb_pbt_code"`), 'pbt_type'],
                 [Sequelize.literal(`"detail_ir"."pbd_pb_oid"`), 'pb_oid'],
                 [Sequelize.literal(`"detail_ir->master_ir"."pb_code"`), 'pb_code'],
             ],
