@@ -1,5 +1,5 @@
 const { InventoryRequestService, InventoryService } = require('../Services/ServiceContainer');
-const { sequelize } = require('../../models');
+const { sequelize, Sequelize } = require('../../models');
 const moment = require('moment');
 const {Authentication} = require('../../helper/helper')
 
@@ -83,22 +83,23 @@ class InventoryRequestController {
                 InventoryRequestService.findSerialInventoryRequest(req.body.unique, req.body.detail_inventory_request_oid)
             ]);
 
+            
             if (dataSerialInventoryRequest) {
                 res.status(300)
-                    .json({
-                        status: 'already exist',
-                        message: 'serial already scanned',
-                        data: null,
-                        error: 'serial already scanned'
-                    });
-
+                .json({
+                    status: 'already exist',
+                    message: 'serial already scanned',
+                    data: null,
+                    error: 'serial already scanned'
+                });
+                
                 return;
             }
-
+            
             if (!dataSerialNumber) {
                 res.status(404)
-                    .json({
-                        status: 'not found',
+                .json({
+                    status: 'not found',
                         message: 'serial not found',
                         data: null,
                         error: 'serial not found'
@@ -106,37 +107,68 @@ class InventoryRequestController {
 
                 return;
             }
-
+            
             if (dataSerialNumber.dataValues.uniq == null) {
                 res.status(404)
-                    .json({
-                        status: 'unregistered',
-                        message: 'unregistered serial',
-                        data: null,
-                        error: 'unregistered serial'
-                    });
-
+                .json({
+                    status: 'unregistered',
+                    message: 'unregistered serial',
+                    data: null,
+                    error: 'unregistered serial'
+                });
+                
                 return;
             }
-
+            
             if (parseInt(dataSerialNumber.dataValues.qty) != 1) {
                 res.status(404)
-                    .json({
-                        status: 'already gone',
-                        message: 'serial already gone',
-                        data: null,
-                        error: 'serial already gone'
-                    });
-
+                .json({
+                    status: 'already gone',
+                    message: 'serial already gone',
+                    data: null,
+                    error: 'serial already gone'
+                });
+                
                 return;
             }
 
-            let result = await InventoryRequestService.storeSerialInventoryRequest(
-                dataSerialNumber.dataValues, 
-                req.body.detail_inventory_request_oid, 
-                Authentication.user().usernama, 
-                transaction
-            )
+            let dataSubLocation = await InventoryService.findSublocationTransferByLocation(dataSerialNumber.dataValues.invcd_en_id);
+
+            let [ result ] = await Promise.all([
+                InventoryRequestService.storeSerialInventoryRequest(
+                    dataSerialNumber.dataValues,
+                    dataSubLocation.dataValues,
+                    req.body.detail_inventory_request_oid, 
+                    Authentication.user().usernama, 
+                    transaction
+                ),
+                InventoryService.updateSerial(
+                    dataSerialNumber.dataValues.invcd_oid, 
+                    {
+                        location_id: dataSubLocation.dataValues.locs_loc_id,
+                        sublocation_id: dataSubLocation.dataValues.locs_id,
+                        serial_number: Sequelize.literal(`invcd_qrbarcode`)
+                    }, 
+                    Authentication.user().usernama, transaction
+                ),
+                InventoryService.createHistory([{
+                        invcdh_oid: uuidv4(),
+                        invcdh_dom_id: 1,
+                        invcdh_en_id: dataSerialNumber.dataValues.invcd_en_id,
+                        invcdh_pt_id: dataSerialNumber.dataValues.invcd_pt_id,
+                        invcdh_loc_from_id: dataSerialNumber.dataValues.invcd_loc_id,
+                        invcdh_locs_from_id: dataSerialNumber.dataValues.invcd_locs_id,
+                        invcdh_loc_to_id: dataSubLocation.dataValues.locs_loc_id,
+                        invcdh_locs_to_id: dataSubLocation.dataValues.locs_id,
+                        invcdh_qrbarcode: dataSerialNumber.dataValues.uniq,
+                        invcdh_status: 'moved!',
+                        invcdh_remarks: 'inventory request',
+                        invcdh_created_by: Authentication.user().usernama,
+                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                    }], 
+                    transaction
+                )
+            ])
 
             await transaction.commit();
 

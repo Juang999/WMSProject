@@ -1094,6 +1094,20 @@ class InventoryService {
 
         return result;
     }
+
+    findSublocationTransferByLocation = async (enId) => {
+        let result = await LocsMstr.findOne({
+            attributes: ['locs_id', 'locs_loc_id'],
+            where: {
+                locs_en_id: enId,
+                locs_loc_id: {
+                    [Op.in]: [1002745, 2002746, 3002747]
+                }
+            }
+        });
+
+        return result;
+    }
 }
 
 module.exports = new InventoryService();

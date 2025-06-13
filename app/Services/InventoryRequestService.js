@@ -119,7 +119,7 @@ class InventoryRequestService {
         return result;
     }
 
-    storeSerialInventoryRequest = async (dataSerial, detailInventoryRequestOid, userName, transaction) => {
+    storeSerialInventoryRequest = async (dataSerial, dataSubLocation, detailInventoryRequestOid, userName, transaction) => {
         let result = await PbdsSerial.create({
             pbds_oid: uuidv4(),
             pbds_pbd_oid: detailInventoryRequestOid,
@@ -128,7 +128,9 @@ class InventoryRequestService {
             pbds_created_by: userName,
             pbds_created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
             pbds_loc_id: dataSerial.invcd_loc_id,
-            pbds_locs_id: dataSerial.invcd_locs_id
+            pbds_locs_id: dataSerial.invcd_locs_id,
+            pbds_loc_git: dataSubLocation.locs_loc_id,
+            pbds_locs_git: dataSubLocation.locs_id
         }, {
             transaction
         });

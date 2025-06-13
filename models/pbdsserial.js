@@ -24,7 +24,9 @@ module.exports = (sequelize, DataTypes) => {
     pbds_created_by: DataTypes.STRING,
     pbds_created_at: DataTypes.DATE,
     pbds_loc_id: DataTypes.INTEGER,
-    pbds_locs_id: DataTypes.INTEGER
+    pbds_locs_id: DataTypes.INTEGER,
+    pbds_loc_git: DataTypes.INTEGER,
+    pbds_locs_git: DataTypes.INTEGER
   }, {
     sequelize,
     schema: 'public',
