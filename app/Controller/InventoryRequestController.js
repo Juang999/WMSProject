@@ -252,7 +252,7 @@ class InventoryRequestController {
             return result;
         })
         .then(result => {
-            res.statu(200)
+            res.status(200)
                 .json({
                     status: 'success',
                     message: 'ok',
