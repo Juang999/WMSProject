@@ -174,7 +174,7 @@ class InventoryRequestController {
                         inventory_oid: Sequelize.literal("invcd_invc_oid"),
                         transaction_code: dataDetailInventoryRequest.dataValues.pb_code,
                         transaction_oid: dataDetailInventoryRequest.dataValues.pb_oid,
-                        status: (dataDetailInventoryRequest.dataValues.pbt_code == 'GIFTSPL') ? 'shipped' : 'moved',
+                        status: 'shipped',
                     },
                     Authentication.user().usernama,
                     transaction
