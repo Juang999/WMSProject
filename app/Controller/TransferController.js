@@ -39,12 +39,16 @@ class TransferController {
 
             let [ result ] = await Promise.all([
                 TransferService.storeUniqueTransfer(req.body.location_id, req.body.sublocation_id, req.body.qrbarcode, req.body.detail_transfer_oid),
-                InventoryService.updateSerial(
-                    dataSerialNumber.dataValues.invcd_oid, 
+                InventoryService.transferSerial(
+                    dataSerialNumber.dataValues.invcd_oid,
                     {
-                        location_id: req.body.location_id,
+                        qty: 1,
+                        location_id: body.location_id,
                         sublocation_id: req.body.sublocation_id,
-                        serial_number: Sequelize.literal(`invcd_qrbarcode`)
+                        inventory_oid: dataLocation.dataValues.invc_oid,
+                        transaction_code: null,
+                        transaction_oid: null,
+                        status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN 'registered' ELSE available END`),
                     },
                     Authentication.user().usernama,
                     transaction
