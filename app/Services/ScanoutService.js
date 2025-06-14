@@ -363,6 +363,17 @@ class ScanoutService {
 
         return result;
     }
+
+    findScanoutHeaderByOid = async (scOid) => {
+        let result = await ScanOutMstr.findOne({
+            attributes: ['sc_oid', 'sc_code'],
+            where: {
+                sc_oid: scOid
+            }
+        });
+
+        return result;
+    }
 }
 
 module.exports = new ScanoutService();

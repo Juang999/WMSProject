@@ -52,7 +52,10 @@ class ScanoutController {
 
     createDetail = (req, res) => {
         sequelize.transaction(async t => {
-            let dataSerial = await InventoryService.findSerialNumber(req.body.uniq, t);
+            let [dataSerial, headerScanOut] = await Promise.all([
+                InventoryService.findSerialNumber(req.body.uniq, t),
+                ScanoutService.findScanoutHeaderByOid(req.body.scanout_oid)
+            ])
 
             if (!dataSerial) {
                 return this.returnResponse(300, 'rejected', 'serial not found', null)
@@ -69,7 +72,21 @@ class ScanoutController {
             let newDataSerial = await InventoryService.findSerialNumber(req.body.uniq, t);
 
             await Promise.all([
-                InventoryService.scanoutSerial(newDataSerial.dataValues.invcd_oid, Authentication.user().usernama, req.body.scanout_oid, t),
+                // InventoryService.scanoutSerial(newDataSerial.dataValues.invcd_oid, Authentication.user().usernama, req.body.scanout_oid, t),
+                InventoryService.transferSerial(
+                    newDataSerial.dataValues.invcd_oid,
+                    {
+                        qty: 0,
+                        location_id: Sequelize.literal(`invcd_loc_id`),
+                        sublocation_id: Sequelize.literal(`invcd_locs_id`),
+                        inventory_oid: Sequelize.literal(`invcd_invc_oid`),
+                        transaction_code: headerScanOut.dataValues.sc_code,
+                        transaction_oid: headerScanOut.dataValues.sc_oid,
+                        status: 'shipped',
+                    }, 
+                    Authentication.user().usernama,
+                    t
+                ),
                 ScanoutService.createDetailScanout({
                     entity_id: newDataSerial.dataValues.entity_id,
                     scanout_oid: req.body.scanout_oid,
