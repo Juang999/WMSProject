@@ -48,7 +48,7 @@ class TransferController {
                         inventory_oid: dataLocation.dataValues.invc_oid,
                         transaction_code: null,
                         transaction_oid: null,
-                        status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN 'registered' ELSE available END`),
+                        status: 'available',
                     },
                     Authentication.user().usernama,
                     transaction
