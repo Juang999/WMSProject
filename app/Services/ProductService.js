@@ -96,6 +96,7 @@ class ProductService {
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
                 [Sequelize.literal(`CASE WHEN "product"."pt_cat_id" IS NOT NULL THEN "product->category"."ptcat_desc" ELSE '-' END`), 'category_name'],
                 [Sequelize.literal(`CASE WHEN "product"."pt_scat_id" IS NOT NULL THEN "product->subcategory"."ptscat_desc" ELSE '-' END`), 'subcategory_name'],
+                [Sequelize.col(`"product"."pt_year"`), 'release_date'],
                 [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_quantity'],
                 [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
             ],
@@ -151,7 +152,7 @@ class ProductService {
                     [Op.eq]: 'Y'
                 }),
             ],
-            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'location_name'],
+            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'location_name', 'release_date'],
             order: [['product_code', 'ASC']],
         });
 
