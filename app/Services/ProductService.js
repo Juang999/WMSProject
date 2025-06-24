@@ -1,4 +1,10 @@
-const {PtMstr, InvcMstr, InvcdDet, EnMstr, LocMstr, PtCatMstr, Sequelize} = require('../../models');
+const {
+    LocMstr, 
+    Sequelize,
+    PtMstr, InvcMstr, 
+    InvcdDet, EnMstr, 
+    PtCatMstr, PtsCatCat,
+} = require('../../models');
 const {Op, where} = require('sequelize');
 
 class ProductService {
@@ -81,13 +87,15 @@ class ProductService {
         return result;
     }
 
-    getProductsQuantity = async (productCode, productName, locationName) => {
+    getProductsQuantity = async (productCode, productName, locationName, categooryName, subCategooryName) => {
         let result = await InvcdDet.findAll({
             attributes: [
                 ['invcd_pt_id', 'product_id'],
                 [Sequelize.col(`"product->data_entity"."en_desc"`), 'entity'],
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.literal(`CASE WHEN "product"."pt_cat_id" IS NOT NULL THEN "product->category"."ptcat_desc" ELSE '-' END`), 'category_name'],
+                [Sequelize.literal(`CASE WHEN "product"."pt_scat_id" IS NOT NULL THEN "product->subcategory"."ptscat_desc" ELSE '-' END`), 'subcategory_name'],
                 [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_quantity'],
                 [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
             ],
@@ -100,6 +108,14 @@ class ProductService {
                         {
                             model: EnMstr,
                             as: 'data_entity',
+                            attributes: []
+                        }, {
+                            model: PtCatMstr,
+                            as: 'category',
+                            attributes: []
+                        }, {
+                            model: PtsCatCat,
+                            as: 'subcategory',
                             attributes: []
                         }
                     ]
@@ -119,6 +135,12 @@ class ProductService {
                 Sequelize.where(Sequelize.col(`"location"."loc_desc"`), {
                     [Op.iLike]: `%${locationName}%`
                 }),
+                Sequelize.where(Sequelize.col(`"product->category"."ptcat_desc"`), {
+                    [Op.iLike]: `%${categooryName}%`
+                }),
+                Sequelize.where(Sequelize.col(`"product->subcategory"."ptscat_desc"`), {
+                    [Op.iLike]: `%${subCategooryName}%`
+                }),
                 Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
                     [Op.not]: null
                 }),
@@ -129,7 +151,7 @@ class ProductService {
                     [Op.eq]: 'Y'
                 }),
             ],
-            group: ['product_id', 'entity', 'product_name', 'product_code', 'location_name'],
+            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'location_name'],
             order: [['product_code', 'ASC']],
         });
 
