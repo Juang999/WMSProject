@@ -94,9 +94,9 @@ class ProductService {
                 [Sequelize.col(`"product->data_entity"."en_desc"`), 'entity'],
                 [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
                 [Sequelize.col(`"product"."pt_code"`), 'product_code'],
-                [Sequelize.literal(`CASE WHEN "product"."pt_cat_id" IS NOT NULL THEN "product->category"."ptcat_desc" ELSE '-' END`), 'category_name'],
-                [Sequelize.literal(`CASE WHEN "product"."pt_scat_id" IS NOT NULL THEN "product->subcategory"."ptscat_desc" ELSE '-' END`), 'subcategory_name'],
-                [Sequelize.col(`"product"."pt_year"`), 'release_date'],
+                // [Sequelize.literal(`CASE WHEN "product"."pt_cat_id" IS NOT NULL THEN "product->category"."ptcat_desc" ELSE '-' END`), 'category_name'],
+                // [Sequelize.literal(`CASE WHEN "product"."pt_scat_id" IS NOT NULL THEN "product->subcategory"."ptscat_desc" ELSE '-' END`), 'subcategory_name'],
+                // [Sequelize.literal(`EXTRACT(YEAR FROM "product"."pt_year")`), 'release_date'],
                 [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_quantity'],
                 [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
             ],
@@ -110,15 +110,16 @@ class ProductService {
                             model: EnMstr,
                             as: 'data_entity',
                             attributes: []
-                        }, {
-                            model: PtCatMstr,
-                            as: 'category',
-                            attributes: []
-                        }, {
-                            model: PtsCatCat,
-                            as: 'subcategory',
-                            attributes: []
-                        }
+                        }, 
+                        // {
+                        //     model: PtCatMstr,
+                        //     as: 'category',
+                        //     attributes: []
+                        // }, {
+                        //     model: PtsCatCat,
+                        //     as: 'subcategory',
+                        //     attributes: []
+                        // }
                     ]
                 }, {
                     model: LocMstr,
@@ -136,12 +137,12 @@ class ProductService {
                 Sequelize.where(Sequelize.col(`"location"."loc_desc"`), {
                     [Op.iLike]: `%${locationName}%`
                 }),
-                Sequelize.where(Sequelize.col(`"product->category"."ptcat_desc"`), {
-                    [Op.iLike]: `%${categooryName}%`
-                }),
-                Sequelize.where(Sequelize.col(`"product->subcategory"."ptscat_desc"`), {
-                    [Op.iLike]: `%${subCategooryName}%`
-                }),
+                // Sequelize.where(Sequelize.col(`"product->category"."ptcat_desc"`), {
+                //     [Op.iLike]: `%${categooryName}%`
+                // }),
+                // Sequelize.where(Sequelize.col(`"product->subcategory"."ptscat_desc"`), {
+                //     [Op.iLike]: `%${subCategooryName}%`
+                // }),
                 Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
                     [Op.not]: null
                 }),
@@ -152,7 +153,11 @@ class ProductService {
                     [Op.eq]: 'Y'
                 }),
             ],
-            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'location_name', 'release_date'],
+            group: ['product_id', 'entity', 'product_name', 'product_code', 
+                // 'category_name', 'subcategory_name', 
+                'location_name', 
+                // 'release_date'
+            ],
             order: [['product_code', 'ASC']],
         });
 
