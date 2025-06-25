@@ -32,18 +32,26 @@ class TransferController {
         let transaction = await sequelize.transaction();
 
         try {
-            let [dataLocation, dataSerialNumber] = await Promise.all([
-                InventoryService.findDataLocation(req.body.location_id, req.body.partnumber),
-                InventoryService.findSerialNumber(req.body.qrbarcode, transaction)
+            let [dataLocation, dataSerialNumber, dataHeaderTransfer] = await Promise.all([
+                InventoryService.findDataLocation(req.body.location_id, req.body.qrbarcode),
+                InventoryService.findSerialNumber(req.body.qrbarcode, transaction),
+                TransferService.findDetailTransferByHeaderOid(req.body.transfer_oid, req.body.qrbarcode)
             ])
 
+            console.info(dataHeaderTransfer)
+
             let [ result ] = await Promise.all([
-                TransferService.storeUniqueTransfer(req.body.location_id, req.body.sublocation_id, req.body.qrbarcode, req.body.detail_transfer_oid),
+                TransferService.storeUniqueTransfer(
+                    req.body.location_id, 
+                    req.body.sublocation_id, 
+                    req.body.qrbarcode, 
+                    dataHeaderTransfer.dataValues.ptsfrd_oid
+                ),
                 InventoryService.transferSerial(
                     dataSerialNumber.dataValues.invcd_oid,
                     {
                         qty: 1,
-                        location_id: body.location_id,
+                        location_id: req.body.location_id,
                         sublocation_id: req.body.sublocation_id,
                         inventory_oid: dataLocation.dataValues.invc_oid,
                         transaction_code: null,

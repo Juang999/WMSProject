@@ -95,11 +95,11 @@ class ProductService {
                 Sequelize.where(Sequelize.col(`"product"."pt_desc1"`), {
                     [Op.iLike]: `%${productName}%`
                 }),
-                Sequelize.where(Sequelize.col(`"location"."loc_desc"`), {
-                    [Op.iLike]: `%${locationName}%`
-                }),
                 Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
                     [Op.not]: null
+                }),
+                Sequelize.where(Sequelize.col(`"invcd_loc_id"`), {
+                    [Op.in]: [1000555, 2000556, 3000557, 1002718, 2002719, 3002720]
                 }),
                 Sequelize.where(Sequelize.col(`"invcd_qty"`), {
                     [Op.not]: 0
@@ -130,8 +130,11 @@ class ProductService {
                 [Sequelize.literal(`CASE WHEN "product"."pt_cat_id" IS NOT NULL THEN "product->category"."ptcat_desc" ELSE '-' END`), 'category_name'],
                 [Sequelize.literal(`CASE WHEN "product"."pt_scat_id" IS NOT NULL THEN "product->subcategory"."ptscat_desc" ELSE '-' END`), 'subcategory_name'],
                 [Sequelize.literal(`EXTRACT(YEAR FROM "product"."pt_year")`), 'release_date'],
+                [Sequelize.literal(`( SELECT CASE WHEN count(invcd_oid) != 0 THEN count(invcd_oid) ELSE 0 END FROM public.invcd_det WHERE invcd_pt_id = "InvcdDet"."invcd_pt_id" AND invcd_scanned_at IS NOT NULL AND invcd_is_verified = 'Y' AND invcd_locs_id IS NOT NULL GROUP BY "InvcdDet"."invcd_pt_id" )`), 'total_incoming'],
+                [Sequelize.literal(`( SELECT CASE WHEN count(invcd_oid) != 0 THEN count(invcd_oid) ELSE 0 END FROM public.invcd_det WHERE invcd_pt_id = "InvcdDet"."invcd_pt_id" AND invcd_scanned_at IS NOT NULL AND invcd_is_verified = 'Y' AND invcd_locs_id IS NOT NULL AND invcd_qty = 0 GROUP BY "InvcdDet"."invcd_pt_id" )`), 'total_outgoing'],
+                [Sequelize.literal(`( SELECT CASE WHEN count(invcd_oid) != 0 THEN count(invcd_oid) ELSE 0 END FROM public.invcd_det WHERE invcd_pt_id = "InvcdDet"."invcd_pt_id" AND invcd_loc_id IN (1000555, 2000556, 3000557) AND invcd_qty = 1 AND invcd_qrbarcode IS NOT NULL AND invcd_is_verified = 'Y' AND invcd_locs_id IS NOT NULL GROUP BY "InvcdDet"."invcd_pt_id" )`), 'quantity_regular'],
+                [Sequelize.literal(`( SELECT CASE WHEN count(invcd_oid) != 0 THEN count(invcd_oid) ELSE 0 END FROM public.invcd_det WHERE invcd_pt_id = "InvcdDet"."invcd_pt_id" AND invcd_loc_id IN (1002718, 2002719, 3002720) AND invcd_qty = 1 AND invcd_qrbarcode IS NOT NULL AND invcd_is_verified = 'Y' AND invcd_locs_id IS NOT NULL GROUP BY "InvcdDet"."invcd_pt_id" )`), 'quantity_pusat'],
                 [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_quantity'],
-                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
             ],
             include: [
                 {
@@ -155,14 +158,10 @@ class ProductService {
                             attributes: []
                         }
                     ]
-                }, {
-                    model: LocMstr,
-                    as: 'location',
-                    attributes: []
                 }
             ],
             where: whereClause,
-            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'location_name', 'release_date'],
+            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'release_date'],
             order: [['product_code', 'ASC']],
         });
 

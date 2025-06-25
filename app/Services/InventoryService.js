@@ -337,9 +337,6 @@ class InventoryService {
                 Sequelize.col(`invcd_deleted_at`),
                 Sequelize.col(`invcd_deleted_by`),
             ],
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
         })
 
         return result;
@@ -1114,17 +1111,14 @@ class InventoryService {
         return result;
     }
 
-    findDataLocation = async (locationId, productCode) => {
+    findDataLocation = async (locationId, qrBarCode) => {
         let result = await InvcMstr.findOne({
             attributes: ['invc_oid'],
             where: {
                 invc_loc_id: locationId,
                 invc_pt_id: {
-                    [Op.eq]: Sequelize.literal(`(SELECT pt_id FROM public.pt_mstr WHERE pt_code = :product_code)`)
+                    [Op.eq]: Sequelize.literal(`(SELECT invcd_pt_id FROM public.invcd_det WHERE invcd_qrbarcode = '${qrBarCode}')`)
                 }
-            },
-            replacements:{
-                product_code: productCode
             }
         });
 
@@ -1150,6 +1144,18 @@ class InventoryService {
             },
             transaction
         })
+    }
+
+    assignProductIntoLocation = async (locationId, productId) => {
+        let result = await InvcMstr.findOne({
+            attributes: ['invc_oid'],
+            where: {
+                invc_loc_id: locationId,
+                invc_pt_id: productId
+            }
+        });
+
+        return result;
     }
 }
 

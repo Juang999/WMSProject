@@ -6,6 +6,7 @@ const {
 } = require('../../models');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
+const { Op } = require('sequelize');
 
 class TransferService {
     findDataTransfer = async (transferCode) => {
@@ -106,6 +107,20 @@ class TransferService {
             ptsfrds_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
             ptsfrds_qrbarcode: qrBarcode,
             ptsfrds_locs_id: subLocationId
+        });
+
+        return result;
+    }
+
+    findDetailTransferByHeaderOid = async (ptsfrOid, qrBarCode) => {
+        let result = await PtsfrdDet.findOne({
+            attributes: ['ptsfrd_oid', 'ptsfrd_ptsfr_oid'],
+            where: {
+                ptsfrd_ptsfr_oid: ptsfrOid,
+                ptsfrd_pt_id: {
+                    [Op.eq]: Sequelize.literal(`( SELECT invcd_pt_id FROM public.invcd_det WHERE invcd_qrbarcode = '${qrBarCode}' )`)
+                }
+            }
         });
 
         return result;
