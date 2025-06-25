@@ -52,6 +52,20 @@ class ReturnService {
     }
 
     getHeader = async (search) => {
+        let whereClause = []
+
+        if (search.return_code) {
+            whereClause.push(Sequelize.where(Sequelize.col(`rsc_code`), {
+                        [Op.iLike]: `%${search.return_code}%`
+                    }))
+        }
+
+        if (search.scanout_code) {
+            whereClause.push(Sequelize.where(Sequelize.col(`rsc_sc_code`), {
+                        [Op.iLike]: `%${search.scanout_code}%`
+                    }))
+        }
+
         let result = await ReturnScanOutMstr.findAll({
             attributes: [
                 'rsc_oid',
@@ -75,16 +89,7 @@ class ReturnService {
                     attributes: []
                 }
             ],
-            where: {
-                [Op.and]: [
-                    Sequelize.where(Sequelize.col(`rsc_code`), {
-                        [Op.iLike]: `%${search.return_code}%`
-                    }),
-                    Sequelize.where(Sequelize.col(`rsc_sc_code`), {
-                        [Op.iLike]: `%${search.scanout_code}%`
-                    }),
-                ]
-            }
+            where: whereClause
         });
 
         return result;
@@ -253,8 +258,6 @@ class ReturnService {
                 Sequelize.literal(`"detail_return_product->product"."pt_desc1"`),
             ]
         });
-
-        console.info(result);
 
         return result;
     }
