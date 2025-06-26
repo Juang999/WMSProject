@@ -66,6 +66,7 @@ class TransferService {
                         [Sequelize.literal('CAST(ptsfrd_qty AS INTEGER)'), 'qty'],
                         ['ptsfrd_loc_to_id', 'location_destination_id'],
                         [Sequelize.literal(`"detail_transfer->location_destination"."loc_desc"`), 'location_destination_name'],
+                        [Sequelize.literal(`COUNT("detail_transfer->serial"."ptsfrds_oid")`), 'total_scanned']
                     ],
                     include: [
                         {
@@ -92,6 +93,30 @@ class TransferService {
                 ptsfr_code: transferCode
             },
             subQuery: false,
+            group: [
+                'ptsfr_oid',
+                'entity_name',
+                'entity_destination_id',
+                'entity_destination_name',
+                'transfer_code',
+                'date',
+                'receive_date',
+                'location_id',
+                'location_name',
+                'location_git_id',
+                'location_git_name',
+                'location_destination_id',
+                'location_destination_name',
+                'status_id',
+                'status_desc',
+                'ptsfrd_oid',
+                Sequelize.literal(`"detail_transfer->product"."pt_desc1"`),
+                Sequelize.literal(`"detail_transfer->product"."pt_code"`),
+                Sequelize.literal('ptsfrd_cost'),
+                Sequelize.literal('ptsfrd_qty'),
+                Sequelize.literal(`"detail_transfer->location_destination"."loc_desc"`),
+                'ptsfrds_oid',
+            ]
         });
 
         return result[0];
