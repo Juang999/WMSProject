@@ -6,9 +6,16 @@ const {v4: uuidv4} = require('uuid');
 const { error } = require('../../helper/Logging');
 
 class TransferController {
-    findDataTransfer = (req, res) => {
-        TransferService.findDataTransfer(req.params.transfer_code)
-        .then(result => {
+    findDataTransfer = async (req, res) => {
+        Promise.all([
+            TransferService.findDataTransfer(req.params.transfer_code),
+            TransferService.countSerialTransfer(req.params.transfer_code)
+        ])
+        .then(([result, totalScanned]) => {
+            if (result) {
+                result.dataValues.total_scanned = totalScanned;
+            }
+
             res.status(200)
                 .json({
                     status: 'success',

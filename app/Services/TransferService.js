@@ -150,6 +150,21 @@ class TransferService {
 
         return result;
     }
+
+    countSerialTransfer = async (transferCode) => {
+        let result = await PtsfrdsSerial.count({
+            where: {
+                ptsfrds_ptsfrd_oid: {
+                    [Op.in]: Sequelize.literal(`( SELECT ptsfrd_oid FROM public.ptsfrd_det WHERE ptsfrd_ptsfr_oid = ( SELECT ptsfr_oid FROM public.ptsfr_mstr WHERE ptsfr_code = :transfer_code ) )`)
+                }
+            },
+            replacements: {
+                transfer_code: transferCode
+            }
+        });
+
+        return result;
+    }
 }
 
 module.exports = new TransferService();
