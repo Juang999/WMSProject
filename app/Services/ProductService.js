@@ -87,7 +87,7 @@ class ProductService {
         return result;
     }
 
-    getProductsQuantity = async (productCode, productName, locationName, categooryName, subCategooryName) => {
+    getProductsQuantity = async (productCode, productName, categooryName, subCategooryName, year) => {
         let whereClause = [
                 Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
                     [Op.iLike]: `%${productCode}%`
@@ -118,6 +118,12 @@ class ProductService {
         if (subCategooryName != '') {
             whereClause.push(Sequelize.where(Sequelize.col(`"product->subcategory"."ptscat_desc"`), {
                 [Op.iLike]: `%${subCategooryName}%`
+            }))
+        }
+
+        if (year != '') {
+            whereClause.push(Sequelize.where(Sequelize.literal(`EXTRACT(YEAR FROM "product"."pt_year")`), {
+                [Op.eq]: `${year}`
             }))
         }
 
