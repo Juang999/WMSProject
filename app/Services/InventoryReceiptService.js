@@ -1,6 +1,7 @@
-const { RiuMstr, RiudDet, 
+const { 
+    RiuMstr, RiudDet, 
     RiudsSerial, Sequelize,
-    PtMstr, LocMstr
+    PtMstr, LocMstr, InvcdDet
 } = require('../../models');
 const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
@@ -99,7 +100,7 @@ class InventoryReceiptService {
         return result;
     }
 
-    findDetailInventoryReceript = async (inventoryReceiptDetailOid) => {
+    findDetailInventoryReceript = async (inventoryReceiptHeaderOid, productCode, locationId) => {
         const result = await RiudDet.findOne({
             attributes: [
                 'riud_oid',
@@ -135,7 +136,11 @@ class InventoryReceiptService {
                 }
             ],
             where: {
-                riud_oid: inventoryReceiptDetailOid
+                riud_riu_oid: inventoryReceiptHeaderOid,
+                riud_loc_id: locationId,
+                riud_pt_id: {
+                    [Op.eq]: Sequelize.literal(`( SELECT pt_id FROM public.pt_mstr WHERE pt_code = :product_code )`)
+                }
             },
             group: [
                 'riud_oid',
@@ -148,7 +153,10 @@ class InventoryReceiptService {
                 Sequelize.literal('"serial_inventory_receipt"."riuds_oid"'),
                 Sequelize.literal('"serial_inventory_receipt"."riuds_qrbarcode"'),
                 Sequelize.literal('"serial_inventory_receipt"."riuds_dt"'),
-            ]
+            ],
+            replacements: {
+                product_code: productCode
+            }
         })
 
         return result;
@@ -189,6 +197,31 @@ class InventoryReceiptService {
                 riuds_qrbarcode: unique
             }
         })
+
+        return result;
+    }
+
+    findSerialInventoryReceipt = async (riudsOid) => {
+        let result = await RiudsSerial.findOne({
+            attributes: [
+                [Sequelize.literal(`"data_serial"."invcd_pt_id"`), 'product_id'],
+                [Sequelize.literal(`"data_serial"."invcd_en_id"`), 'entity_id'],
+                [Sequelize.literal(`"data_serial"."invcd_oid"`), 'invcd_oid'],
+                [Sequelize.literal(`"data_serial"."invcd_loc_id"`), 'location_id'],
+                [Sequelize.literal(`"data_serial"."invcd_locs_id"`), 'sublocation_id'],
+                ['riuds_qrbarcode', 'qrbarcode'],
+            ],
+            include: [
+                {
+                    model: InvcdDet,
+                    as: 'data_serial',
+                    attributes: []
+                }
+            ],
+            where: {
+                riuds_oid: riudsOid
+            }
+        });
 
         return result;
     }

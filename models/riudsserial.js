@@ -11,6 +11,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+
+      RiudsSerial.hasOne(models.InvcdDet, {
+        as: 'data_serial',
+        sourceKey: 'riuds_qrbarcode',
+        foreignKey: 'invcd_qrbarcode'
+      })
     }
   }
   RiudsSerial.init({

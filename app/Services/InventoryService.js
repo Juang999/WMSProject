@@ -131,6 +131,28 @@ class InventoryService {
         })
     }
 
+    newCreateSerialNumber = async (body, username, transaction) => {
+        await InvcdDet.create({
+            invcd_oid: uuidV4(),
+            invcd_dom_id: 1,
+            invcd_en_id: body.en_id,
+            invcd_pt_id: body.pt_id,
+            invcd_qty: 1,
+            invcd_qrbarcode: body.qrbarcode,
+            invcd_loc_id: body.loc_id,
+            invcd_locs_id: body.locs_id,
+            invcd_um: 9964,
+            invcd_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_add_by: username,
+            invcd_date: moment().format('YYYY-MM-DD'),
+            invcd_is_verified: 'Y',
+            invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_status: body.status
+        }, {
+            transaction
+        })
+    }
+
     getSerialProduct = async (locsId) => {
         let result = await InvcdDet.findAll({
             attributes: [
@@ -526,11 +548,21 @@ class InventoryService {
         let result = await LocsMstr.findOne({
             attributes: [
                 ['locs_id', 'sublocation_id'],
-                ['locs_loc_id', 'location_id']
+                ['locs_loc_id', 'location_id'],
+                [Sequelize.literal(`COUNT("data_product"."invcd_oid")`), 'qty'],
+                ['locs_cap', 'capacity']
+            ],
+            include: [
+                {
+                    model: InvcdDet,
+                    as: 'data_product',
+                    attributes: []
+                }
             ],
             where: {
                 locs_id: locsId
-            }
+            },
+            group: ['sublocation_id', 'location_id', 'capacity']
         })
 
         return result;

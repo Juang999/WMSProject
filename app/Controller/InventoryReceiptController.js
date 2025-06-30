@@ -2,8 +2,8 @@
 let {Op} = require('sequelize')
 let moment = require('moment')
 let {v4: uuidv4} = require('uuid')
-let {Auth, Query} = require('../../helper/helper')
 let {eraseData} = require('./SublocationController')
+let {Auth, Query, Authentication} = require('../../helper/helper')
 
 // model
 const {
@@ -16,7 +16,11 @@ const {
 	LocsMstr, LocsTemporary,
 } = require('../../models')
 
-const { InventoryReceiptService, ProductService, LocationService } = require('../Services/ServiceContainer');
+const { 
+	InventoryService,
+	InventoryReceiptService, 
+	ProductService, LocationService, 
+} = require('../Services/ServiceContainer');
 
 class InventoryReceiptController {
 	getDataTemporary (req, res) {
@@ -529,12 +533,23 @@ class InventoryReceiptController {
 	}
 
 	storeUniqueInventoryReceipt = async (req, res) => {
+		let t = await sequelize.transaction();
+
 		try {
-			let [dataDetail, dataProduct, dataLocation, dataUnique] = await Promise.all([
-				InventoryReceiptService.findDetailInventoryReceript(req.body.riud_oid),
-				ProductService.findProductById(req.body.product_id),
+			let [
+				dataDetail, 
+				dataProduct, 
+				dataLocation, 
+				dataUniqueInventoryReceipt, 
+				dataSerial, 
+				dataSubLocation
+			] = await Promise.all([
+				InventoryReceiptService.findDetailInventoryReceript(req.body.riu_oid, req.body.partnumber, req.body.location_id),
+				ProductService.findProductByPartnumber(req.body.partnumber),
 				LocationService.findLocation(req.body.location_id),
-				InventoryReceiptService.findUniqueInventoryReceipt(req.body.riud_oid, req.body.unique)
+				InventoryReceiptService.findUniqueInventoryReceipt(req.body.riud_oid, req.body.unique),
+				InventoryService.findSerialNumber(req.body.unique, t),
+				InventoryService.findSublocation(req.body.sublocation_id)
 			])
 
 			if (parseInt(dataDetail.dataValues.qty_checked) >= parseInt(dataDetail.dataValues.qty_real)) {
@@ -561,6 +576,18 @@ class InventoryReceiptController {
 				return;
 			}
 
+			if (dataSerial) {
+				res.status(404)
+					.json({
+						status: 'received',
+						message: 'serial has been received',
+						data: null,
+						error: 'serial has been received'
+					});
+
+				return;
+			}
+
 			if (!dataLocation) {
 				res.status(404)
 					.json({
@@ -573,7 +600,19 @@ class InventoryReceiptController {
 				return;
 			}
 
-			if (dataUnique && parseInt(req.body.product_id) != parseInt(dataUnique.dataValues.riuds_pt_id)) {
+			if (parseInt(dataSubLocation.dataValues.qty) + 1 > parseInt(dataSubLocation.dataValues.capacity)) {
+				res.status(300)
+					.json({
+						status: 'rejected',
+						message: 'sublocation already full',
+						data: null,
+						error: 'sublocation already full',
+					})
+
+				return;
+			}
+
+			if (dataUniqueInventoryReceipt && parseInt(req.body.product_id) != parseInt(dataUniqueInventoryReceipt.dataValues.riuds_pt_id)) {
 				res.status(300)
 					.json({
 						status: 'rejected',
@@ -585,8 +624,33 @@ class InventoryReceiptController {
 				return;
 			}
 
-			if (!dataUnique) {
-				await InventoryReceiptService.storeSerialInventoryReceipt(req.body);
+			if (!dataUniqueInventoryReceipt) {
+				await Promise.all([
+					InventoryReceiptService.storeSerialInventoryReceipt(req.body),
+					InventoryService.newCreateSerialNumber({
+						en_id: dataProduct.dataValues.pt_en_id,
+						pt_id: dataProduct.dataValues.pt_id,
+						qrbarcode: req.body.unique,
+						loc_id: dataSubLocation.dataValues.location_id,
+						locs_id: dataSubLocation.dataValues.sublocation_id,
+						status: 'receipt'
+					}, Authentication.user().usernama, t),
+					InventoryService.createHistory([
+						{
+							invcdh_oid: uuidv4(),
+							invcdh_dom_id: 1,
+							invcdh_en_id: dataProduct.dataValues.pt_en_id,
+							invcdh_pt_id: dataProduct.dataValues.pt_id,
+							invcdh_loc_to_id: dataSubLocation.dataValues.location_id,
+							invcdh_locs_to_id: dataSubLocation.dataValues.sublocation_id,
+							invcdh_qrbarcode: req.body.unique,
+							invcdh_status: 'received!',
+							invcdh_remarks: 'received!',
+							invcdh_created_by: Authentication.user().usernama,
+							invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+						}
+					], t)
+				])
 			}
 
 			res.status(200)
@@ -608,7 +672,29 @@ class InventoryReceiptController {
 	}
 
 	destroyUniqueInventoryReceipt = (req, res) => {
-		InventoryReceiptService.deleteUnique(req.params.riuds_oid)
+		sequelize.transaction(async t => {
+			let dataSerial = await InventoryReceiptService.findSerialInventoryReceipt(req.params.riuds_oid);
+
+			Promise.all([
+				InventoryReceiptService.deleteUnique(req.params.riuds_oid),
+				InventoryService.destroySerial(dataSerial.dataValues.invcd_oid, t),
+				InventoryService.createHistory([
+						{
+							invcdh_oid: uuidv4(),
+							invcdh_dom_id: 1,
+							invcdh_en_id: dataSerial.dataValues.entity_id,
+							invcdh_pt_id: dataSerial.dataValues.product_id,
+							invcdh_loc_to_id: dataSerial.dataValues.location_id,
+							invcdh_locs_to_id: dataSerial.dataValues.sublocation_id,
+							invcdh_qrbarcode: dataSerial.dataValues.qrbarcode,
+							invcdh_status: 'deleted!',
+							invcdh_remarks: 'deleted!',
+							invcdh_created_by: Authentication.user().usernama,
+							invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+						}
+					], t)
+			])
+		})
 		.then(result => {
 			res.status(200)
 				.json({
