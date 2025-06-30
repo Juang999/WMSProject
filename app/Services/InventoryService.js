@@ -562,7 +562,7 @@ class InventoryService {
             where: {
                 locs_id: locsId
             },
-            group: ['sublocation_id', 'location_id', 'capacity']
+            group: ['locs_oid', 'sublocation_id', 'location_id', 'capacity']
         })
 
         return result;

@@ -74,6 +74,10 @@ class InventoryReceiptService {
                             model: RiudsSerial,
                             as: 'singular_serial_inventory_receipt',
                             attributes: []
+                        }, {
+                            model: RiudsSerial,
+                            as: 'serial_inventory_receipt',
+                            attributes: ['riuds_oid', ['riuds_qrbarcode', 'qrbarcode'], ['riuds_dt', 'created_at']]
                         }
                     ]
                 }
@@ -93,6 +97,7 @@ class InventoryReceiptService {
                 Sequelize.literal(`"detail_receive_inventory->detail_product"."pt_code"`),
                 Sequelize.literal(`"detail_receive_inventory->detail_product"."pt_desc1"`),
                 Sequelize.literal(`"detail_receive_inventory->detail_data_location"."loc_desc"`),
+                Sequelize.literal(`"detail_receive_inventory->serial_inventory_receipt"."riuds_oid"`),
                 Sequelize.literal('CAST(riud_qty_real AS BIGINT)')
             ]
         });
@@ -100,7 +105,7 @@ class InventoryReceiptService {
         return result;
     }
 
-    findDetailInventoryReceript = async (inventoryReceiptHeaderOid, productCode, locationId) => {
+    findDetailInventoryReceript = async (inventoryReceiptHeaderOid, productCode) => {
         const result = await RiudDet.findOne({
             attributes: [
                 'riud_oid',
@@ -110,7 +115,6 @@ class InventoryReceiptService {
                 ['riud_loc_id', 'location_id'],
                 [Sequelize.literal(`"detail_data_location"."loc_desc"`), 'location_name'],
                 [Sequelize.literal('CAST(riud_qty_real AS INTEGER)'), 'qty_real'],
-                [Sequelize.literal(`COUNT(singular_serial_inventory_receipt)`), 'qty_checked']
             ],
             include: [
                 {
@@ -121,39 +125,14 @@ class InventoryReceiptService {
                     model: LocMstr,
                     as: 'detail_data_location',
                     attributes: []
-                }, {
-                    model: RiudsSerial,
-                    as: 'singular_serial_inventory_receipt',
-                    attributes: []
-                }, {
-                    model: RiudsSerial,
-                    as: 'serial_inventory_receipt',
-                    attributes: [
-                        'riuds_oid',
-                        ['riuds_qrbarcode', 'unique'],
-                        ['riuds_dt', 'timestamp'],
-                    ]
-                }
+                },
             ],
             where: {
                 riud_riu_oid: inventoryReceiptHeaderOid,
-                riud_loc_id: locationId,
                 riud_pt_id: {
                     [Op.eq]: Sequelize.literal(`( SELECT pt_id FROM public.pt_mstr WHERE pt_code = :product_code )`)
                 }
             },
-            group: [
-                'riud_oid',
-                'product_id',
-                Sequelize.literal(`"detail_product"."pt_desc1"`),
-                Sequelize.literal(`"detail_product"."pt_code"`),
-                'location_id',
-                Sequelize.literal(`"detail_data_location"."loc_desc"`),
-                Sequelize.literal('CAST(riud_qty_real AS INTEGER)'),
-                Sequelize.literal('"serial_inventory_receipt"."riuds_oid"'),
-                Sequelize.literal('"serial_inventory_receipt"."riuds_qrbarcode"'),
-                Sequelize.literal('"serial_inventory_receipt"."riuds_dt"'),
-            ],
             replacements: {
                 product_code: productCode
             }
@@ -162,7 +141,7 @@ class InventoryReceiptService {
         return result;
     }
 
-    storeSerialInventoryReceipt = async (body) => {
+    storeSerialInventoryReceipt = async (body, transaction) => {
         let result = await RiudsSerial.create({
             riuds_oid: uuidv4(),
             riuds_riud_oid: body.riud_oid,
@@ -173,6 +152,8 @@ class InventoryReceiptService {
             riuds_um: 9964,
             riuds_qrbarcode: body.unique,
             riuds_pt_id: body.product_id
+        }, {
+            transaction
         });
 
         return result;
@@ -189,13 +170,16 @@ class InventoryReceiptService {
         return result;
     }
 
-    findUniqueInventoryReceipt = async (riud_oid, unique) => {
+    findUniqueInventoryReceipt = async (riu_oid, unique) => {
         let result = await RiudsSerial.findOne({
             attributes: ['riuds_pt_id', 'riuds_oid'],
             where: {
-                riuds_riud_oid: riud_oid,
+                riuds_riud_oid: {
+                    [Op.in]: Sequelize.literal(`( SELECT riud_oid FROM public.riud_det WHERE riud_riu_oid = :riu_oid )`)
+                },
                 riuds_qrbarcode: unique
-            }
+            },
+            replacements: {riu_oid}
         })
 
         return result;
@@ -226,11 +210,12 @@ class InventoryReceiptService {
         return result;
     }
 
-    deleteUnique = async (riudsOid) => {
+    deleteUnique = async (riudsOid, transaction) => {
         await RiudsSerial.destroy({
             where: {
                 riuds_oid: riudsOid
-            }
+            },
+            transaction
         })
     }
 }

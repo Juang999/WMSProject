@@ -544,10 +544,10 @@ class InventoryReceiptController {
 				dataSerial, 
 				dataSubLocation
 			] = await Promise.all([
-				InventoryReceiptService.findDetailInventoryReceript(req.body.riu_oid, req.body.partnumber, req.body.location_id),
+				InventoryReceiptService.findDetailInventoryReceript(req.body.riu_oid, req.body.partnumber),
 				ProductService.findProductByPartnumber(req.body.partnumber),
 				LocationService.findLocation(req.body.location_id),
-				InventoryReceiptService.findUniqueInventoryReceipt(req.body.riud_oid, req.body.unique),
+				InventoryReceiptService.findUniqueInventoryReceipt(req.body.riu_oid, req.body.unique),
 				InventoryService.findSerialNumber(req.body.unique, t),
 				InventoryService.findSublocation(req.body.sublocation_id)
 			])
@@ -602,13 +602,13 @@ class InventoryReceiptController {
 
 			if (parseInt(dataSubLocation.dataValues.qty) + 1 > parseInt(dataSubLocation.dataValues.capacity)) {
 				res.status(300)
-					.json({
-						status: 'rejected',
-						message: 'sublocation already full',
-						data: null,
-						error: 'sublocation already full',
-					})
-
+				.json({
+					status: 'rejected',
+					message: 'sublocation already full',
+					data: null,
+					error: 'sublocation already full',
+				})
+				
 				return;
 			}
 
@@ -626,7 +626,12 @@ class InventoryReceiptController {
 
 			if (!dataUniqueInventoryReceipt) {
 				await Promise.all([
-					InventoryReceiptService.storeSerialInventoryReceipt(req.body),
+					InventoryReceiptService.storeSerialInventoryReceipt({
+						riud_oid: dataDetail.dataValues.riud_oid,
+						location_id: req.body.location_id,
+						unique: req.body.unique,
+						product_id: dataProduct.dataValues.pt_id
+					}, t),
 					InventoryService.newCreateSerialNumber({
 						en_id: dataProduct.dataValues.pt_en_id,
 						pt_id: dataProduct.dataValues.pt_id,
@@ -653,6 +658,8 @@ class InventoryReceiptController {
 				])
 			}
 
+			await t.commit();
+
 			res.status(200)
 				.json({
 					status: 'success',
@@ -661,6 +668,8 @@ class InventoryReceiptController {
 					error: null
 				})
 		} catch (error) {
+			await t.rollback();
+
 			res.status(400)
 				.json({
 					status: 'failed',
@@ -675,8 +684,8 @@ class InventoryReceiptController {
 		sequelize.transaction(async t => {
 			let dataSerial = await InventoryReceiptService.findSerialInventoryReceipt(req.params.riuds_oid);
 
-			Promise.all([
-				InventoryReceiptService.deleteUnique(req.params.riuds_oid),
+			await Promise.all([
+				InventoryReceiptService.deleteUnique(req.params.riuds_oid, t),
 				InventoryService.destroySerial(dataSerial.dataValues.invcd_oid, t),
 				InventoryService.createHistory([
 						{
