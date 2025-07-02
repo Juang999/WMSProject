@@ -1,11 +1,13 @@
 const { when } = require('joi');
 const {
+    SoMstr,
     PtMstr, EnMstr,
     LocsMstr, InvcdDet, 
     LocMstr, TConfUser,
+    SodsSerial, SodDet,
     InvcdhHist, Sequelize,
+    ScanOutdDet, InvcMstr,
     sequelize, ScanOutMstr,
-    ScanOutdDet, InvcMstr
 } = require('../../models');
 const moment = require('moment');
 const {Op} = require('sequelize');
@@ -586,8 +588,12 @@ class InventoryService {
                 [Sequelize.literal(`"detail_scanout->master_scanout"."sc_trans_id"`), 'status_id'],
                 [Sequelize.literal(`MAX("detail_scanout->master_scanout"."sc_created_at")`), 'scanout_date'],
                 ['invcd_scanned_at', 'scanned_at'],
-                [Sequelize.literal(`"singular_history"."invcdh_status"`), 'status'],
+                ['invcd_status', 'status'],
                 [Sequelize.literal(`"singular_history"."invcdh_created_by"`), 'history_created_by'],
+                [Sequelize.literal(`"serial_so->detail_so->header_sales_order"."so_code"`), 'so_code'],
+                [Sequelize.literal(`MAX("serial_so->detail_so->header_sales_order"."so_add_date")`), 'so_created_date'],
+                [Sequelize.literal(`"registered_history"."invcdh_created_by"`), 'register_created_by'],
+                [Sequelize.literal(`MIN("registered_history"."invcdh_created_date")`), 'register_created_date'],
             ],
             include: [
                 {
@@ -617,6 +623,31 @@ class InventoryService {
                     model: InvcdhHist,
                     as: 'singular_history',
                     attributes: [],
+                }, {
+                    model: SodsSerial,
+                    as: 'serial_so',
+                    attributes: [],
+                    include: [
+                        {
+                            model: SodDet,
+                            as: 'detail_so',
+                            attributes: [],
+                            include: [
+                                {
+                                    model: SoMstr,
+                                    as: 'header_sales_order',
+                                    attributes: []
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    model: InvcdhHist,
+                    as: 'registered_history',
+                    attributes: [],
+                    where: {
+                        invcdh_status: 'registered!'
+                    }
                 }
             ],
             where: {
@@ -643,7 +674,9 @@ class InventoryService {
                 'scanout_code',
                 'status_id',
                 'status',
-                Sequelize.literal(`"singular_history"."invcdh_created_by"`)
+                Sequelize.literal(`"singular_history"."invcdh_created_by"`),
+                'so_code',
+                'register_created_by'
             ],
         })
 

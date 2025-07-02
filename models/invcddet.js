@@ -47,10 +47,22 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'invcdh_qrbarcode'
       })
 
+      InvcdDet.hasOne(models.InvcdhHist, {
+        as: 'registered_history',
+        sourceKey: 'invcd_qrbarcode',
+        foreignKey: 'invcdh_qrbarcode'
+      })
+
       InvcdDet.hasOne(models.ScanOutdDet, {
         as: 'detail_scanout',
         sourceKey: 'invcd_qrbarcode',
         foreignKey: 'scd_serial'
+      })
+
+      InvcdDet.hasOne(models.SodsSerial, {
+        as: 'serial_so',
+        sourceKey: 'invcd_qrbarcode',
+        foreignKey: 'sods_serial'
       })
     }
   }

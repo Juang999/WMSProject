@@ -11,6 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      SodsSerial.belongsTo(models.SodDet, {
+        as: 'detail_so',
+        targetKey: 'sod_oid',
+        foreignKey: 'sods_sod_oid'
+      })
     }
   }
   SodsSerial.init({
