@@ -627,6 +627,7 @@ class InventoryService {
                     model: SodsSerial,
                     as: 'serial_so',
                     attributes: [],
+                    required: false,
                     include: [
                         {
                             model: SodDet,
@@ -644,6 +645,7 @@ class InventoryService {
                 }, {
                     model: InvcdhHist,
                     as: 'registered_history',
+                    required: false,
                     attributes: [],
                     where: {
                         invcdh_status: 'registered!'
