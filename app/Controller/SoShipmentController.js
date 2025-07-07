@@ -137,6 +137,10 @@ class SoShipmentController {
                 return this.returnResponse(404, 'not found', 'serial not found', null);
             }
 
+            // if (DATA_SERIAL_NUMBER.dataValues.product_code != product_code) {
+            //     return this.returnResponse(404, 'not found', 'wrong partnumber', null);
+            // }
+
             if (DATA_SERIAL_NUMBER.dataValues.invcd_locs_id == null) {
                 return this.returnResponse(300, 'unregistered', 'serial not registered', null);
             }
@@ -149,21 +153,36 @@ class SoShipmentController {
                 return this.returnResponse(405, 'not found', 'serial has been shipped', null)
             }
 
-            if (DATA_SERIAL_NUMBER.dataValues.invcd_status != 'available') {
-                if (DATA_SERIAL_NUMBER.dataValues.invcd_status == 'registered') {
-                    return this.returnResponse(300, 'the serial has not been adjusted yet', 'the serial has not been adjusted yet', null);
-                } else {
-                    return this.returnResponse(300, `serial is ${DATA_SERIAL_NUMBER.dataValues.invcd_status}`, `serial is ${DATA_SERIAL_NUMBER.dataValues.invcd_status}`, null);
-                }
-            }
+            // if (DATA_SERIAL_NUMBER.dataValues.invcd_status != 'available') {
+            //     if (DATA_SERIAL_NUMBER.dataValues.invcd_status == 'registered') {
+            //         return this.returnResponse(300, 'the serial has not been adjusted yet', 'the serial has not been adjusted yet', null);
+            //     } else {
+            //         return this.returnResponse(300, `serial is ${DATA_SERIAL_NUMBER.dataValues.invcd_status}`, `serial is ${DATA_SERIAL_NUMBER.dataValues.invcd_status}`, null);
+            //     }
+            // }
 
             if (DATA_SERIAL_IN_SALES_ORDER != null) {
                 return this.returnResponse(300, 'data already exist', 'series already included in the list', {serial});
             }
 
+            // let historySerial = {
+            //     invcdh_oid: uuidv4(),
+            //     invcdh_dom_id: 1,
+            //     invcdh_en_id: DATA_SERIAL_NUMBER.dataValues.invcd_en_id,
+            //     invcdh_pt_id: DATA_SERIAL_NUMBER.dataValues.invcd_pt_id,
+            //     invcdh_loc_from_id: DATA_SERIAL_NUMBER.dataValues.invcd_loc_id,
+            //     invcdh_locs_from_id: DATA_SERIAL_NUMBER.dataValues.invcd_locs_id,
+            //     invcdh_qrbarcode: DATA_SERIAL_NUMBER.dataValues.uniq,
+            //     invcdh_status: 'reserved!',
+            //     invcdh_remarks: 'reserved!',
+            //     invcdh_created_by: Authentication.user().usernama,
+            //     invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+            // }
+
             let [result] = await Promise.all([
                 SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, Authentication.user().usernama, t),
-                InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, DATA_HEADER_SO.dataValues.so_code, so_oid)
+                InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, DATA_HEADER_SO.dataValues.so_code, so_oid),
+                // InventoryService.createHistory([historySerial], t)
             ])
 
             return this.returnResponse(200, 'success', 'Data is included in the list', result);
@@ -261,6 +280,12 @@ class SoShipmentController {
         let sods_oid = req.params.serial_oid;
         
         sequelize.transaction(async t => {
+            // let headerSo = await SalesOrderService.findHeaderSOBySerial(sods_oid);
+
+            // if (headerSo && headerSo.dataValues.so_trans_id == 'C') {
+            //     return this.returnResponse(200, 'failed', 'Sales Order has been closed', null);
+            // }
+
             await InventoryService.releaseSerial(sods_oid, t);
             await SalesOrderService.deleteSerialShipment(sods_oid, t);
 
