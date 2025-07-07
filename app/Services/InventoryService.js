@@ -488,6 +488,7 @@ class InventoryService {
     releaseSerial = async (sodsOid, transaction) => {
         await InvcdDet.update({
             invcd_is_booked: 0,
+            invcd_qty: 1,
             invcd_transaction_code: null,
             invcd_transaction_oid: null,
             invcd_status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN 'registered' ELSE 'available' END`)
