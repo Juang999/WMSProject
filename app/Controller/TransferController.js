@@ -45,8 +45,6 @@ class TransferController {
                 TransferService.findDetailTransferByHeaderOid(req.body.transfer_oid, req.body.qrbarcode)
             ])
 
-            console.info(dataHeaderTransfer)
-
             let [ result ] = await Promise.all([
                 TransferService.storeUniqueTransfer(
                     req.body.location_id, 
@@ -60,10 +58,10 @@ class TransferController {
                         qty: 1,
                         location_id: req.body.location_id,
                         sublocation_id: req.body.sublocation_id,
-                        inventory_oid: dataLocation.dataValues.invc_oid,
+                        inventory_oid: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN '${dataLocation.dataValues.invc_oid}' ELSE NULL END`),
                         transaction_code: null,
                         transaction_oid: null,
-                        status: 'available',
+                        status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`),
                     },
                     Authentication.user().usernama,
                     transaction

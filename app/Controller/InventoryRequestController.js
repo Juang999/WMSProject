@@ -133,27 +133,27 @@ class InventoryRequestController {
                 return;
             }
 
-            if (dataSerialNumber.dataValues.invcd_status != 'available') {
-                if (dataSerialNumber.dataValues.invcd_status == 'registered') {
-                    res.status(300)
-                        .json({
-                            status: 'the serial has not been adjusted yet',
-                            message: 'the serial has not been adjusted yet',
-                            data: null,
-                            error: null
-                        });
-                    return;
-                } else {
-                    res.status(300)
-                        .json({
-                            status: `serial is ${dataSerialNumber.dataValues.invcd_status}`,
-                            message: `serial is ${dataSerialNumber.dataValues.invcd_status}`,
-                            data: null,
-                            error: null
-                        })
-                    return;
-                }
-            }
+            // if (dataSerialNumber.dataValues.invcd_status != 'available') {
+            //     if (dataSerialNumber.dataValues.invcd_status == 'registered') {
+            //         res.status(300)
+            //             .json({
+            //                 status: 'the serial has not been adjusted yet',
+            //                 message: 'the serial has not been adjusted yet',
+            //                 data: null,
+            //                 error: null
+            //             });
+            //         return;
+            //     } else {
+            //         res.status(300)
+            //             .json({
+            //                 status: `serial is ${dataSerialNumber.dataValues.invcd_status}`,
+            //                 message: `serial is ${dataSerialNumber.dataValues.invcd_status}`,
+            //                 data: null,
+            //                 error: null
+            //             })
+            //         return;
+            //     }
+            // }
 
             let dataSubLocation = await InventoryService.findSublocationTransferByLocation(dataSerialNumber.dataValues.invcd_en_id);
 
