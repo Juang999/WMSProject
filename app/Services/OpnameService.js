@@ -92,6 +92,9 @@ class OpnameService {
                 Sequelize.where(Sequelize.col(`"invcd_qty"`), {
                     [Op.not]: 0,
                 }),
+                Sequelize.where(Sequelize.col(`"invcd_status"`), {
+                    [Op.not]: 'shipped',
+                }),
                 Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
                     [Op.eq]: 'Y',
                 }),
@@ -321,10 +324,7 @@ class OpnameService {
                     }
                 ]
             },
-            transaction,
-            logging: (sqlCommand) => {
-                console.info(sqlCommand)
-            }
+            transaction
         })
 
         return result;
@@ -661,8 +661,9 @@ class OpnameService {
         return result;
     }
 
-    moveSerial = async (invcdOid, locId, locsId, username, transaction) => {
+    moveSerial = async (invcdOid, invcdInvcOid, locId, locsId, username, transaction) => {
         await InvcdDet.update({
+            invcd_invc_oid: invcdInvcOid,
             invcd_loc_id: locId,
             invcd_locs_id: locsId,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
