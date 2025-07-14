@@ -95,6 +95,9 @@ class OpnameService {
                 Sequelize.where(Sequelize.col(`"invcd_status"`), {
                     [Op.not]: 'shipped',
                 }),
+                Sequelize.where(Sequelize.col(`"invcd_loc_id"`), {
+                    [Op.notIn]: [1002745, 2002746, 3002747]
+                }),
                 Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
                     [Op.eq]: 'Y',
                 }),
