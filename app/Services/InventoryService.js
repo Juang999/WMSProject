@@ -1094,6 +1094,28 @@ class InventoryService {
         })
     }
 
+    bulkReturnSerials = async (serials, body, username, transaction) => {
+        await InvcdDet.update({
+            invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
+            invcd_qty: 1,
+            invcd_loc_id: body.location_id,
+            invcd_locs_id: body.sublocation_id,
+            invcd_is_booked: 0,
+            invcd_transaction_code: null,
+            invcd_transaction_oid: null,
+            invcd_status: body.status,
+            invcd_upd_by: username,
+            invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+        }, {
+            where: {
+                invcd_qrbarcode: {
+                    [Op.in]: serials
+                }
+            },
+            transaction
+        })
+    }
+
     bulkFindSerials = async (serials) => {
         let result = await InvcdDet.findAll({
             attributes: ['invcd_dom_id', 'invcd_en_id', 'invcd_pt_id', 'invcd_qrbarcode'],
