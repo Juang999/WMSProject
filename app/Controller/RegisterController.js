@@ -49,7 +49,7 @@ class RegisterController {
             await Promise.all([
                 OpnameService.moveSerial(
                     uuidSerial, 
-                    Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN NULL ELSE '${dataLocation.dataValues.invc_oid}' END`), 
+                    Sequelize.literal(`CASE WHEN invcd_status = 'registered' THEN NULL WHEN invcd_status = 'available' THEN '${dataLocation.dataValues.invc_oid}'::uuid END`), 
                     destinationSublocation.dataValues.location_id, 
                     sublocation_to, 
                     Authentication.user().usernama, 
