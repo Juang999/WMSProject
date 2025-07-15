@@ -332,7 +332,11 @@ class ReturnController {
             })
 
             await Promise.all([
-                InventoryService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, Authentication.user().usernama, transaction),
+                InventoryService.bulkReturnSerials(dataSerials, {
+                    location_id,
+                    sublocation_id,
+                    status: 'return'
+                }, Authentication.user().usernama, transaction),
                 ReturnService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, header_return_oid, Authentication.user().usernama, transaction),
                 InventoryService.createHistory(dataHistories, transaction)
             ])
