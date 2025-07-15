@@ -1,5 +1,5 @@
-const {InventoryService, PuttingService, OpnameService} = require('../Services/ServiceContainer');
-const {sequelize} = require('../../models');
+const {InventoryService, PuttingService, OpnameService, ProductService} = require('../Services/ServiceContainer');
+const {sequelize, Sequelize} = require('../../models');
 const {v4: uuidv4} = require('uuid');
 const moment = require('moment');
 const {Authentication} = require('../../helper/helper');
@@ -10,14 +10,21 @@ class RegisterController {
 
         sequelize.transaction(async t => {
             let parsedUniq = JSON.parse(uniq);
-            let [getSerial, originSublocation, destinationSublocation] = await Promise.all([
+            let [getSerial, originSublocation, destinationSublocation, getDataProduct] = await Promise.all([
                 OpnameService.getDataSerial(sublocation_from, partnumber, parsedUniq),
                 InventoryService.findSublocation(sublocation_from),
-                InventoryService.findSublocation(sublocation_to)
+                InventoryService.findSublocation(sublocation_to),
+                ProductService.findProductByPartnumber(partnumber)
             ]);
 
             if (getSerial.length == 0) {
                 return this.returnResponse(300, 'failed', 'serial not registered', null, null)
+            }
+
+            let dataLocation = await InventoryService.findDataLocation(destinationSublocation.dataValues.location_id, partnumber);
+
+            if (!dataLocation) {
+                dataLocation = await InventoryService.assignProductIntoLocation(destinationSublocation.dataValues.location_id, getDataProduct.dataValues.pt_id);
             }
 
             let uuidSerial = getSerial.map(({dataValues: singularSerial}) => singularSerial.invcd_oid);
@@ -40,7 +47,14 @@ class RegisterController {
             })
 
             await Promise.all([
-                OpnameService.moveSerial(uuidSerial, destinationSublocation.dataValues.location_id, sublocation_to, Authentication.user().usernama, t),
+                OpnameService.moveSerial(
+                    uuidSerial, 
+                    Sequelize.literal(`CASE WHEN invcd_invc_oid IS NULL THEN NULL ELSE ''${dataLocation.dataValues.invc_oid}'' END`), 
+                    destinationSublocation.dataValues.location_id, 
+                    sublocation_to, 
+                    Authentication.user().usernama, 
+                    t
+                ),
                 OpnameService.createHistory(dataHistorySerial, t)
             ])
 
