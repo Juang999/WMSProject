@@ -83,11 +83,11 @@ class OpnameService {
                 Sequelize.where(Sequelize.col(`"product"."pt_desc1"`), {
                     [Op.iLike]: `%${searchProduct}%`,
                 }),
-                Sequelize.where(Sequelize.col(`"sublocation"."locs_name"`), {
-                    [Op.iLike]: `%${searchSubLocation}%`,
-                }),
                 Sequelize.where(Sequelize.col(`"product"."pt_code"`), {
                     [Op.iLike]: `%${searchProductCode}%`,
+                }),
+                Sequelize.where(Sequelize.col(`"sublocation"."locs_name"`), {
+                    [Op.iLike]: `%${searchSubLocation}%`,
                 }),
                 Sequelize.where(Sequelize.col(`"invcd_locs_id"`), {
                     [Op.not]: null,
