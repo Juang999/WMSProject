@@ -542,14 +542,16 @@ class InventoryReceiptController {
 				dataLocation, 
 				dataUniqueInventoryReceipt, 
 				dataSerial, 
-				dataSubLocation
+				dataSubLocation,
+				headerInventoryReceipt
 			] = await Promise.all([
 				InventoryReceiptService.findDetailInventoryReceript(req.body.riu_oid, req.body.partnumber),
 				ProductService.findProductByPartnumber(req.body.partnumber),
 				LocationService.findLocation(req.body.location_id),
 				InventoryReceiptService.findUniqueInventoryReceipt(req.body.riu_oid, req.body.unique),
 				InventoryService.findSerialNumber(req.body.unique, t),
-				InventoryService.findSublocation(req.body.sublocation_id)
+				InventoryService.findSublocation(req.body.sublocation_id),
+				InventoryReceiptService.findHeaderInventoryReceipt(req.body.riu_oid),
 			])
 
 			if (parseInt(dataDetail.dataValues.qty_checked) >= parseInt(dataDetail.dataValues.qty_real)) {
@@ -638,7 +640,9 @@ class InventoryReceiptController {
 						qrbarcode: req.body.unique,
 						loc_id: dataSubLocation.dataValues.location_id,
 						locs_id: dataSubLocation.dataValues.sublocation_id,
-						status: 'hold'
+						status: 'hold',
+						transaction_code: headerInventoryReceipt.dataValues.riu_code,
+						transaction_oid: headerInventoryReceipt.dataValues.riu_oid
 					}, Authentication.user().usernama, t),
 					InventoryService.createHistory([
 						{

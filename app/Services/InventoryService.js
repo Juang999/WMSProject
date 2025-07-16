@@ -149,6 +149,8 @@ class InventoryService {
             invcd_date: moment().format('YYYY-MM-DD'),
             invcd_is_verified: 'Y',
             invcd_scanned_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            invcd_transaction_code: body.transaction_code,
+            invcd_transaction_oid: body.transaction_oid,
             invcd_status: body.status
         }, {
             transaction
