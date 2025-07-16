@@ -3,6 +3,7 @@ const {info, error: errorLog} = require('../../helper/Logging');
 const { sequelize } = require('../../models');
 const {Authentication} = require('../../helper/helper');
 const moment = require('moment');
+const {v4: uuidv4} = require('uuid');
 
 class SoShipmentController {
     searchHeaderSalesOrder = (req, res) => {

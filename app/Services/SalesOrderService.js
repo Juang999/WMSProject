@@ -208,7 +208,9 @@ class SalesOrderService {
             sods_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
             sods_serial: body.serial,
             sods_seq: sequence,
-            sods_add_by: username
+            sods_add_by: username,
+            sods_pt_id: dataSerial.invcd_pt_id,
+            sods_locs_id: dataSerial.invcd_locs_id
         }, {
             transaction,
         })
@@ -289,6 +291,22 @@ class SalesOrderService {
                 so_oid: soOid
             }
         })
+
+        return result;
+    }
+
+    findHeaderSOBySerial = async (sodsOid) => {
+        let result = await SoMstr.findOne({
+            attributes: ['so_oid', 'so_code', 'so_trans_id'],
+            where: {
+                so_oid: {
+                    [Op.eq]: Sequelize.literal(`( SELECT sod_so_oid FROM public.sod_det WHERE sod_oid = ( SELECT sods_sod_oid FROM public.sods_serial WHERE sods_oid = :sods_oid ) )`)
+                }
+            },
+            replacements: {
+                sods_oid: sodsOid
+            }
+        });
 
         return result;
     }

@@ -286,6 +286,7 @@ class OpnameService {
         let result = await InvcdDet.findOne({
             attributes: [
                 'invcd_oid',
+                'invcd_pt_id',
                 [Sequelize.col('"product"."pt_desc1"'), 'product_name'],
                 [Sequelize.col('"product"."pt_code"'), 'product_code'],
                 'invcd_locs_id',
@@ -638,6 +639,7 @@ class OpnameService {
         let result = await InvcdDet.findAll({
             attributes: [
                 'invcd_oid',
+                'invcd_invc_oid',
                 'invcd_dom_id',
                 'invcd_en_id',
                 'invcd_pt_id',
