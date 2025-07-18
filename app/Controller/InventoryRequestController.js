@@ -85,6 +85,18 @@ class InventoryRequestController {
                 InventoryRequestService.findDataDetail(req.body.detail_inventory_request_oid),
             ]);
 
+            if (!dataDetailInventoryRequest) {
+                res.status(404)
+                    .json({
+                        status: 'not found',
+                        message: 'partnumber not found',
+                        data: null,
+                        error: 'partnumber not found'
+                    });
+                
+                return;
+            }
+
             if (dataSerialInventoryRequest) {
                 res.status(300)
                 .json({
@@ -130,6 +142,20 @@ class InventoryRequestController {
                     error: 'serial already gone'
                 });
                 
+                return;
+            }
+
+            let totalSerial = await InventoryRequestService.countSerial(dataDetailInventoryRequest.dataValues.pbd_oid);
+
+            if (totalSerial + 1 > dataDetailInventoryRequest.dataValues.pbd_qty) {
+                res.status(300)
+                    .json({
+                        status: 'exceeding limit',
+                        message: 'exceeding limit',
+                        data: null,
+                        error: 'exceeding limit'
+                    });
+
                 return;
             }
 

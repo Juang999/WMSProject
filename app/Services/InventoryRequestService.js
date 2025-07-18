@@ -277,6 +277,7 @@ class InventoryRequestService {
             attributes: [
                 'pbd_oid',
                 ['pbd_pb_oid', 'pb_oid'],
+                'pbd_qty',
                 [Sequelize.literal(`"master_ir"."pb_code"`), 'pb_code'],
                 [Sequelize.literal(`"master_ir"."pb_pbt_code"`), 'pbt_code'],
             ],
@@ -289,6 +290,16 @@ class InventoryRequestService {
             ],
             where: {
                 pbd_oid: detailInventoryRequestOid
+            }
+        });
+
+        return result;
+    }
+
+    countSerial = async ( detailOid ) => {
+        let result = await PbdsSerial.count({
+            where: {
+                pbds_pbd_oid: detailOid
             }
         });
 
