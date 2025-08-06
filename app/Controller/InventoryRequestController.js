@@ -121,6 +121,18 @@ class InventoryRequestController {
                 return;
             }
 
+            if (dataSerialNumber.dataValues.invcd_transaction_oid != null && dataSerialNumber.dataValues.invcd_transaction_code != null) {
+                res.status(404)
+                .json({
+                    status: 'bookked',
+                    message: 'serial already booked into another transaction',
+                    data: null,
+                    error: 'serial already booked into another transaction'
+                });
+
+                return;
+            }
+
             if (dataSerialNumber.dataValues.uniq == null) {
                 res.status(404)
                 .json({
@@ -323,6 +335,10 @@ class InventoryRequestController {
                     error: err.message
                 })
         })
+    }
+
+    searchHistoryNumber = (req, res) => {
+        
     }
 }
 
