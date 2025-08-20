@@ -58,7 +58,7 @@ class TransferController {
                         qty: 1,
                         location_id: req.body.location_id,
                         sublocation_id: req.body.sublocation_id,
-                        inventory_oid: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN '${dataLocation.dataValues.invc_oid}' ELSE NULL END`),
+                        inventory_oid: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN '${dataLocation.dataValues.invc_oid}'::uuid ELSE NULL END`),
                         transaction_code: null,
                         transaction_oid: null,
                         status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`),
@@ -83,6 +83,8 @@ class TransferController {
                 }], transaction)
             ])
 
+            await transaction.commit();
+
             res.status(200)
                 .json({
                     status: 'success',
@@ -91,6 +93,8 @@ class TransferController {
                     error: null
                 })
         } catch (error) {
+            await transaction.rollback();
+
             res.status(400)
                 .json({
                     status: 'failed',
