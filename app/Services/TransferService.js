@@ -176,7 +176,9 @@ class TransferService {
                 ['ptsfrds_dt', 'timestamp']
             ],
             where: {
-                ptsfrds_ptsfrd_oid: Sequelize.literal(`( SELECT ptsfrd_oid FROM public.ptsfrd_det WHERE ptsfrd_ptsfr_oid = '${transferOid}')`),
+                ptsfrds_ptsfrd_oid: {
+                    [Op.in]: Sequelize.literal(`( SELECT ptsfrd_oid FROM public.ptsfrd_det WHERE ptsfrd_ptsfr_oid = '${transferOid}')`)
+                },
                 ptsfrds_qrbarcode: qrBarcode
             }
         });

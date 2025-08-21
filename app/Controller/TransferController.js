@@ -43,7 +43,7 @@ class TransferController {
                 InventoryService.findDataLocation(req.body.location_id, req.body.qrbarcode),
                 InventoryService.findSerialNumber(req.body.qrbarcode, transaction),
                 TransferService.findDetailTransferByHeaderOid(req.body.transfer_oid, req.body.qrbarcode),
-                TransferService.findSerialTransfer(req.body.transaction_oid, req.body.qrbarcode)
+                TransferService.findSerialTransfer(req.body.transfer_oid, req.body.qrbarcode)
             ])
 
             if (serialTransfer) {
