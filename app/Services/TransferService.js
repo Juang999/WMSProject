@@ -165,6 +165,22 @@ class TransferService {
 
         return result;
     }
+
+    findSerialTransfer = async (transferOid, qrBarcode) => {
+        let result = await PtsfrdsSerial.findOne({
+            attributes: [
+                'ptsfrds_oid',
+                ['ptsfrds_qrbarcode', 'serial_qrbarcode'],
+                ['ptsfrds_dt', 'timestamp']
+            ],
+            where: {
+                ptsfrds_ptsfrd_oid: Sequelize.literal(`( SELECT ptsfrd_oid FROM public.ptsfrd_det WHERE ptsfrd_ptsfr_oid = '${transferOid}')`),
+                ptsfrds_qrbarcode: qrBarcode
+            }
+        });
+        
+        return result;
+    }
 }
 
 module.exports = new TransferService();

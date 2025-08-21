@@ -39,11 +39,26 @@ class TransferController {
         let transaction = await sequelize.transaction();
 
         try {
-            let [dataLocation, dataSerialNumber, dataHeaderTransfer] = await Promise.all([
+            let [dataLocation, dataSerialNumber, dataHeaderTransfer, serialTransfer] = await Promise.all([
                 InventoryService.findDataLocation(req.body.location_id, req.body.qrbarcode),
                 InventoryService.findSerialNumber(req.body.qrbarcode, transaction),
-                TransferService.findDetailTransferByHeaderOid(req.body.transfer_oid, req.body.qrbarcode)
+                TransferService.findDetailTransferByHeaderOid(req.body.transfer_oid, req.body.qrbarcode),
+                TransferService.findSerialTransfer(req.body.transaction_oid, req.body.qrbarcode)
             ])
+
+            if (serialTransfer) {
+                await transaction.rollback();
+
+                res.status(300)
+                    .json({
+                        status: 'failed',
+                        message: 'error',
+                        data: null,
+                        error: 'Serial number already exists in transfer'
+                    });
+
+                return;
+            }
 
             let [ result ] = await Promise.all([
                 TransferService.storeUniqueTransfer(
