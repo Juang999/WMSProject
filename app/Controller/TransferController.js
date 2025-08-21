@@ -46,6 +46,20 @@ class TransferController {
                 TransferService.findSerialTransfer(req.body.transfer_oid, req.body.qrbarcode)
             ])
 
+            if (!dataSerialNumber) {
+                await transaction.rollback();
+
+                res.status(300)
+                    .json({
+                        status: 'failed',
+                        message: 'error',
+                        data: null,
+                        error: 'Serial number does not exist'
+                    });
+
+                return;
+            }
+
             if (serialTransfer) {
                 await transaction.rollback();
 
