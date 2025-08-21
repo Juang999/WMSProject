@@ -65,7 +65,8 @@ class TransferController {
                     req.body.location_id, 
                     req.body.sublocation_id, 
                     req.body.qrbarcode, 
-                    dataHeaderTransfer.dataValues.ptsfrd_oid
+                    dataHeaderTransfer.dataValues.ptsfrd_oid,
+                    transaction
                 ),
                 InventoryService.transferSerial(
                     dataSerialNumber.dataValues.invcd_oid,

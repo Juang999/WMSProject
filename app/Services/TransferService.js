@@ -122,7 +122,7 @@ class TransferService {
         return result[0];
     }
 
-    storeUniqueTransfer = async (locationId, subLocationId, qrBarcode, ptsfrdOid) => {
+    storeUniqueTransfer = async (locationId, subLocationId, qrBarcode, ptsfrdOid, transaction) => {
         let result = await PtsfrdsSerial.create({
             ptsfrds_oid: uuidv4(),
             ptsfrds_ptsfrd_oid: ptsfrdOid,
@@ -132,6 +132,8 @@ class TransferService {
             ptsfrds_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
             ptsfrds_qrbarcode: qrBarcode,
             ptsfrds_locs_id: subLocationId
+        }, {
+            transaction
         });
 
         return result;
