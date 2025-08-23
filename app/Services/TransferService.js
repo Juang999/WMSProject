@@ -186,10 +186,10 @@ class TransferService {
         return result;
     }
 
-    deleteSerialTransfer = async (getSerialByOid) => {
+    deleteSerialTransfer = async (serialTransferOid) => {
         let result = await PtsfrdsSerial.destroy({
             where: {
-                ptsfrds_oid: getSerialByOid
+                ptsfrds_oid: serialTransferOid
             }
         });
 
