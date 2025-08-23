@@ -134,6 +134,29 @@ class TransferController {
                 })
         }
     }
+
+    deleteDataSerial = (req, res) => {
+        TransferService.deleteSerialTransfer(req.params.serial_transfer_oid)
+        .then(result => {
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'deleted',
+                    data: result,
+                    error: null
+                })
+        })
+        .catch(err => {
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: err.message
+                })
+        })
+    }
 }
 
 module.exports = new TransferController();

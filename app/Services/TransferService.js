@@ -185,6 +185,16 @@ class TransferService {
         
         return result;
     }
+
+    deleteSerialTransfer = async (getSerialByOid) => {
+        let result = await PtsfrdsSerial.destroy({
+            where: {
+                ptsfrds_oid: getSerialByOid
+            }
+        });
+
+        return result;
+    }
 }
 
 module.exports = new TransferService();
