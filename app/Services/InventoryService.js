@@ -1229,7 +1229,7 @@ class InventoryService {
             invcd_upd_by: username,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
-            invcd_is_booked: 1,
+            invcd_is_booked: ('booked' in body) ? body.booked : null,
             invcd_transaction_code: body.transaction_code,
             invcd_transaction_oid: body.transaction_oid,
             invcd_status: body.status

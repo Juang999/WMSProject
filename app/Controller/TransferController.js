@@ -92,6 +92,7 @@ class TransferController {
                         transaction_code: null,
                         transaction_oid: null,
                         status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`),
+                        booked: null
                     },
                     Authentication.user().usernama,
                     transaction
