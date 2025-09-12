@@ -230,7 +230,9 @@ class InventoryRequestController {
                         invcdh_status: 'mutasi!',
                         invcdh_remarks: 'mutasi inventory request',
                         invcdh_created_by: Authentication.user().usernama,
-                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+                        invcdh_transaction_oid: dataDetailInventoryRequest.dataValues.pb_oid,
+                        invcdh_transaction_code: dataDetailInventoryRequest.dataValues.pb_code
                     }], 
                     transaction
                 )

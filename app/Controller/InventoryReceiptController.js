@@ -640,9 +640,9 @@ class InventoryReceiptController {
 						qrbarcode: req.body.unique,
 						loc_id: dataSubLocation.dataValues.location_id,
 						locs_id: dataSubLocation.dataValues.sublocation_id,
-						status: 'hold',
-						transaction_code: headerInventoryReceipt.dataValues.riu_code,
-						transaction_oid: headerInventoryReceipt.dataValues.riu_oid
+						status: 'registered',
+						transaction_code: null,
+						transaction_oid: null,
 					}, Authentication.user().usernama, t),
 					InventoryService.createHistory([
 						{
@@ -656,7 +656,9 @@ class InventoryReceiptController {
 							invcdh_status: 'received!',
 							invcdh_remarks: 'received!',
 							invcdh_created_by: Authentication.user().usernama,
-							invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+							invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+							invcdh_transaction_oid: headerInventoryReceipt.dataValues.riu_oid,
+							invcdh_transaction_code: headerInventoryReceipt.dataValues.riu_code
 						}
 					], t)
 				])

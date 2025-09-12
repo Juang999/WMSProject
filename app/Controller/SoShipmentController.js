@@ -168,7 +168,7 @@ class SoShipmentController {
 
             let [result] = await Promise.all([
                 SalesOrderService.insertSerialSalesOrder(req.body, DATA_SERIAL_NUMBER.dataValues, Authentication.user().usernama, t),
-                InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, DATA_HEADER_SO.dataValues.so_code, so_oid),
+                InventoryService.bookSerial(DATA_SERIAL_NUMBER.dataValues.invcd_oid, DATA_HEADER_SO.dataValues.so_code, so_oid, t),
                 InventoryService.createHistory([
                     {
                         invcdh_oid: uuidv4(),
@@ -181,7 +181,9 @@ class SoShipmentController {
                         invcdh_status: 'scanned out!',
                         invcdh_remarks: 'scanned out',
                         invcdh_created_by: Authentication.user().usernama,
-                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
+                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+                        invcdh_transaction_oid: DATA_HEADER_SO.dataValues.so_oid,
+                        invcdh_transaction_code: DATA_HEADER_SO.dataValues.so_code
                     }
                 ], t)
             ])

@@ -70,7 +70,9 @@ module.exports = (sequelize, DataTypes) => {
     invcdh_status: DataTypes.STRING,
     invcdh_remarks: DataTypes.STRING,
     invcdh_created_by: DataTypes.STRING,
-    invcdh_created_date: DataTypes.DATE
+    invcdh_created_date: DataTypes.DATE,
+    invcdh_transaction_oid: DataTypes.UUID,
+    invcdh_transaction_code: DataTypes.STRING,
   }, {
     sequelize,
     schema: 'public',

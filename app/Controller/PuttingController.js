@@ -1,5 +1,5 @@
 const {sequelize} = require('../../models');
-const {error: errorLog} = require('../../helper/Logging');
+const {error: errorLog, info} = require('../../helper/Logging');
 const {
     GetDescService,
     LocationService, ProductService, 
@@ -78,7 +78,7 @@ class PuttingController {
                 return this.returnResponse(300, 'rejected', 'sublocation already full', null, null)
             }
 
-            if (dataSerial && dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != req.body.partnumber) {
+            if (dataSerial && dataSerial.dataValues.uniq != null && dataSerial.dataValues.product_code != dataProduct.dataValues.partnumber) {
                 return this.returnResponse(300, 'rejected', `serial has been registered with another product | partnumber: ${req.body.partnumber}`, null, null)
             }
 
@@ -140,6 +140,7 @@ class PuttingController {
                 ])
             }
 
+            info('REGISTER UNIQUE', 'registered', {partnumber: dataProduct.dataValues.partnumber, unique: req.body.uniq})
             return this.returnResponse(200, 'success', 'ok', null, null)
         })
         .then(result => {
@@ -215,6 +216,8 @@ class PuttingController {
                 })
         })
         .catch(err => {
+            errorLog(`GET DATA SERIAL`, err.message);
+
             res.status(400)
                 .json({
                     status: 'failed',
@@ -278,6 +281,8 @@ class PuttingController {
                 })
         })
         .catch(err => {
+            errorLog('GET HISTORY SERIAL', err.message);
+
             res.status(400)
                 .json({
                     status: 'failed',
@@ -308,7 +313,7 @@ class PuttingController {
         return {statusCode, json: {status, message, data, error}}
     }
 
-    getUniqAndPartnumber = (req, res) => {
+    searchUnique = (req, res) => {
         let uniq = req.params.uniq
 
         InventoryService.getPartnumberBySerial(uniq)
@@ -322,6 +327,8 @@ class PuttingController {
                 })
         })
         .catch(err => {
+            errorLog(`SEARCH UNIQUE`, err.message);
+
             res.status(400)
                 .json({
                     status: 'failed',
@@ -332,16 +339,16 @@ class PuttingController {
         })
     }
 
-    getAllPartnumberBySn = async (req, res) => {
+    searchSerialNumber = async (req, res) => {
         try {
             let result = [];
 
-            let resultDataSn = GetDescService.findAllOldProductBySerialNumber(req.params.serial_number);
+            let resultDataSn = GetDescService.findPartNumberBySerialNumber(req.params.serial_number);
 
             if (resultDataSn) {
                 let partnumberSn = (await resultDataSn).map(({dataValues: singularDataSn}) => singularDataSn.pn);
 
-                let raw = await ProductService.findBulkPartnumber(partnumberSn);
+                let raw = await ProductService.retrievePartnumber(partnumberSn);
 
                 result = raw.map(({dataValues: singularSn}) => {
                     return {
@@ -405,6 +412,30 @@ class PuttingController {
                     error: err.message
                 })
     }
+    }
+
+    getHistorySerial = async (req, res) => {
+        try {
+            let unique = req.params.serial_number;
+
+            let result = await InventoryService.retrieveHistorySerialNumber(unique);
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        } catch (error) {
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
     }
 }
 

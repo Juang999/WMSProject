@@ -475,7 +475,7 @@ class InventoryService {
         })
     }
 
-    bookSerial = async (invcdOid, soCode, soOid) => {
+    bookSerial = async (invcdOid, soCode, soOid, transaction) => {
         await InvcdDet.update({
             invcd_qty: 0,
             invcd_is_booked: 1,
@@ -485,7 +485,8 @@ class InventoryService {
         }, {
             where: {
                 invcd_oid: invcdOid
-            }
+            },
+            transaction
         })
     }
 
@@ -1248,6 +1249,63 @@ class InventoryService {
                 invc_loc_id: locationId,
                 invc_pt_id: productId
             }
+        });
+
+        return result;
+    }
+
+    retrieveHistorySerialNumber = async (serialNumber) => {
+        let result = await InvcdhHist.findAll({
+            attributes: [
+                'invcdh_oid',
+                ['invcdh_qrbarcode', 'unique'],
+                ['invcdh_pt_id', 'product_id'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                ['invcdh_loc_from_id', 'source_location_id'],
+                [Sequelize.col(`"location_from"."loc_desc"`), 'source_location_name'],
+                ['invcdh_loc_to_id', 'destination_location_id'],
+                [Sequelize.col(`"location_to"."loc_desc"`), 'destination_location_name'],
+                ['invcdh_locs_from_id', 'source_sublocation_id'],
+                [Sequelize.col(`"sublocation_from"."locs_name"`), 'source_sublocation_name'],
+                ['invcdh_locs_to_id', 'destination_sublocation_id'],
+                [Sequelize.col(`"sublocation_to"."locs_name"`), 'destination_sublocation_name'],
+                ['invcdh_transaction_code', 'transaction_code'],
+                ['invcdh_transaction_oid', 'transaction_oid'],
+                ['invcdh_status', 'status'],
+                ['invcdh_remarks', 'remark'],
+                ['invcdh_created_by', 'created_by'],
+                ['invcdh_created_date', 'created_at'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: [],
+                }, {
+                    model: LocMstr,
+                    as: 'location_from',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location_to',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation_from',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation_to',
+                    attributes: []
+                }
+            ],
+            where: {
+                invcdh_qrbarcode: serialNumber
+            },
+            order: [
+                ['invcdh_created_date', 'DESC']
+            ]
         });
 
         return result;
