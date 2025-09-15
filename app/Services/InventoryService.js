@@ -568,9 +568,14 @@ class InventoryService {
                     attributes: []
                 }
             ],
-            where: {
-                locs_id: locsId
-            },
+            where: [
+                Sequelize.where(Sequelize.col('locs_id'), {
+                    [Op.eq]: locsId
+                }),
+                Sequelize.where(Sequelize.col(`"data_product"."invcd_qty"`), {
+                    [Op.eq]: 1
+                })
+            ],
             group: ['locs_oid', 'sublocation_id', 'location_id', 'capacity']
         })
 
