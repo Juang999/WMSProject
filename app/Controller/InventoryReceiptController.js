@@ -640,9 +640,9 @@ class InventoryReceiptController {
 						qrbarcode: req.body.unique,
 						loc_id: dataSubLocation.dataValues.location_id,
 						locs_id: dataSubLocation.dataValues.sublocation_id,
-						status: 'registered',
-						transaction_code: null,
-						transaction_oid: null,
+						status: 'hold',
+						transaction_code: headerInventoryReceipt.dataValues.riu_code,
+						transaction_oid: headerInventoryReceipt.dataValues.riu_oid,
 					}, Authentication.user().usernama, t),
 					InventoryService.createHistory([
 						{
