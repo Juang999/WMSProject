@@ -558,13 +558,13 @@ class InventoryService {
             attributes: [
                 ['locs_id', 'sublocation_id'],
                 ['locs_loc_id', 'location_id'],
-                [Sequelize.literal(`COUNT("data_product"."invcd_oid")`), 'qty'],
+                [Sequelize.literal(`COUNT("serial"."invcd_oid")`), 'qty'],
                 ['locs_cap', 'capacity']
             ],
             include: [
                 {
                     model: InvcdDet,
-                    as: 'data_product',
+                    as: 'serial',
                     attributes: []
                 }
             ],
@@ -572,7 +572,7 @@ class InventoryService {
                 Sequelize.where(Sequelize.col('locs_id'), {
                     [Op.eq]: locsId
                 }),
-                Sequelize.where(Sequelize.col(`"data_product"."invcd_qty"`), {
+                Sequelize.where(Sequelize.col(`"serial"."invcd_qty"`), {
                     [Op.eq]: 1
                 })
             ],
