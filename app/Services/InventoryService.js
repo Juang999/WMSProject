@@ -564,18 +564,17 @@ class InventoryService {
             include: [
                 {
                     model: InvcdDet,
+                    required: false,
                     as: 'serial',
-                    attributes: []
+                    attributes: [],
+                    where: {
+                        invcd_qty: 1
+                    }
                 }
             ],
-            where: [
-                Sequelize.where(Sequelize.col('locs_id'), {
-                    [Op.eq]: locsId
-                }),
-                Sequelize.where(Sequelize.col(`"serial"."invcd_qty"`), {
-                    [Op.eq]: 1
-                })
-            ],
+            where: {
+                locs_id: locsId
+            },
             group: ['locs_oid', 'sublocation_id', 'location_id', 'capacity']
         })
 
