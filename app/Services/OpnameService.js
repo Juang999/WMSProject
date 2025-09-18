@@ -48,35 +48,8 @@ class OpnameService {
         return result;
     }
 
-    retrieveInventoryMaster = async (searchLocation, searchProduct, searchProductCode, searchSubLocation) => {
-        let result = await InvcdDet.findAll({
-            attributes: [
-                [Sequelize.col(`"product"."pt_id"`), 'product_id'],
-                [Sequelize.col(`"location"."loc_id"`), 'location_id'],
-                ['invcd_locs_id', 'sublocation_id'],
-                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
-                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
-                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
-                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
-                [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_qty']
-            ],
-            include: [
-                {
-                    model: LocMstr,
-                    as: 'location',
-                    attributes: []
-                }, {
-                    right: true,
-                    model: PtMstr,
-                    as: 'product',
-                    attributes: []
-                }, {
-                    model: LocsMstr,
-                    as: 'sublocation',
-                    attributes: []
-                }
-            ],
-            where: [
+    retrieveInventoryMaster = async (searchLocation, searchProduct, searchProductCode, searchSubLocation, locationId) => {
+        let conditions = [
                 Sequelize.where(Sequelize.col(`"location"."loc_desc"`), {
                     [Op.iLike]: `%${searchLocation}%`,
                 }),
@@ -104,7 +77,44 @@ class OpnameService {
                 Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
                     [Op.eq]: 'Y',
                 }),
+        ];
+
+        if (locationId != null) {
+            let conditionLocationId = Sequelize.where(Sequelize.col(`"invcd_loc_id"`), {
+                    [Op.in]: locationId,
+                });
+
+            conditions.push(conditionLocationId)
+        }
+
+        let result = await InvcdDet.findAll({
+            attributes: [
+                [Sequelize.col(`"product"."pt_id"`), 'product_id'],
+                [Sequelize.col(`"location"."loc_id"`), 'location_id'],
+                ['invcd_locs_id', 'sublocation_id'],
+                [Sequelize.col(`"product"."pt_code"`), 'product_code'],
+                [Sequelize.col(`"product"."pt_desc1"`), 'product_name'],
+                [Sequelize.col(`"location"."loc_desc"`), 'location_name'],
+                [Sequelize.col(`"sublocation"."locs_name"`), 'sublocation_name'],
+                [Sequelize.literal(`CAST(SUM(invcd_qty) AS INTEGER)`), 'total_qty']
             ],
+            include: [
+                {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }, {
+                    right: true,
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }, {
+                    model: LocsMstr,
+                    as: 'sublocation',
+                    attributes: []
+                }
+            ],
+            where: conditions,
             order: [
                 ['product_code', 'ASC']
             ],
