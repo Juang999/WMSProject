@@ -87,15 +87,20 @@ class StockOpnameController {
         })
     }
 
-    getInventoryMaster = (req, res) => {
-        let searchLocation = (req.query.location) ? req.query.location : '';
-        let searchProduct = (req.query.product) ? req.query.product : '';
-        let searchProductCode = (req.query.product_code) ? req.query.product_code : '';
-        let searchSubLocation = (req.query.sublocation) ? req.query.sublocation : '';
-        let locationsId = (req.query.location_id) ? req.query.location_id.split(',') : null;
+    getInventoryMaster = async (req, res) => {
+        try {
+            let searchLocation = (req.query.location) ? req.query.location : '';
+            let searchProduct = (req.query.product) ? req.query.product : '';
+            let searchProductCode = (req.query.product_code) ? req.query.product_code : '';
+            let searchSubLocation = (req.query.sublocation) ? req.query.sublocation : '';
+            let locationsId = (req.query.location_id) ? req.query.location_id.split(',') : null;
 
-        OpnameService.retrieveInventoryMaster(searchLocation, searchProduct, searchProductCode, searchSubLocation, locationsId)
-        .then(result => {
+            let result = []
+
+            if (locationsId != null) {
+                result = await OpnameService.retrieveInventoryMaster(searchLocation, searchProduct, searchProductCode, searchSubLocation, locationsId)
+            }
+
             res.status(200)
                 .json({
                     status: 'success',
@@ -103,18 +108,17 @@ class StockOpnameController {
                     data: result,
                     error: null
                 })
-        })
-        .catch(err => {
-            Logging.error('INVENTORY MASTER', err.message)
+        } catch (error) {
+            Logging.error('INVENTORY MASTER', error.message)
 
             res.status(400)
                 .json({
                     status: 'failed',
                     message: 'error',
                     data: null,
-                    error: err.message
+                    error: error.message
                 })
-        })
+        }
     }
 
     index = (req, res) => {

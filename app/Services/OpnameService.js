@@ -77,15 +77,10 @@ class OpnameService {
                 Sequelize.where(Sequelize.col(`"invcd_is_verified"`), {
                     [Op.eq]: 'Y',
                 }),
-        ];
-
-        if (locationId != null) {
-            let conditionLocationId = Sequelize.where(Sequelize.col(`"invcd_loc_id"`), {
+                Sequelize.where(Sequelize.col(`"invcd_loc_id"`), {
                     [Op.in]: locationId,
-                });
-
-            conditions.push(conditionLocationId)
-        }
+                })
+        ];
 
         let result = await InvcdDet.findAll({
             attributes: [
