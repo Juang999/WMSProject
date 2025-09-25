@@ -3,7 +3,7 @@ const { TransferService, InventoryService, InventoryRequestService } = require('
 const moment = require('moment');
 const {Authentication} = require('../../helper/helper')
 const {v4: uuidv4} = require('uuid');
-const { error } = require('../../helper/Logging');
+const { error: errorLog } = require('../../helper/Logging');
 
 class TransferController {
     findDataTransfer = async (req, res) => {
@@ -39,12 +39,17 @@ class TransferController {
         let transaction = await sequelize.transaction();
 
         try {
-            let [dataLocation, dataSerialNumber, dataHeaderTransfer, serialTransfer] = await Promise.all([
-                InventoryService.findDataLocation(req.body.location_id, req.body.qrbarcode),
+            let [dataSerialNumber, dataDetailTransfer, serialTransfer, dataSubLocation] = await Promise.all([
                 InventoryService.findSerialNumber(req.body.qrbarcode, transaction),
                 TransferService.findDetailTransferByHeaderOid(req.body.transfer_oid, req.body.qrbarcode),
-                TransferService.findSerialTransfer(req.body.transfer_oid, req.body.qrbarcode)
+                TransferService.findSerialTransfer(req.body.transfer_oid, req.body.qrbarcode),
+                InventoryService.findSublocation(req.body.sublocation_id)
             ])
+
+            let qtyInSubLocation = parseInt(dataSubLocation.dataValues.qty);
+            let capacitySubLocation = parseInt(dataSubLocation.dataValues.capacity);
+            let qtyInDetailTransfer = parseInt(dataDetailTransfer.dataValues.total_receipt_serial);
+            let limitDetailTransfer = dataDetailTransfer.dataValues.qty;
 
             if (!dataSerialNumber) {
                 await transaction.rollback();
@@ -74,45 +79,41 @@ class TransferController {
                 return;
             }
 
-            let [ result ] = await Promise.all([
-                TransferService.storeUniqueTransfer(
+            if (qtyInDetailTransfer + 1 > limitDetailTransfer) {
+                await transaction.rollback();
+
+                res.status(300)
+                    .json({
+                        status: 'failed',
+                        message: 'error',
+                        data: null,
+                        error: 'Exceeded transfer quantity limit'
+                    });
+
+                return;
+            }
+
+            if (qtyInSubLocation + qtyInDetailTransfer + 1 > capacitySubLocation) {
+                await transaction.rollback();
+
+                res.status(300)
+                    .json({
+                        status: 'failed',
+                        message: 'error',
+                        data: null,
+                        error: 'Exceeded the capacity'
+                    });
+
+                return;
+            }
+
+            let result = await TransferService.storeUniqueTransfer(
                     req.body.location_id, 
                     req.body.sublocation_id, 
                     req.body.qrbarcode, 
-                    dataHeaderTransfer.dataValues.ptsfrd_oid,
+                    dataDetailTransfer.dataValues.ptsfrd_oid,
                     transaction
-                ),
-                InventoryService.transferSerial(
-                    dataSerialNumber.dataValues.invcd_oid,
-                    {
-                        qty: 1,
-                        location_id: req.body.location_id,
-                        sublocation_id: req.body.sublocation_id,
-                        inventory_oid: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN '${dataLocation.dataValues.invc_oid}'::uuid ELSE NULL END`),
-                        transaction_code: null,
-                        transaction_oid: null,
-                        status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`),
-                        booked: null
-                    },
-                    Authentication.user().usernama,
-                    transaction
-                ),
-                InventoryService.createHistory([{
-                    invcdh_oid: uuidv4(),
-                    invcdh_dom_id: 1,
-                    invcdh_en_id: dataSerialNumber.dataValues.invcd_en_id,
-                    invcdh_pt_id: dataSerialNumber.dataValues.invcd_pt_id,
-                    invcdh_loc_from_id: dataSerialNumber.dataValues.invcd_loc_id,
-                    invcdh_locs_from_id: dataSerialNumber.dataValues.invcd_locs_id,
-                    invcdh_loc_to_id: req.body.location_id,
-                    invcdh_locs_to_id: req.body.sublocation_id,
-                    invcdh_qrbarcode: req.body.qrbarcode,
-                    invcdh_status: 'transfer!',
-                    invcdh_remarks: 'transfer inventory request',
-                    invcdh_created_by: Authentication.user().usernama,
-                    invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss')
-                }], transaction)
-            ])
+                );
 
             await transaction.commit();
 
@@ -125,6 +126,80 @@ class TransferController {
                 })
         } catch (error) {
             await transaction.rollback();
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
+    }
+
+    applyTransfer = async (req, res) => {
+        let transaction = await sequelize.transaction();
+
+        try {
+            let AuthUser = Authentication.user();
+            let headerTransferOid = req.params.header_transfer_oid;
+            let dataSerialTransfer = await TransferService.retrieveSerialTransfer(headerTransferOid);
+            let historyTransfer = [];
+
+            for (const singularSerialTransfer of dataSerialTransfer) {
+                let dataTransferSerial = singularSerialTransfer.dataValues;
+                let inventoryDetailOid = dataTransferSerial.invcd_oid;
+                let invetoryOidValueConditionWhenInventoryOidIsNull = Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN '${dataTransferSerial.invc_oid}'::uuid ELSE NULL END`);
+                let statusValueConditionWhenInventoryOidIsNull = Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`);
+                let bodyTransfer = {
+                    qty: 1,
+                    location_id: dataTransferSerial.transfer_location_id,
+                    sublocation_id: dataTransferSerial.transfer_sublocation_id,
+                    inventory_oid: invetoryOidValueConditionWhenInventoryOidIsNull,
+                    transaction_code: null,
+                    transaction_oid: null,
+                    status: statusValueConditionWhenInventoryOidIsNull,
+                    booked: null
+                }
+
+                // apply transfering serial
+                InventoryService.transferSerial( inventoryDetailOid, bodyTransfer, AuthUser.usernama, transaction);
+
+                // push data history
+                historyTransfer.push({
+                        invcdh_oid: uuidv4(),
+                        invcdh_dom_id: 1,
+                        invcdh_en_id: dataTransferSerial.entity_id,
+                        invcdh_pt_id: dataTransferSerial.product_id,
+                        invcdh_loc_from_id: dataTransferSerial.source_location_id,
+                        invcdh_locs_from_id: dataTransferSerial.source_sublocation_id,
+                        invcdh_loc_to_id: dataTransferSerial.transfer_location_id,
+                        invcdh_locs_to_id: dataTransferSerial.transfer_sublocation_id,
+                        invcdh_qrbarcode: dataTransferSerial.transfer_qrbarcode,
+                        invcdh_status: 'transfer!',
+                        invcdh_remarks: 'transfer inventory request',
+                        invcdh_created_by: Authentication.user().usernama,
+                        invcdh_created_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+                        invcdh_transaction_oid: dataTransferSerial.master_transfer_oid,
+                        invcdh_transaction_code: dataTransferSerial.master_transfer_code
+                    });
+            }
+
+            // insert history transfer
+            await InventoryService.createHistory(historyTransfer, transaction)
+
+            await transaction.commit()
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'applied transfer',
+                    data: true,
+                    error: null
+                })
+        } catch (error) {
+            await transaction.rollback()
+            await errorLog('APPLY TRANSFER', error.message)
 
             res.status(400)
                 .json({

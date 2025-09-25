@@ -28,6 +28,24 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'ptsfrd_oid',
         foreignKey: 'ptsfrds_ptsfrd_oid'
       })
+
+      PtsfrdDet.hasOne(models.PtsfrdsSerial, {
+        as: 'singular_serial',
+        sourceKey: 'ptsfrd_oid',
+        foreignKey: 'ptsfrds_ptsfrd_oid'
+      })
+
+      PtsfrdDet.belongsTo(models.PtsfrMstr, {
+        as: 'master_transfer',
+        targetKey: 'ptsfr_oid',
+        foreignKey: 'ptsfrd_ptsfr_oid'
+      })
+
+      PtsfrdDet.hasOne(models.InvcMstr, {
+        as: 'inventory_master',
+        sourceKey: 'ptsfrd_pt_id',
+        foreignKey: 'invc_pt_id',
+      })
     }
   }
   PtsfrdDet.init({

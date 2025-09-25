@@ -11,6 +11,17 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      PtsfrdsSerial.belongsTo(models.InvcdDet, {
+        as: 'data_serial',
+        targetKey: 'invcd_qrbarcode',
+        foreignKey: 'ptsfrds_qrbarcode'
+      })
+
+      PtsfrdsSerial.belongsTo(models.PtsfrdDet, {
+        as: 'detail_transfer',
+        targetKey: 'ptsfrd_oid',
+        foreignKey: 'ptsfrds_ptsfrd_oid'
+      })
     }
   }
   PtsfrdsSerial.init({

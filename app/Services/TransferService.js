@@ -1,6 +1,7 @@
 const { 
-    TransStatus,
+    InvcMstr,
     PtsfrMstr, PtsfrdDet, 
+    TransStatus, InvcdDet,
     PtsfrdsSerial, LocMstr,
     Sequelize, EnMstr, PtMstr
 } = require('../../models');
@@ -141,13 +142,29 @@ class TransferService {
 
     findDetailTransferByHeaderOid = async (ptsfrOid, qrBarCode) => {
         let result = await PtsfrdDet.findOne({
-            attributes: ['ptsfrd_oid', 'ptsfrd_ptsfr_oid'],
+            attributes: [
+                'ptsfrd_oid', 
+                'ptsfrd_ptsfr_oid',
+                ['ptsfrd_qty', 'qty'],
+                [Sequelize.literal(`COUNT("singular_serial"."ptsfrds_ptsfrd_oid")`), 'total_receipt_serial']
+            ],
+            include: [
+                {
+                    model: PtsfrdsSerial,
+                    as: 'singular_serial',
+                    attributes: []
+                }
+            ],
             where: {
                 ptsfrd_ptsfr_oid: ptsfrOid,
                 ptsfrd_pt_id: {
                     [Op.eq]: Sequelize.literal(`( SELECT invcd_pt_id FROM public.invcd_det WHERE invcd_qrbarcode = '${qrBarCode}' )`)
                 }
-            }
+            },
+            group: [
+                'ptsfrd_oid', 
+                'ptsfrd_ptsfr_oid'
+            ]
         });
 
         return result;
@@ -190,6 +207,59 @@ class TransferService {
         let result = await PtsfrdsSerial.destroy({
             where: {
                 ptsfrds_oid: serialTransferOid
+            }
+        });
+
+        return result;
+    }
+
+    retrieveSerialTransfer = async (transferOid) => {
+        let result = await PtsfrdsSerial.findAll({
+            attributes: [
+                ['ptsfrds_qrbarcode', 'transfer_qrbarcode'],
+                ['ptsfrds_loc_id', 'transfer_location_id'],
+                ['ptsfrds_locs_id', 'transfer_sublocation_id'],
+                [Sequelize.literal(`"detail_transfer->master_transfer"."ptsfr_oid"`), 'master_transfer_oid'],
+                [Sequelize.literal(`"detail_transfer->master_transfer"."ptsfr_code"`), 'master_transfer_code'],
+                [Sequelize.literal(`"data_serial"."invcd_oid"`), "invcd_oid"],
+                [Sequelize.literal(`"data_serial"."invcd_en_id"`), 'entity_id'],
+                [Sequelize.literal(`"data_serial"."invcd_pt_id"`), 'product_id'],
+                [Sequelize.literal(`"data_serial"."invcd_loc_id"`), 'source_location_id'],
+                [Sequelize.literal(`"data_serial"."invcd_locs_id"`), 'source_sublocation_id'],
+                [Sequelize.literal(`"detail_transfer->inventory_master"."invc_oid"`), 'invc_oid']
+            ],
+            include: [
+                {
+                    model: InvcdDet,
+                    as: 'data_serial',
+                    attributes: []
+                }, {
+                    model: PtsfrdDet,
+                    as: 'detail_transfer',
+                    attributes: [],
+                    include: [
+                        {
+                            model: PtsfrMstr,
+                            as: 'master_transfer',
+                            attributes: []
+                        }, {
+                            model: InvcMstr,
+                            as: 'inventory_master',
+                            attributes: []
+                        }
+                    ]
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.col(`ptsfrds_ptsfrd_oid`), {
+                    [Op.in]: Sequelize.literal(`( SELECT ptsfrd_oid FROM public.ptsfrd_det WHERE ptsfrd_ptsfr_oid = :header_transfer_oid )`)
+                }),
+                Sequelize.where(Sequelize.literal(`"detail_transfer->inventory_master"."invc_loc_id"`), {
+                    [Op.eq]: Sequelize.col('ptsfrds_loc_id')
+                })
+            ],
+            replacements: {
+                header_transfer_oid: transferOid
             }
         });
 
