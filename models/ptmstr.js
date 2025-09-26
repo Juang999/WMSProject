@@ -94,6 +94,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'ptscat_id',
         foreignKey: 'pt_scat_id'
       })
+
+      PtMstr.hasOne(models.PidDet, {
+        as: 'singular_relation_pricelist',
+        sourceKey: 'pt_id',
+        foreignKey: 'pid_pt_id'
+      })
     }
   }
   PtMstr.init({

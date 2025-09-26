@@ -4,6 +4,7 @@ const {
     PtMstr, InvcMstr, 
     InvcdDet, EnMstr, 
     PtCatMstr, PtsCatCat,
+    PiMstr, PidDet, PiddDet
 } = require('../../models');
 const {Op, where} = require('sequelize');
 
@@ -136,6 +137,8 @@ class ProductService {
                 [Sequelize.literal(`CASE WHEN "product"."pt_cat_id" IS NOT NULL THEN "product->category"."ptcat_desc" ELSE '-' END`), 'category_name'],
                 [Sequelize.literal(`CASE WHEN "product"."pt_scat_id" IS NOT NULL THEN "product->subcategory"."ptscat_desc" ELSE '-' END`), 'subcategory_name'],
                 [Sequelize.literal(`EXTRACT(YEAR FROM "product"."pt_year")`), 'release_date'],
+                [Sequelize.literal(`"product->singular_relation_pricelist->header_pricelist"."pi_desc"`), 'pricelist_name'],
+                [Sequelize.literal(`"product->singular_relation_pricelist->singular_detail_pricelist"."pidd_price"`), "price"],
                 [Sequelize.literal(`( SELECT CASE WHEN count(invcd_oid) != 0 THEN count(invcd_oid) ELSE 0 END FROM public.invcd_det WHERE invcd_pt_id = "InvcdDet"."invcd_pt_id" AND invcd_loc_id IN (1000555, 2000556, 3000557) AND invcd_scanned_at IS NOT NULL AND invcd_is_verified = 'Y' AND invcd_locs_id IS NOT NULL GROUP BY "InvcdDet"."invcd_pt_id" )`), 'total_incoming_regular'],
                 [Sequelize.literal(`( SELECT CASE WHEN count(invcd_oid) != 0 THEN count(invcd_oid) ELSE 0 END FROM public.invcd_det WHERE invcd_pt_id = "InvcdDet"."invcd_pt_id" AND invcd_loc_id IN (1000555, 2000556, 3000557) AND invcd_qty = 1 AND invcd_qrbarcode IS NOT NULL AND invcd_is_verified = 'Y' AND invcd_locs_id IS NOT NULL GROUP BY "InvcdDet"."invcd_pt_id" )`), 'quantity_regular'],
                 [Sequelize.literal(`( SELECT CASE WHEN count(invcd_oid) != 0 THEN count(invcd_oid) ELSE 0 END FROM public.invcd_det WHERE invcd_pt_id = "InvcdDet"."invcd_pt_id" AND invcd_loc_id IN (1000555, 2000556, 3000557) AND invcd_scanned_at IS NOT NULL AND invcd_is_verified = 'Y' AND invcd_locs_id IS NOT NULL AND invcd_qty = 0 GROUP BY "InvcdDet"."invcd_pt_id" )`), 'total_outgoing_regular'],
@@ -164,12 +167,27 @@ class ProductService {
                             as: 'subcategory',
                             required: false,
                             attributes: []
+                        }, {
+                            model: PidDet,
+                            as: 'singular_relation_pricelist',
+                            attributes: [],
+                            include: [
+                                {
+                                    model: PiMstr.scope(['priceListDistributor']),
+                                    as: 'header_pricelist',
+                                    attributes: []
+                                }, {
+                                    model: PiddDet.scope(['cashPaymentType']),
+                                    as: 'singular_detail_pricelist',
+                                    attributes: []
+                                }
+                            ]
                         }
                     ]
                 }
             ],
             where: whereClause,
-            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'release_date'],
+            group: ['product_id', 'entity', 'product_name', 'product_code', 'category_name', 'subcategory_name', 'release_date', 'pricelist_name', "price"],
             order: [['product_code', 'ASC']],
         });
 

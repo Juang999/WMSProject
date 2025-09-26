@@ -63,32 +63,32 @@ class ProductController {
 		})
 	}
 
-	getProductsQuantity = (req, res) => {
-		let year = req.query.release_year || '';
-		let productName = req.query.product || '';
-		let categoryName = req.query.category || '';
-		let productCode = req.query.product_code || '';
-		let subCategoryName = req.query.subcategory || '';
+	getProductsQuantity = async (req, res) => {
+		try {
+			let year = req.query.release_year || '';
+			let productName = req.query.product || '';
+			let categoryName = req.query.category || '';
+			let productCode = req.query.product_code || '';
+			let subCategoryName = req.query.subcategory || '';
 
-		ProductService.getProductsQuantity(productCode, productName, categoryName, subCategoryName, year)
-			.then(result => {
-				res.status(200)
-					.json({
-						status: 'success',
-						message: 'product found!',
-						data: result,
-						error: null
-					})
-			})
-			.catch(err => {
-				res.status(400)
-					.json({
-						status: 'failed',
-						message: 'error!',
-						data: null,
-						error: err.message
-					})
-			})
+			let result = await ProductService.getProductsQuantity(productCode, productName, categoryName, subCategoryName, year);
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'product found!',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error!',
+					data: null,
+					error: error.message
+				})
+		}
 	}
 }
 
