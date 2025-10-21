@@ -335,7 +335,7 @@ class ReturnController {
                 InventoryService.bulkReturnSerials(dataSerials, {
                     location_id,
                     sublocation_id,
-                    status: 'return'
+                    status: 'returned'
                 }, Authentication.user().usernama, transaction),
                 ReturnService.bulkUpdateSerials(dataSerials, location_id, sublocation_id, header_return_oid, Authentication.user().usernama, transaction),
                 InventoryService.createHistory(dataHistories, transaction)
