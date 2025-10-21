@@ -281,6 +281,7 @@ class InventoryService {
 
     updateSerial = async (invcdOid, body, username, transaction) => {
         await InvcdDet.update({
+            invcd_invc_oid: (body.inventory_oid) ? body.inventory_oid : Sequelize.literal(`invcd_invc_oid`),
             invcd_dom_id: 1,
             invcd_qty: 1,
             invcd_loc_id: body.location_id,
@@ -291,10 +292,10 @@ class InventoryService {
             invcd_upd_by: username,
             invcd_upd_date: moment().format('YYYY-MM-DD HH:mm:ss'),
             invcd_qty_old: Sequelize.literal(`"invcd_qty"`),
-            invcd_transaction_code: null,
-            invcd_transaction_oid: null,
+            invcd_transaction_code: (body.transaction_code) ? body.transaction_code : null,
+            invcd_transaction_oid: (body.transaction_oid) ? body.transaction_oid : null,
             invcd_scanned_at: Sequelize.literal(`CASE WHEN invcd_scanned_at IS NOT NULL THEN invcd_scanned_at ELSE CURRENT_TIMESTAMP END`),
-            invcd_status: Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`),
+            invcd_status: (body.inventory_oid) ? 'available' : Sequelize.literal(`CASE WHEN invcd_invc_oid IS NOT NULL THEN 'available' ELSE 'registered' END`),
         }, {
             where: {
                 invcd_oid: invcdOid

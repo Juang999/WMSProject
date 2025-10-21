@@ -1,4 +1,5 @@
 const { 
+    LocsMstr,
     RiuMstr, RiudDet, 
     RiudsSerial, Sequelize,
     PtMstr, LocMstr, InvcdDet
@@ -125,7 +126,7 @@ class InventoryReceiptService {
                     model: LocMstr,
                     as: 'detail_data_location',
                     attributes: []
-                },
+                }
             ],
             where: {
                 riud_riu_oid: inventoryReceiptHeaderOid,
@@ -217,6 +218,49 @@ class InventoryReceiptService {
             },
             transaction
         })
+    }
+
+    retrieveHoldSerialByPartNumber = async ( partNumber ) => {
+        let result = await PtMstr.findOne({
+            attributes: [
+                ["pt_id", "product_id"],
+                ["pt_code", "product_code"],
+                ["pt_desc1", "product_name"],
+            ],
+            include: [
+                {
+                    model: InvcdDet,
+                    as: 'data_sublocation',
+                    attributes: [
+                        [Sequelize.literal(`"data_sublocation"."invcd_qrbarcode"`), "unique"],
+                        [Sequelize.literal(`"data_sublocation->location"."loc_desc"`), 'location_name'],
+                        [Sequelize.literal(`"data_sublocation->sublocation"."locs_name"`), 'sublocation_name'],
+                        [Sequelize.literal(`"data_sublocation"."invcd_transaction_code"`), 'transaction_code'],
+                        [Sequelize.literal(`"data_sublocation"."invcd_status"`), 'status'],
+                        [Sequelize.literal(`"data_sublocation"."invcd_scanned_at"`), 'scanned_at']
+                    ],
+                    include: [
+                        {
+                            model: LocMstr,
+                            as: 'location',
+                            attributes: []
+                        }, {
+                            model: LocsMstr,
+                            as: 'sublocation',
+                            attributes: []
+                        }
+                    ],
+                    where: {
+                        invcd_status: 'hold'
+                    }
+                }
+            ],
+            where: {
+                pt_code: partNumber
+            }
+        });
+
+        return result;
     }
 }
 
