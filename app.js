@@ -32,6 +32,7 @@ app.use('/product', require('./routes/product'));
 app.use('/putting', require('./routes/putting'));
 // app.use('/receive', require('./routes/receive'));
 app.use('/register', require('./routes/register'));
+app.use('/partner', require('./routes/partner'));
 app.use('/transfer', require('./routes/transfer'));
 app.use('/sales-order', require('./routes/sales_order'));
 app.use('/sublocation', require('./routes/sublocation'));

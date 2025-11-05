@@ -40,6 +40,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'ptnr_oid',
         foreignKey: 'ptnra_ptnr_oid'
       })
+
+      PtnrMstr.hasOne(models.ArMstr, {
+        as: 'singular_account_receivable_relation',
+        sourceKey: 'ptnr_id',
+        foreignKey: 'ar_bill_to'
+      })
     }
   }
   PtnrMstr.init({

@@ -9,7 +9,7 @@ const {
 	PtnrgGrp, Sequelize
 } = require('../../models')
 
-const {MasterService} = require('../Services/ServiceContainer');
+const { MasterService, LocationService } = require('../Services/ServiceContainer');
 const {info, error: errorLog} = require('../../helper/Logging');
 
 /*
@@ -21,26 +21,28 @@ const {info, error: errorLog} = require('../../helper/Logging');
 */
 
 class MasterController {
-	getSite = (req, res) => {
-		SiMstr.findAll({
-			attributes: ['si_id', 'si_code', 'si_desc']	
-		})
-		.then(result => {
+	getSite = async ( req, res ) => {
+		try {
+			let result = await MasterService.getSite();
+
 			res.status(200)
 				.json({
 					status: 'success',
-					message: 'success to get site',
-					result: result
+					message: 'ok',
+					data: result,
+					error: null,
 				})
-		})
-		.catch(err => {
+		} catch (error) {
+			await errorLog('GET SITE', error.message);
+
 			res.status(400)
 				.json({
-					status: 'failed',
-					message: 'failed to get site',
-					error: err.message
+					status: 'error',
+					message: 'failed',
+					data: null,
+					error: 'Internal Server Error!'
 				})
-		})
+		}
 	}
 
 	getEntity = (req, res) => {
@@ -87,26 +89,76 @@ class MasterController {
 		})
 	}
 
-	getAccount = (req, res) => {
-		AcMstr.findAll({
-			attributes: ['ac_id', 'ac_code', 'ac_name']
-		})
-		.then(result => {
+	getAccount = async (req, res) => {
+		try {
+			let result = await MasterService.retrieveAccount();
+
 			res.status(200)
 				.json({
 					status: 'success',
-					message: 'success to get account',
-					data: result
-				})
-		})
-		.catch(err => {
+					message: 'ok',
+					data: result,
+					error: null
+				});
+		} catch (error) {
+			await errorLog('GET ACCOUNT', error.message);
+
 			res.status(400)
 				.json({
 					status: 'failed',
-					message: 'failed to get account',
-					error: err.message
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
 				})
-		})
+		}
+	}
+
+	getSubAccount = async ( req, res ) => {
+		try {
+			let result = await MasterService.retrieveSubAccount();
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET SUB ACCOUNT', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	getCostCenter = async ( req, res ) => {
+	try {
+		let result = await MasterService.retrieveCostCenter();
+
+		res.status(200)
+			.json({
+				status: 'success',
+				message: 'ok',
+				data: result,
+				error: null
+			})
+	} catch (error) {
+		await errorLog('GET SUB ACCOUNT', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
 	}
 
 	getPartner = (req, res) => {
@@ -226,6 +278,33 @@ class MasterController {
 					error: err.message
 				})
 		})
+	}
+
+	getLocationSalesQuotation = async ( req, res ) => {
+		try {
+			let entityId = req.params.entity_id;
+			let locationName = req.query.location_name || '';
+
+			let result = await LocationService.getSimpleDataLocation( entityId, locationName );
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET LOCATION SALES QUOTATION', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
 	}
 }
 

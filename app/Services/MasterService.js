@@ -1,7 +1,18 @@
-const {EnMstr, PtCatMstr, InvcdDet, LocsMstr, Sequelize} = require('../../models');
+const {EnMstr, PtCatMstr, InvcdDet, LocsMstr, SiMstr, AcMstr, SbMstr, CcMstr, Sequelize} = require('../../models');
 const {Op} = require('sequelize');
 
 class MasterService {
+    getSite = async () => {
+        let result = await SiMstr.findAll({
+            attributes: [
+                ['si_id', 'site_id'],
+                ['si_desc', 'site_desc']
+            ]
+        });
+
+        return result;
+    }
+    
     getEntity = async () => {
         const result = await EnMstr.findAll({
             attributes: ['en_id', 'en_desc'],
@@ -64,6 +75,48 @@ class MasterService {
                 [Sequelize.col('scanned'), 'DESC']
             ]
         })
+
+        return result;
+    }
+
+    retrieveAccount = async () => {
+        let result = await AcMstr.findAll({
+            attributes: [
+                ['ac_id', 'account_id'],
+                ['ac_code', 'account_code'],
+                ['ac_name', 'account_name']
+            ],
+            order: [
+                ['ac_id', 'ASC']
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveSubAccount = async () => {
+        let result = await SbMstr.findAll({
+            attributes: [
+                ['sb_id', 'subaccount_id'],
+                ['sb_code', 'subaccount_code'],
+                ['sb_desc', 'subaccount_desc']
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveCostCenter = async () => {
+        let result = await CcMstr.findAll({
+            attributes: [
+                ['cc_id', 'cost_center_id'],
+                ['cc_code', 'cost_center_code'],
+                ['cc_desc', 'cost_center_desc'],
+            ],
+            order: [
+                ['cc_id', 'ASC']
+            ]
+        });
 
         return result;
     }

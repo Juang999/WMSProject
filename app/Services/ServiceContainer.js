@@ -8,6 +8,7 @@ module.exports = {
     ScanoutService: require('./ScanoutService'),
     // ReceiveService: require('./ReceiveService'),
     PuttingService: require('./PuttingService'),
+    PartnerService: require('./PartnerService'),
     ShipmentService: require('./ShipmentService'),
     LocationService: require('./LocationService'),
     TransferService: require('./TransferService'),
