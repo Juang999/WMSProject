@@ -42,8 +42,9 @@ app.use('/stock-opname', require('./routes/stock_opname'));
 app.use('/move-location', require('./routes/move_location'));
 app.use('/purchase-order', require('./routes/purchase_order'));
 app.use('/return-product', require('./routes/return_product'));
-app.use('/inventory-receipt', require('./routes/inventory_receipt'));
+app.use('/sales-quotation', require('./routes/sales_quotation'));
 app.use('/inventory-request', require('./routes/inventory_request'));
+app.use('/inventory-receipt', require('./routes/inventory_receipt'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

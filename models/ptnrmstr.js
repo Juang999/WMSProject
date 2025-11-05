@@ -33,6 +33,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'history_purchase_order',
         sourceKey: 'ptnr_id',
         foreignKey: 'po_ptnr_id'
+      });
+
+      PtnrMstr.hasOne(models.PtnraAddr, {
+        as: 'singular_partner_address_relation',
+        sourceKey: 'ptnr_oid',
+        foreignKey: 'ptnra_ptnr_oid'
       })
     }
   }
