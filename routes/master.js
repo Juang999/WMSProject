@@ -11,8 +11,14 @@ router.get('/category', MasterController.getCategory);
 router.get('/sublocation-type', MasterController.getSublocationType);
 router.get('/account', [ authMiddleware ], MasterController.getAccount);
 router.get('/:location_id/sub-location', MasterController.getSublocation);
+router.get('/currency', [ authMiddleware ], MasterController.getCurrency);
 router.get('/subaccount', [ authMiddleware ], MasterController.getSubAccount);
 router.get('/cost-center', [ authMiddleware ], MasterController.getCostCenter);
+router.get('/payment-type', [ authMiddleware ], MasterController.getPaymentType);
+router.get('/credit-terms', [ authMiddleware ], MasterController.getCreditTerms);
+router.get('/payment-method', [ authMiddleware ], MasterController.getPaymentMethod);
+router.get('/area-pricelist', [ authMiddleware ], MasterController.getAreaPriceListt);
+router.get('/sales-program', [ authMiddleware ], MasterController.getSalesProgramName);
 router.get('/:enttiy_id/location-sales-quotataion', [ authMiddleware ], MasterController.getLocationSalesQuotation);
 
 module.exports = router

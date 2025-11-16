@@ -4,7 +4,7 @@ const {
     RiudsSerial, Sequelize,
     PtMstr, LocMstr, InvcdDet
 } = require('../../models');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 
@@ -220,7 +220,55 @@ class InventoryReceiptService {
         })
     }
 
-    retrieveHoldSerialByPartNumber = async ( partNumber ) => {
+    retrieveHoldSerial = async ( conditions ) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                [Sequelize.col(`product.pt_id`), 'product_id'],
+                [Sequelize.col(`product.pt_code`), 'product_code'],
+                [Sequelize.col(`product.pt_desc1`), 'product_name'],
+                ['invcd_transaction_code', 'transaction_code'],
+                [Sequelize.literal(`COUNT(invcd_oid)`), 'total_hold_serial']
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as: 'product',
+                    attributes: []
+                }
+            ],
+            where: {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.col('invcd_status'), {
+                        [Op.eq]: 'hold'
+                    }),
+                    Sequelize.where(Sequelize.col('invcd_transaction_code'), {
+                        [Op.iLike]: `%${conditions.transaction_code}%`
+                    }),
+                ],
+                [Op.or]: [
+                    [
+                        Sequelize.where(Sequelize.col(`product.pt_code`), {
+                            [Op.iLike]: `%${conditions.search}%`
+                        }),
+                    ], [
+                        Sequelize.where(Sequelize.col(`product.pt_desc1`), {
+                            [Op.iLike]: `%${conditions.search}%`
+                        })
+                    ]
+                ]
+            },
+            group: [
+                Sequelize.col(`product.pt_id`),
+                Sequelize.col(`product.pt_code`),
+                Sequelize.col(`product.pt_desc1`),
+                'invcd_transaction_code'
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveHoldSerialByPartNumber = async ( partNumber, ruNumber ) => {
         let result = await PtMstr.findOne({
             attributes: [
                 ["pt_id", "product_id"],
@@ -251,7 +299,8 @@ class InventoryReceiptService {
                         }
                     ],
                     where: {
-                        invcd_status: 'hold'
+                        invcd_status: 'hold',
+                        invcd_transaction_code: ruNumber
                     }
                 }
             ],

@@ -17,8 +17,20 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'sod_pt_id'
       })
 
+      PtMstr.belongsTo(models.SiMstr, {
+        as: 'site_product_relation',
+        targetKey: 'si_id',
+        foreignKey: 'pt_si_id'
+      })
+
       PtMstr.hasMany(models.InvctTable, {
         as: 'cost_product',
+        sourceKey: 'pt_id',
+        foreignKey: 'invct_pt_id'
+      })
+
+      PtMstr.hasOne(models.InvctTable, {
+        as: 'singular_cost_product',
         sourceKey: 'pt_id',
         foreignKey: 'invct_pt_id'
       })
@@ -156,8 +168,7 @@ module.exports = (sequelize, DataTypes) => {
     pt_psplan_id: DataTypes.INTEGER,
     pt_cat_id: DataTypes.INTEGER,
     pt_scat_id: DataTypes.INTEGER,
-    pt_color_tag: DataTypes.STRING,
-    pt_clothes_id: DataTypes.INTEGER
+    pt_color_tag: DataTypes.STRING
   }, {
     sequelize,
     schema: 'public',

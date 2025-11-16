@@ -11,6 +11,12 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      InvcdDet.belongsTo(models.EnMstr, {
+        as: 'entity_unique_relation',
+        targetKey: 'en_id',
+        foreignKey: 'invcd_en_id'
+      })
+
       InvcdDet.belongsTo(models.LocsMstr, {
         as: 'sublocation',
         targetKey: 'locs_id',
@@ -103,6 +109,7 @@ module.exports = (sequelize, DataTypes) => {
     invcd_deleted_by: DataTypes.STRING,
     invcd_transaction_oid: DataTypes.UUID,
     invcd_status: DataTypes.STRING,
+    invcd_booking: DataTypes.BOOLEAN
   }, {
     sequelize,
     schema: 'public',

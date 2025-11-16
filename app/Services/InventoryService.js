@@ -1315,6 +1315,71 @@ class InventoryService {
 
         return result;
     }
+
+    countSerialsOid = async ( locationId, productId, bookingStatus ) => {
+        let result = await InvcdDet.count({
+            where: {
+                invcd_pt_id: productId,
+                invcd_loc_id: locationId,
+                invcd_qty: 1,
+                invcd_qrbarcode: {
+                    [Op.not]: null
+                },
+                invcd_status: {
+                    [Op.in]: ['registered', 'available', 'hold']
+                },
+                invcd_booking: bookingStatus
+            }
+        });
+
+        return result;
+    }
+
+    retrieveSerialsOidByLimit = async ( locationId, productId, bookingStatus, limit ) => {
+        let result = await InvcdDet.findAll({
+            attributes: ['invcd_oid', 'invcd_qrbarcode'],
+            where: {
+                invcd_pt_id: productId,
+                invcd_loc_id: locationId,
+                invcd_qty: 1,
+                invcd_qrbarcode: {
+                    [Op.not]: null
+                },
+                invcd_status: {
+                    [Op.in]: ['registered', 'available', 'hold']
+                },
+                invcd_booking: bookingStatus
+            },
+            limit: limit
+        });
+
+        return result;
+    }
+
+    bulkSerialBooking = async ( invcdOid, bookingStatus, transaction ) => {
+        await InvcdDet.update({
+            invcd_booking: bookingStatus
+        }, {
+            where: {
+                invcd_oid: {
+                    [Op.in]: invcdOid
+                }
+            },
+            transaction
+        });
+    }
+
+    bookQuantityInventory = async ( invcOid, dataQty, transaction ) => {
+        await InvcMstr.update({
+            invc_qty_available: dataQty.qty_available,
+            invc_qty_booked: dataQty.qty_booked
+        }, {
+            where: {
+                invc_oid: invcOid
+            },
+            transaction
+        });
+    }
 }
 
 module.exports = new InventoryService();

@@ -1,6 +1,8 @@
 const {
+    EnMstr, SiMstr,
     PtnrMstr, PtMstr, 
     SodDet, Sequelize,
+    LocMstr, CodeMstr,
     SoMstr, SoShipdsSerial,
     TransStatus, SodsSerial,
 } = require('../../models');
@@ -305,6 +307,161 @@ class SalesOrderService {
             },
             replacements: {
                 sods_oid: sodsOid
+            }
+        });
+
+        return result;
+    }
+
+    retrieveSalesOrderNumber = async ( entityId, search, startDate, endDate ) => {
+        let result = await SoMstr.findAll({
+            attributes: [
+                'so_oid',
+                [Sequelize.col(`entity_relation.en_desc`), 'entity'],
+                ['so_code', 'so_number'],
+                'so_date',
+                [Sequelize.col(`buyer.ptnr_name`), 'customer']
+            ],
+            include: [
+                {
+                    model: EnMstr,
+                    as: 'entity_relation',
+                    attributes: []
+                }, {
+                    model: PtnrMstr,
+                    as: 'buyer',
+                    attributes: []
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.col(`so_en_id`), {
+                    [Op.eq]: entityId
+                }),
+                Sequelize.where(Sequelize.col(`so_code`), {
+                    [Op.iLike]: `%${search}%`
+                }),
+                Sequelize.where(Sequelize.literal(`DATE(so_add_date)`), {
+                    [Op.between]: [startDate, endDate]
+                })
+            ],
+            order: [
+                ['so_add_date', 'DESC']
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveSalesOrderForShipment = async ( salesOrderOid ) => {
+        let result = await SoMstr.findOne({
+            attributes: [
+                'so_oid',
+                ['so_code', 'so_number'],
+            ],
+            include: [
+                {
+                    model: SodDet,
+                    as: 'detail_sales_order',
+                    attributes: [
+                        'sod_oid',
+                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_id"`), 'pt_id'],
+                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`), 'partnumber'],
+                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`), 'description1'],
+                        [Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc2"`), 'description2'],
+                        [Sequelize.literal('CASE WHEN sod_serial IS NOT NULL THEN TRUE ELSE FALSE END'), 'lot_or_serial'],
+                        [Sequelize.literal(`CASE WHEN COUNT("detail_sales_order->singular_serial_sales_order"."sods_oid") = 0 THEN 'N' ELSE 'Y' END`), 'has_unique'],
+                        [Sequelize.literal(`"detail_sales_order->site_relation"."si_desc"`), 'site'],
+                        [Sequelize.literal(`"detail_sales_order->location_relation"."loc_desc"`), 'location'],
+                        [Sequelize.literal('ROUND(sod_qty_open, 2)'), 'qty_open'],
+                        [Sequelize.literal('ROUND(sod_qty_booked, 2)'), 'qty_booked'],
+                        [Sequelize.literal(`ROUND(sod_qty_allocated, 2)`), 'qty_allocated'],
+                        [Sequelize.literal(`COUNT("detail_sales_order->singular_serial_sales_order"."sods_oid")`), 'qty_shipment'],
+                        [Sequelize.literal(`"detail_sales_order->unitmeasure_relation"."code_name"`), 'um'],
+                        ['sod_um_conv', 'um_conv'],
+                        [Sequelize.literal('ROUND(sod_qty_real, 2)'), 'qty_real'],
+                    ],
+                    include: [
+                        {
+                            model: PtMstr,
+                            as: 'detail_product',
+                            attributes: []
+                        }, {
+                            model: SodsSerial,
+                            as: 'singular_serial_sales_order',
+                            attributes: []
+                        }, {
+                            model: SiMstr,
+                            as: 'site_relation',
+                            attributes: []
+                        }, {
+                            model: LocMstr,
+                            as: 'location_relation',
+                            attributes: []
+                        }, {
+                            model: CodeMstr,
+                            as: 'unitmeasure_relation',
+                            attributes: []
+                        }
+                    ]
+                }
+            ],
+            where: {
+                so_oid: salesOrderOid
+            },
+            group: [
+                'so_oid',
+                Sequelize.literal(`"detail_sales_order"."sod_oid"`),
+                Sequelize.literal(`"detail_sales_order->detail_product"."pt_id"`),
+                Sequelize.literal(`"detail_sales_order->detail_product"."pt_code"`),
+                Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc1"`),
+                Sequelize.literal(`"detail_sales_order->detail_product"."pt_desc2"`),
+                Sequelize.literal(`"detail_sales_order->site_relation"."si_desc"`),
+                Sequelize.literal(`"detail_sales_order->location_relation"."loc_desc"`),
+                Sequelize.literal(`"detail_sales_order->unitmeasure_relation"."code_name"`),
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveSerialNumberSalesOrder = async ( salesOrderOid ) => {
+        let result = await SodsSerial.findAll({
+            attributes: [
+                'sods_oid',
+                'sods_sod_oid',
+                [Sequelize.col(`detail_so.sod_pt_id`), 'product_id'],
+                [Sequelize.col(`detail_so->detail_product.pt_code`), 'partnumber'],
+                [Sequelize.col(`detail_so->detail_product.pt_desc1`), 'description1'],
+                [Sequelize.col(`detail_so->detail_product.pt_desc2`), 'description2'],
+                [Sequelize.col(`detail_so->location_relation.loc_desc`), 'location'],
+                ['sods_qty', 'qty'],
+                ['sods_serial', 'qrbarcode']
+            ],
+            include: [
+                {
+                    model: SodDet,
+                    as: 'detail_so',
+                    attributes: [],
+                    include: [
+                        {
+                            model: PtMstr,
+                            as: 'detail_product',
+                            attributes: []
+                        }, {
+                            model: LocMstr,
+                            as: 'location_relation',
+                            attributes: []
+                        }
+                    ]
+                }
+            ],
+            where: {
+                sods_sod_oid: {
+                    [Op.in]: Sequelize.literal(`(SELECT sod_oid FROM public.sod_det WHERE sod_so_oid = (SELECT so_oid FROM public.so_mstr WHERE so_oid = :salesorder_oid))`)
+                }
+            },
+            replacements: {
+                salesorder_oid: salesOrderOid
             }
         });
 

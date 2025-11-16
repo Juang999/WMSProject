@@ -52,10 +52,19 @@ module.exports = (sequelize, DataTypes) => {
     scopes: {
       priceListDistributor: {
         where: {
-          pi_ptnrg_id: 9911,
-          pi_desc: {
-            [Op.iLike]: '%Price List Distributor%'
-          }
+          [Op.or]: [
+            {
+              pi_ptnrg_id: 9911,
+              pi_desc: {
+                [Op.iLike]: 'Price List Distributor%'
+              }
+            }, {
+              pi_ptnrg_id: 999,
+              pi_desc: {
+                [Op.iLike]: '%Grade B'
+              }
+            }
+          ],
         }
       }
     },

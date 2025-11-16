@@ -1,8 +1,7 @@
 // modules
-const {Op} = require('sequelize')
-const {v4: uuidv4} = require('uuid')
-const moment = require('moment')
-const {Auth, Query} = require('../../helper/helper')
+const {Op} = require('sequelize');
+const moment = require('moment');
+const { info, error: errorLog } = require('../../helper/Logging');
 const { ProductService } = require('../Services/ServiceContainer');
 
 // models
@@ -87,6 +86,38 @@ class ProductController {
 					message: 'error!',
 					data: null,
 					error: error.message
+				})
+		}
+	}
+
+	getProductForSalesQuotation = async ( req, res ) => {
+		try {
+			let conditions = {
+				entity_id: req.params.entity_id,
+				pricelist_id: req.query.pricelist_id,
+				area_id: req.query.area_id,
+				location_id: req.query.location_id,
+				payment_type_id: req.query.payment_type_id
+			}
+
+			let result = await ProductService.getProductSalesQuotation( conditions );
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET PRODUCT FOR SALES QUOTATION', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
 				})
 		}
 	}

@@ -6,11 +6,41 @@ const { info, error: errorLog } = require('../../helper/Logging');
 const { InventoryReceiptService, InventoryService } = require('../Services/ServiceContainer');
 
 class ReleaseController {
+    getAllHoldSerial = async ( req, res ) => {
+        try {
+            let conditions = {
+                transaction_code: req.query.ru_number || '',
+                search: req.query.search || ''
+            }
+
+            let result = await InventoryReceiptService.retrieveHoldSerial( conditions );
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        } catch (error) {
+            errorLog("GET ALL HOLD SERIALS", error.message);
+
+            res.status(400)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: error.message
+                })
+        }
+    }
+    
     getHoldSerial = async ( req, res ) => {
         try {
             let partNumber = req.params.partnumber;
+            let ruNumber = req.query.ru_number;
 
-            let result = await InventoryReceiptService.retrieveHoldSerialByPartNumber(partNumber);
+            let result = await InventoryReceiptService.retrieveHoldSerialByPartNumber(partNumber, ruNumber);
 
             res.status(200)
                 .json({
@@ -37,8 +67,6 @@ class ReleaseController {
 
         try {
             let bulkSerial = req.body.serials.split(',');
-
-            console.info(bulkSerial);
 
             for (const singularSerial of bulkSerial) {
                 let serialNumber = await InventoryService.findSerialNumber(singularSerial, transaction);

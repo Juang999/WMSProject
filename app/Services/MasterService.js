@@ -1,4 +1,12 @@
-const {EnMstr, PtCatMstr, InvcdDet, LocsMstr, SiMstr, AcMstr, SbMstr, CcMstr, Sequelize} = require('../../models');
+const {
+    CuMstr,
+    SiMstr, AcMstr, 
+    SbMstr, CcMstr, 
+    EnMstr, PtCatMstr, 
+    InvcdDet, LocsMstr, 
+    Sequelize, AreaMstr,
+    CodeMstr, SlsProgram,
+} = require('../../models');
 const {Op} = require('sequelize');
 
 class MasterService {
@@ -120,6 +128,57 @@ class MasterService {
 
         return result;
     }
+
+    retrieveAreaPriceList = async () => {
+        let result = await AreaMstr.findAll({
+            attributes: ['area_id', 'area_code', 'area_name'],
+            order: [
+                ['area_id', 'ASC']
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveDataCodeMstrByCodeField = async ( codeField ) => {
+        let result = await CodeMstr.findAll({
+            attributes: ['code_id', 'code_field', 'code_name'],
+            where: {
+                code_field: codeField
+            }
+        });
+
+        return result;
+    }
+
+    retrieveSalesProgram = async ( salesProgramName ) => {
+        let result = await SlsProgram.findAll({
+            attributes: [
+                ['sls_id', 'sales_program_id'], 
+                ['sls_code', 'sales_program_code'], 
+                ['sls_name', 'sales_program_name']
+            ],
+            where: {
+                sls_name: {
+                    [Op.iLike]: `%${salesProgramName}%`
+                }
+            }
+        });
+
+        return result;
+    }
+
+    retrieveCurrency = async () => {
+        let result = await CuMstr.findAll({
+            attributes: [
+                ['cu_id', 'currency_id'],
+                ['cu_code', 'currency_code'],
+                ['cu_name', 'currency_name']
+            ]
+        });
+
+        return result;
+    } 
 }
 
 module.exports = new MasterService();

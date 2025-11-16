@@ -46,7 +46,7 @@ class Logging {
     }
 
     important = async (message) => {
-        this.Logger.info({message});
+        this.LoggerError.info({message});
 
         await importantMessageSend(message);
     }

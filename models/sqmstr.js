@@ -136,6 +136,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'sls_code',
         foreignKey: 'sq_sales_program'
       });
+
+      SqMstr.hasMany(models.SqdDet, {
+        as: 'detail_sales_quotation_relation',
+        sourceKey: 'sq_oid',
+        foreignKey: 'sqd_sq_oid'
+      })
     }
   }
   SqMstr.init({

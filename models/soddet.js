@@ -51,6 +51,24 @@ module.exports = (sequelize, DataTypes) => {
         as: 'serial_shipment',
         sourceKey: 'sod_oid',
         foreignKey: 'soshipds_sod_oid'
+      });
+
+      SodDet.belongsTo(models.SiMstr, {
+        as: 'site_relation',
+        targetKey: 'si_id',
+        foreignKey: 'sod_si_id'
+      });
+
+      SodDet.belongsTo(models.LocMstr, {
+        as: 'location_relation',
+        targetKey: 'loc_id',
+        foreignKey: 'sod_loc_id'
+      });
+
+      SodDet.belongsTo(models.CodeMstr, {
+        as: 'unitmeasure_relation',
+        targetKey: 'code_id',
+        foreignKey: 'sod_um'
       })
     }
   }

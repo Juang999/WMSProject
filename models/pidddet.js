@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, Op
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class PiddDet extends Model {
@@ -15,6 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'relation_pricelist',
         targetKey: 'pid_oid',
         foreignKey: 'pidd_pid_oid'
+      })
+
+      PiddDet.belongsTo(models.AreaMstr, {
+        as: 'area',
+        targetKey: 'area_id',
+        foreignKey: 'pidd_area_id'
       })
     }
   }
@@ -46,7 +52,13 @@ module.exports = (sequelize, DataTypes) => {
     scopes: {
       cashPaymentType: {
         where: {
-          pidd_payment_type: 9941
+          [Op.or]: [
+            {
+              pidd_payment_type: 9941
+            }, {
+              pidd_payment_type: 9942
+            }
+          ]
         }
       }
     },

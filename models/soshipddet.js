@@ -15,13 +15,19 @@ module.exports = (sequelize, DataTypes) => {
         as: 'detail_sales_order',
         targetKey: 'sod_oid',
         foreignKey: 'soshipd_sod_oid'
-      })
+      });
 
       SoShipdDet.hasMany(models.SoShipdsSerial, {
         as: 'shipment_serial',
         sourceKey: 'soshipd_oid',
         foreignKey: 'soshipds_soshipd_oid'
-      })
+      });
+
+      SoShipdDet.belongsTo(models.CodeMstr, {
+        as: 'unitmeasure_relation',
+        targetKey: 'code_id',
+        foreignKey: 'soshipd_um'
+      });
     }
   }
   SoShipdDet.init({

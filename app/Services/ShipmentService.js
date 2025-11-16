@@ -1,6 +1,179 @@
-const {SoShipMstr, SoMstr, LocMstr, SodDet, PtMstr, PtnrMstr, SoShipdDet, SoShipdsSerial, Sequelize} = require('../../models');
+const { Op } = require('sequelize');
+const {
+    CodeMstr,
+    SiMstr, CuMstr,
+    LocMstr, SodDet, 
+    PtMstr, PtnrMstr, 
+    Sequelize, EnMstr,
+    SoShipMstr, SoMstr, 
+    SoShipdDet, SoShipdsSerial, 
+} = require('../../models');
 
 class ShipmentService {
+    retrieveHeaderShipment = async ( params ) => {
+        let result = await SoShipMstr.findAll({
+            attributes: [
+                'soship_oid',
+                [Sequelize.col(`entity_relation.en_desc`), 'entity'],
+                [Sequelize.col(`sales_order_master.so_code`), 'so_number'],
+                [Sequelize.col(`sales_order_master->buyer.ptnr_name`), 'sold_to'],
+                [Sequelize.col(`sales_order_master.so_booking`), 'booking'],
+                [Sequelize.col(`sales_order_master.so_cons`), 'consignment'],
+                [Sequelize.col(`sales_order_master.so_alocated`), 'preorder'],
+                ['soship_code', 'shipment_number'],
+                ['soship_date', 'date'],
+                [Sequelize.col(`site_relation.si_desc`), 'site'],
+                [Sequelize.col(`currency_relation.cu_name`), 'currency'],
+                [Sequelize.literal('ROUND(soship_exc_rate, 2)'), 'exchange_rate'],
+                [`soship_remarks`, 'remarks'],
+                ['soship_add_by', 'user_create'],
+                ['soship_add_date', 'date_create'],
+                ['soship_upd_by', 'user_update'],
+                ['soship_upd_date', 'date_update'],
+            ],
+            include: [
+                {
+                    model: EnMstr,
+                    as: 'entity_relation',
+                    attributes: []
+                }, {
+                    model: SoMstr,
+                    as: 'sales_order_master',
+                    attributes: [],
+                    include: [
+                        {
+                            model: PtnrMstr,
+                            as: 'buyer',
+                            attributes: []
+                        }
+                    ]
+                }, {
+                    model: SiMstr,
+                    as: 'site_relation',
+                    attributes: []
+                }, {
+                    model: CuMstr,
+                    as: 'currency_relation',
+                    attributes: []
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.literal(`DATE(soship_add_date)`), {
+                    [Op.between]: [params.conditions.start_date, params.conditions.end_date]
+                }),
+                Sequelize.where(Sequelize.col(`soship_code`), {
+                    [Op.iLike]: `%${params.conditions.shipment_code}%`
+                })
+            ],
+            order: [
+                [`soship_add_date`, params.sort.date_sort]
+            ],
+        });
+
+        return result;
+    }
+
+    retrieveDetailShipmentByOid = async ( shipmentOid ) => {
+        let result = await SoShipdDet.findAll({
+            attributes: [
+                'soshipd_oid',
+                [Sequelize.col(`detail_sales_order->detail_product.pt_code`), 'partnumber'],
+                [Sequelize.col(`detail_sales_order->detail_product.pt_desc1`), 'description1'],
+                [Sequelize.col(`detail_sales_order->detail_product.pt_desc2`), 'description2'],
+                [Sequelize.col(`detail_sales_order->site_relation.si_desc`), 'site'],
+                [Sequelize.col(`detail_sales_order->location_relation.loc_desc`), 'location'],
+                [Sequelize.literal('soshipd_qty::INTEGER * -1'), 'qty_shipment'],
+                [Sequelize.literal(`soshipd_qty_inv::INTEGER`), 'qty_invoice'],
+                [Sequelize.col(`unitmeasure_relation.code_desc`), 'um'],
+                [Sequelize.literal(`soshipd_um_conv::INTEGER`), 'um_conversion'],
+                [Sequelize.literal(`soshipd_qty_real::INTEGER * -1`), 'qty_real'],
+            ],
+            include: [
+                {
+                    model: SodDet,
+                    as: 'detail_sales_order',
+                    attributes: [],
+                    include: [
+                        {
+                            model: PtMstr,
+                            as: 'detail_product',
+                            attributes: []
+                        }, {
+                            model: SiMstr,
+                            as: 'site_relation',
+                            attributes: []
+                        }, {
+                            model: LocMstr,
+                            as: 'location_relation',
+                            attributes: []
+                        }
+                    ]
+                }, {
+                    model: CodeMstr,
+                    as: 'unitmeasure_relation',
+                    attributes: []
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.col(`soshipd_soship_oid`), {
+                    [Op.eq]: shipmentOid
+                })
+            ],
+        });
+
+        return result;
+    }
+
+    retrieveSerialShipmentByOid = async ( shipmentOid ) => {
+        let result = await SoShipdsSerial.findAll({
+            attributes: [
+                'soshipds_soshipd_oid',
+                [Sequelize.col(`shipment_detail_relation.soshipd_soship_oid`), 'soshipd_soship_oid'],
+                [Sequelize.col(`shipment_detail_relation->detail_sales_order->detail_product.pt_code`), 'partnumber'],
+                [Sequelize.col(`shipment_detail_relation->detail_sales_order->detail_product.pt_desc1`), 'description1'],
+                [Sequelize.col(`shipment_detail_relation->detail_sales_order->detail_product.pt_desc2`), 'description2'],
+                [Sequelize.col(`shipment_detail_relation->detail_sales_order->site_relation.si_desc`), 'site'],
+                [Sequelize.literal(`soshipds_qty::INTEGER * -1`), 'qty'],
+                [`soshipds_qrbarcode`, 'qrbarcode']
+            ],
+            include: [
+                {
+                    model: SoShipdDet,
+                    as: 'shipment_detail_relation',
+                    attributes: [],
+                    include: [
+                        {
+                            model: SodDet,
+                            as: 'detail_sales_order',
+                            attributes: [],
+                            include: [
+                                {
+                                    model: PtMstr,
+                                    as: 'detail_product',
+                                    attributes: []
+                                }, {
+                                    model: SiMstr,
+                                    as: 'site_relation',
+                                    attributes: []
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            where: {
+                soshipds_soshipd_oid: {
+                    [Op.in]: Sequelize.literal(`(SELECT soshipd_oid FROM public.soshipd_det WHERE soshipd_soship_oid = :header_shipment_oid)`)
+                }
+            },
+            replacements: {
+                header_shipment_oid: shipmentOid
+            }
+        });
+
+        return result;
+    }
+
     getDetailShipment = async (shipmentCode) => {
         let result = await SoShipMstr.findAll({
             attributes: [

@@ -28,7 +28,7 @@ class PartnerService {
             attributes: [
                 ['ptnr_id', 'partner_id'],
                 ['ptnr_name', 'partner_name'],
-                [Sequelize.literal(`COALESCE("group_partner"."ptnrg_limit_credit", 0)`), 'limit_credit']
+                [Sequelize.literal(`CASE WHEN ptnr_limit_credit != 0 THEN ROUND(ptnr_limit_credit, 2) WHEN ROUND(ptnr_limit_credit, 2) = 0 THEN ROUND("group_partner"."ptnrg_limit_credit", 2) WHEN "group_partner"."ptnrg_limit_credit" = 0 THEN 0 END`), 'limit_credit']
             ],
             include: [
                 {
@@ -46,6 +46,20 @@ class PartnerService {
             order: [
                 ['partner_name', 'ASC']
             ]
+        });
+
+        return result;
+    }
+
+    findPartnerById = async ( partnerId ) => {
+        let result = await PtnrMstr.findOne({
+            attributes: [
+                ['ptnr_id', 'partner_id'],
+                ['ptnr_name', 'partner_name']
+            ],
+            where: {
+                ptnr_id: partnerId
+            }
         });
 
         return result;

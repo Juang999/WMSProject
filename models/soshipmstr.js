@@ -22,6 +22,24 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'so_oid',
         foreignKey: 'soship_so_oid'
       })
+
+      SoShipMstr.belongsTo(models.EnMstr, {
+        as: 'entity_relation',
+        targetKey: 'en_id',
+        foreignKey: 'soship_en_id'
+      });
+
+      SoShipMstr.belongsTo(models.SiMstr, {
+        as: 'site_relation',
+        targetKey: 'si_id',
+        foreignKey: 'soship_si_id'
+      });
+
+      SoShipMstr.belongsTo(models.CuMstr, {
+        as: 'currency_relation',
+        targetKey: 'cu_id',
+        foreignKey: 'soship_cu_id'
+      })
     }
   }
   SoShipMstr.init({

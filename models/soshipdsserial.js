@@ -15,6 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'serial_location',
         targetKey: 'loc_id',
         foreignKey: 'soshipds_loc_id'
+      });
+
+      SoShipdsSerial.belongsTo(models.SoShipdDet, {
+        as: 'shipment_detail_relation',
+        targetKey: 'soshipd_oid',
+        foreignKey: 'soshipds_soshipd_oid'
       })
     }
   }

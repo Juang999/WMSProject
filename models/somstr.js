@@ -40,6 +40,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'ptnr_id',
         foreignKey: 'so_sales_person'
       })
+
+      SoMstr.belongsTo(models.EnMstr, {
+        as: 'entity_relation',
+        targetKey: 'en_id',
+        foreignKey: 'so_en_id'
+      })
     }
   }
   SoMstr.init({

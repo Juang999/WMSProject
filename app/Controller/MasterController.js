@@ -306,6 +306,157 @@ class MasterController {
 				})
 		}
 	}
+
+	getAreaPriceListt = async ( req, res ) => {
+		try {
+			let result = await MasterService.retrieveAreaPriceList();
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				});
+		} catch (error) {
+			await errorLog(`GET AREA PRICELIST`, error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				});
+		}
+	}
+
+	getPaymentMethod = async ( req, res ) => {
+		try {
+			let codeField = 'payment_methode';
+
+			let result = await MasterService.retrieveDataCodeMstrByCodeField( codeField );
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET PAYMENT METHOD', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	getPaymentType = async ( req, res ) => {
+		try {
+			let codeField = 'payment_type';
+
+			let result = await MasterService.retrieveDataCodeMstrByCodeField( codeField );
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET PAYMENT METHOD', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	getCreditTerms = async ( req, res ) => {
+		try {
+			let codeField = 'creditterms_mstr';
+
+			let result = await MasterService.retrieveDataCodeMstrByCodeField( codeField );
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET PAYMENT METHOD', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	getSalesProgramName = async ( req, res ) => {
+		try {
+			let salesProgramName = req.query.sales_program_name || '';
+
+			let result = await MasterService.retrieveSalesProgram( salesProgramName );
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET SALES PROGRAM', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error'
+				})
+		}
+	}
+
+	getCurrency = async ( req, res ) => {
+		try {
+			let result = await MasterService.retrieveCurrency();
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				});
+		} catch (error) {
+			await errorLog('GET CURRENCY', error.message);
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				});
+		}
+	}
 }
 
 module.exports = new MasterController()
