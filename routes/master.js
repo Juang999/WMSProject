@@ -19,6 +19,6 @@ router.get('/credit-terms', [ authMiddleware ], MasterController.getCreditTerms)
 router.get('/payment-method', [ authMiddleware ], MasterController.getPaymentMethod);
 router.get('/area-pricelist', [ authMiddleware ], MasterController.getAreaPriceListt);
 router.get('/sales-program', [ authMiddleware ], MasterController.getSalesProgramName);
-router.get('/:enttiy_id/location-sales-quotataion', [ authMiddleware ], MasterController.getLocationSalesQuotation);
+router.get('/:entity_id/location-sales-quotataion', [ authMiddleware ], MasterController.getLocationSalesQuotation);
 
 module.exports = router
