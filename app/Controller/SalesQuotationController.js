@@ -266,8 +266,6 @@ class SalesQuotationController {
                 po_oid: (dataPo != null) ? dataPo.dataValues.po_oid : null
             };
 
-            console.info(dataUpdate);
-
             await SalesQuotationService.updateDataHeaderSq(headerSalesQuotationOId, dataUser, dataUpdate, transaction);
             await transaction.commit();
 
@@ -626,7 +624,6 @@ class SalesQuotationController {
                 sq_dp: bodyHeader.deposit,
                 sq_disc_header: dataGroceries[0]['discount'],
                 sq_total: additionalData.total_price,
-                sq_due_date: bodyHeader.due_date,
                 sq_trans_id: 'D',
                 sq_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
                 sq_cu_id: bodyHeader.currency_id,
@@ -638,13 +635,13 @@ class SalesQuotationController {
                 sq_cons: bodyHeader.is_consigment,
                 sq_terbilang: Bilangan.parse( additionalData.total_price ),
                 sq_interval: 1,
-                sq_ref_po_code: (bodyHeader.po_customer_reff == '') ? null : bodyHeader.po_customer_reff,
-                sq_ref_po_oid: (additionalData.data_purchase_order) ? additionalData.data_purchase_order.po_oid : null,
+                sq_ref_po_code: (bodyHeader.po_customer_reff == '' || bodyHeader.po_customer_reff == null || bodyHeader.po_customer_reff == '-') ? null : bodyHeader.po_customer_reff,
+                sq_ref_po_oid: (bodyHeader.po_customer_reff == '' || bodyHeader.po_customer_reff == null || bodyHeader.po_customer_reff == '-' && additionalData.data_purchase_order == null) ? null : additionalData.data_purchase_order.po_oid,
                 sq_ppn_type: dataGroceries[0]['ppn_type'],
                 sq_ar_ac_id: 13,
                 sq_ar_sb_id: 0,
                 sq_ar_cc_id: 0,
-                sq_need_date: bodyHeader.need_date,
+                sq_need_date: bodyHeader.need_date || moment().add(2, 'days').format('YYYY-MM-DD'),
                 sq_is_package: (bodyHeader.is_package != null || bodyHeader.is_package != '' || bodyHeader.is_package != '-') ? 'Y' : 'N',
                 sq_sales_program: bodyHeader.sales_program,
                 sq_booking: bodyHeader.is_booking,
@@ -753,8 +750,6 @@ class SalesQuotationController {
     updateTotalPriceSalesQuotation = async ( headerSalesQuotationOId, dataUser ) => {
         let totalPrice = await SalesQuotationService.retrieveTotalPrice(headerSalesQuotationOId);
 
-        console.info(totalPrice);
-
         let dataUpdate = {
             total_price: totalPrice[0]['dataValues']['total_price'],
             terbilang_harga: Bilangan.parse(totalPrice[0]['dataValues']['total_price'])
@@ -791,10 +786,7 @@ class SalesQuotationController {
         let totalPrice = 0;
 
         for (const dataGrocery of dataGroceries) {
-            let priceBeforeDiscount = parseInt(dataGrocery.price) * parseInt(dataGrocery.qty);
-            let priceAfterDiscount = priceBeforeDiscount = (priceBeforeDiscount * parseFloat(dataGrocery.discount))
-
-            totalPrice += priceAfterDiscount;
+            totalPrice += (parseInt(dataGrocery.price) * parseInt(dataGrocery.qty)) - (parseInt(parseInt(dataGrocery.price) * parseInt(dataGrocery.qty) * parseFloat(dataGrocery.discount)));
         }
 
         return totalPrice;
@@ -818,7 +810,7 @@ class SalesQuotationController {
         let dataSerials = await InventoryService.retrieveSerialsOidByLimit(locationId, productId, true, limit);
         let serialsOid = dataSerials.map(({dataValues: items}) => items.invcd_oid);
 
-        await InventoryService.bulkSerialBooking(serialsOid, true, transaction);
+        await InventoryService.bulkSerialBooking(serialsOid, null, transaction);
     }
 
     releaseInventory = async ( invcOid, qty, transaction ) => {
