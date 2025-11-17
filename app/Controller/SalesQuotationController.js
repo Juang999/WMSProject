@@ -259,7 +259,7 @@ class SalesQuotationController {
                 git_location_id: req.body.git_location_id,
                 pricelist_area_id: req.body.pricelist_area_id,
                 credit_terms_id: req.body.credit_terms_id,
-                need_dat: req.body.need_date,
+                need_date: req.body.need_date,
                 payment_method_id: req.body.payment_method_id,
                 is_consigment: req.body.is_consigment,
                 po_code: (dataPo != null) ? dataPo.dataValues.po_code : null,
