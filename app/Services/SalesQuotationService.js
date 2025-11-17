@@ -638,6 +638,7 @@ class SalesQuotationService {
             sqd_upd_by: dataUser.usernama,
             sqd_upd_date: Sequelize.literal(`CURRENT_TIMESTAMP`),
             sqd_qty: dataUpdate.quantity,
+            sqd_qty_real: dataUpdate.quantity,
             sqd_price: dataUpdate.price || Sequelize.literal(`sqd_price`),
             sqd_disc: dataUpdate.discount || Sequelize.literal(`sqd_disc`),
             sqd_ppn_type: dataUpdate.ppn_type || Sequelize.literal(`sqd_ppn_type`),
