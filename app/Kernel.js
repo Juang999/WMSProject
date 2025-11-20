@@ -7,6 +7,9 @@ module.exports = {
             // detail Request
             CreateDetailSalesQuotationRequest: require('./Request/SalesQuotation/CreateDetailSalesQuotationRequest'),
             UpdateDetailSalesQuotationRequest: require('./Request/SalesQuotation/UpdateDetailSalesQuotationRequest'),
+        },
+        SalesOrderShipment: {
+            CreateSalesOrderShipmentRequest: require('./Request/SalesOrderShipment/CreateSalesOrderShipmentRequest')
         }
     }
 }

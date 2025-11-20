@@ -635,8 +635,8 @@ class SalesQuotationService {
 
     updateDataDetailSq = async ( detailSalesQuotationOid, dataUser, dataUpdate, transaction ) => {
         await SqdDet.update({
-            sqd_upd_by: dataUser.usernama,
-            sqd_upd_date: Sequelize.literal(`CURRENT_TIMESTAMP`),
+            sqd_upd_by: (dataUser) ? dataUser.usernama : Sequelize.literal('sqd_upd_by'),
+            sqd_upd_date: (dataUser) ? Sequelize.literal(`CURRENT_TIMESTAMP`) : Sequelize.literal(`sqd_upd_date`),
             sqd_qty: dataUpdate.quantity,
             sqd_qty_real: dataUpdate.quantity,
             sqd_price: dataUpdate.price || Sequelize.literal(`sqd_price`),
@@ -644,7 +644,8 @@ class SalesQuotationService {
             sqd_ppn_type: dataUpdate.ppn_type || Sequelize.literal(`sqd_ppn_type`),
             sqd_dp: dataUpdate.prepayment || Sequelize.literal(`sqd_dp`),
             sqd_payment: dataUpdate.payment || Sequelize.literal(`sqd_payment`),
-            sqd_sales_unit: dataUpdate.sales_unit || Sequelize.literal(`sqd_sales_unit`)
+            sqd_sales_unit: dataUpdate.sales_unit || Sequelize.literal(`sqd_sales_unit`),
+            sqd_qty_shipment: dataUpdate.qty_shipment || Sequelize.literal(`sqd_qty_shipment`)
         }, {
             where: {
                 sqd_oid: detailSalesQuotationOid

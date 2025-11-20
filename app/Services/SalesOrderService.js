@@ -1,4 +1,5 @@
 const {
+    PlMstr,
     EnMstr, SiMstr,
     PtnrMstr, PtMstr, 
     SodDet, Sequelize,
@@ -429,6 +430,8 @@ class SalesOrderService {
             attributes: [
                 'sods_oid',
                 'sods_sod_oid',
+                'sods_loc_id',
+                [Sequelize.col('detail_so.sod_si_id'), 'sod_si_id'],
                 [Sequelize.col(`detail_so.sod_pt_id`), 'product_id'],
                 [Sequelize.col(`detail_so->detail_product.pt_code`), 'partnumber'],
                 [Sequelize.col(`detail_so->detail_product.pt_desc1`), 'description1'],
@@ -466,6 +469,68 @@ class SalesOrderService {
         });
 
         return result;
+    }
+
+    retrieveDetailSalesOrder = async (detailSalesOrderOid) => {
+        let result = await SodDet.findAll({
+            attributes: [
+                'sod_oid', 
+                'sod_sqd_oid', 
+                'sod_um', 
+                'sod_um_conv', 
+                'sod_si_id', 
+                'sod_loc_id', 
+                'sod_qty_allocated', 
+                'sod_cost', 
+                'sod_price', 
+                'sod_en_id', 
+                'sod_dom_id',
+                [Sequelize.col(`header_sales_order.so_cu_id`), 'currency_id'],
+                [Sequelize.col(`header_sales_order.so_exc_rate`), 'exchange_rate'],
+                [Sequelize.col(`detail_product.pt_pl_id`), 'productline_id']
+            ],
+            include: [
+                {
+                    model: SoMstr,
+                    as: 'header_sales_order',
+                    attributes: []
+                }, {
+                    model: PtMstr,
+                    as: 'detail_product',
+                    attributes: []
+                }
+            ],
+            where: {
+                sod_oid: {
+                    [Op.in]: detailSalesOrderOid
+                }
+            }
+        });
+
+        return result;
+    }
+
+    updateQtyShipmentSalesOrder = async (detailSalesOrderOid, qty, transaction) => {
+        await SodDet.update({
+            sod_qty_shipment: qty
+        }, {
+            where: {
+                sod_oid: detailSalesOrderOid
+            },
+            transaction
+        })
+    }
+
+    updateHeaderSalesOrder = async ( dataUpdate, headerSalesOrderOid, transaction ) => {
+        await SoMstr.update({
+            so_trans_id: (dataUpdate.transaction_id) ? dataUpdate.transaction_id : Sequelize.literal('so_trans_id'),
+            so_close_date: (dataUpdate.close_date) ? dataUpdate.close_date : Sequelize.literal(`so_close_date`)
+        }, {
+            where: {
+                so_oid: headerSalesOrderOid
+            },
+            transaction
+        });
     }
 }
 

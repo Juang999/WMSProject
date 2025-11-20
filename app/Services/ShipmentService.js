@@ -8,6 +8,7 @@ const {
     SoShipMstr, SoMstr, 
     SoShipdDet, SoShipdsSerial, 
 } = require('../../models');
+const moment = require('moment');
 
 class ShipmentService {
     retrieveHeaderShipment = async ( params ) => {
@@ -278,6 +279,53 @@ class ShipmentService {
         });
 
         return result[0];
+    }
+
+    inputHeaderShipment = async ( bodyHeader, dataUser, transaction ) => {
+        await SoShipMstr.create({
+            soship_oid: bodyHeader.header_shipment_oid,
+            soship_dom_id: bodyHeader.domain_id,
+            soship_en_id: bodyHeader.entity_id,
+            soship_add_by: dataUser.usernama,
+            soship_add_date: Sequelize.literal(`CURRENT_TIMESTAMP`),
+            soship_code: bodyHeader.shipment_code,
+            soship_date: bodyHeader.shipment_date,
+            soship_so_oid: bodyHeader.so_oid,
+            soship_si_id: bodyHeader.site_id,
+            soship_is_shipment: 'Y',
+            soship_dt: Sequelize.literal(`CURRENT_TIMESTAMP`),
+            soship_exc_rate: bodyHeader.exchange_rate,
+            soship_cu_id: bodyHeader.currency_id,
+        }, {
+            transaction
+        });
+    }
+
+    inputDetailShipment = async ( bodyDetail, transaction ) => {
+        await SoShipdDet.bulkCreate(bodyDetail, {
+            transaction
+        });
+    }
+
+    inputSerialShipment = async ( bodySerial, transaction ) => {
+        await SoShipdsSerial.bulkCreate(bodySerial, {
+            transaction
+        });
+    }
+
+    countHeaderShipmentMonthly = async () => {
+        let startDate = moment().startOf('months').format('YYYY-MM-DD');
+        let endDate = moment().endOf('months').format('YYYY-MM-DD');
+
+        let result = await SoShipMstr.count({
+            where: [
+                Sequelize.where(Sequelize.literal(`DATE(soship_add_date)`), {
+                    [Op.between]: [startDate, endDate]
+                })
+            ]
+        });
+
+        return result;
     }
 }
 

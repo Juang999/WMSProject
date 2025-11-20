@@ -111,6 +111,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'singular_relation_pricelist',
         sourceKey: 'pt_id',
         foreignKey: 'pid_pt_id'
+      });
+
+      PtMstr.belongsTo(models.PlMstr, {
+        as: 'productline_relation',
+        targetKey: 'pl_id',
+        foreignKey: 'pt_pl_id'
       })
     }
   }
