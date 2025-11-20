@@ -1380,6 +1380,22 @@ class InventoryService {
             transaction
         });
     }
+
+    bulkSerialsUpdate = async ( serials, dataUpdate, transaction ) => {
+        await InvcdDet.update({
+            invcd_qty: dataUpdate.qty,
+            invcd_transaction_code: dataUpdate.transaction_code,
+            invcd_transaction_oid: dataUpdate.transaction_oid,
+            invcd_status: dataUpdate.update
+        }, {
+            where: {
+                invcd_qrbarcode: {
+                    [Op.in]: serials
+                }
+            },
+            transaction
+        })
+    }
 }
 
 module.exports = new InventoryService();

@@ -115,7 +115,7 @@ class JournalQueryService {
         await GlBalBalance.update({
             glbal_upd_by: dataUpdate.usernama,
             glbal_upd_date: Sequelize.literal(`CURRENT_TIMESTAMP`),
-            glbal_balance_unposted: Sequelize.literal(`glbal_balance_unposted - ${dataUpdate.cost}`)
+            glbal_balance_unposted: Sequelize.literal(`glbal_balance_unposted + ${dataUpdate.cost}`)
         }, {
             where: {
                 glbal_oid: balanceOid

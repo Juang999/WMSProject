@@ -430,6 +430,7 @@ class SalesOrderShipmentController {
             }
 
         let {status: statusUpdateBalance, message: messageUpdateBalance} = await JournalQueryService.updateGlobalBalance({
+            account_sign: dataProductLine.dataValues.account_sign,
             account_id: dataProductLine.dataValues.account_id,
             subaccount_id: dataProductLine.dataValues.subaccount_id,
             cost_center_id: dataProductLine.dataValues.cost_center_id,
