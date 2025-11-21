@@ -33,9 +33,17 @@ module.exports = (sequelize, DataTypes) => {
   SoShipdDet.init({
     soshipd_oid: {
       type: DataTypes.UUID,
-      primaryKey: true
+      primaryKey: true,
+      validate: {
+        isUUID: true
+      }
     },
-    soshipd_soship_oid: DataTypes.UUID,
+    soshipd_soship_oid: {
+      type: DataTypes.UUID,
+      validate: {
+        isUUID: true
+      }
+    },
     soshipd_sod_oid: DataTypes.UUID,
     soshipd_seq: DataTypes.INTEGER,
     soshipd_qty: DataTypes.INTEGER,
