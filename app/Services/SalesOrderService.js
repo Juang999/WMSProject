@@ -532,6 +532,15 @@ class SalesOrderService {
             transaction
         });
     }
+
+    retrieveHeaderSalesOrder = async ( headerSalesOrderOid ) => {
+        let result = await SoMstr.findOne({
+            attributes: ['so_oid', 'so_si_id', 'so_cu_id', 'so_booking', 'so_cons', 'so_alocated'],
+            where: {
+                so_oid: headerSalesOrderOid
+            }
+        })
+    }
 }
 
 module.exports = new SalesOrderService();

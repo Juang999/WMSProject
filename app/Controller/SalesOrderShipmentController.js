@@ -141,7 +141,20 @@ class SalesOrderShipmentController {
             // START: insert data shipment
             let uuidHeader = uuidv4();
             let sequence = await ShipmentService.countHeaderShipmentMonthly();
-            let codeHeader = await TransactionCode.generate('SS', req.body.entity_id, sequence);
+            const [codeHeader, dataHeaderSalesOrder] = await Promise.all([
+                TransactionCode.generate('SS', req.body.entity_id, sequence),
+                SalesOrderService.retrieveHeaderSalesOrder(req.body.header_sales_order_oid)
+            ])
+
+            if (dataHeaderSalesOrder == null) {
+                return res.status(404)
+                        .json({
+                            status: 'not found',
+                            message: 'data not found',
+                            data: null,
+                            error: 'sales order not found'
+                        })
+            }
 
             // -> START: insert data header shipment
             let bodyHeader = {
@@ -151,9 +164,12 @@ class SalesOrderShipmentController {
                 shipment_code: codeHeader,
                 shipment_date: req.body.date,
                 so_oid: req.body.header_sales_order_oid,
-                site_id: req.body.site_id,
-                exchange_rate: req.body.exchange_rate,
-                currency_id: req.body.currency_id
+                site_id: dataHeaderSalesOrder.dataValues.so_si_id,
+                exchange_rate: dataHeaderSalesOrder.dataValues.so_exc_rate,
+                currency_id: dataHeaderSalesOrder.dataValues.so_cu_id,
+                booking: dataHeaderSalesOrder.dataValues.so_booking,
+                consigment: dataHeaderSalesOrder.dataValues.so_cons,
+                alocated: dataHeaderSalesOrder.dataValues.so_alocated
             }
 
             await Promise.all([
@@ -163,7 +179,7 @@ class SalesOrderShipmentController {
                     close_date: moment().format('YYYY-MM-DD')
                 }, req.body.header_sales_order_oid, transaction)
             ]);
-            // -> END: insert data shipment
+            // -> END: insert data header shipment
 
             // -> STAT: insert detail shipment
             let detailShipment = JSON.parse(req.body.detail_shipment);

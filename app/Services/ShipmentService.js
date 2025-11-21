@@ -296,6 +296,9 @@ class ShipmentService {
             soship_dt: Sequelize.literal(`CURRENT_TIMESTAMP`),
             soship_exc_rate: bodyHeader.exchange_rate,
             soship_cu_id: bodyHeader.currency_id,
+            soship_booking: bodyHeader.booking,
+            soship_cons: bodyHeader.consigment,
+            soship_alocated: bodyHeader.alocated
         }, {
             transaction
         });
