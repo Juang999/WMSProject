@@ -172,7 +172,7 @@ class SalesOrderShipmentController {
                 domain_id: req.body.domain_id,
                 entity_id: req.body.entity_id,
                 shipment_code: codeHeader,
-                shipment_date: req.body.date,
+                shipment_date: req.body.effective_date,
                 so_oid: req.body.header_sales_order_oid,
                 site_id: dataHeaderSalesOrder.dataValues.so_si_id,
                 exchange_rate: dataHeaderSalesOrder.dataValues.so_exc_rate,
