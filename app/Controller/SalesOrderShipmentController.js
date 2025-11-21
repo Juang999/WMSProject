@@ -156,6 +156,16 @@ class SalesOrderShipmentController {
                         })
             }
 
+            if (dataHeaderSalesOrder.dataValues.so_trans_id == 'C') {
+                return res.statu(400)
+                        .json({
+                            status: 'failed',
+                            message: 'sales order has been shipped',
+                            data: null,
+                            error: 'sales order has been shipped'
+                        })
+            }
+
             // -> START: insert data header shipment
             let bodyHeader = {
                 header_shipment_oid: uuidHeader,
