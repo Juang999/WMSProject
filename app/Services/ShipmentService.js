@@ -288,6 +288,7 @@ class ShipmentService {
             soship_en_id: bodyHeader.entity_id,
             soship_add_by: dataUser.usernama,
             soship_add_date: Sequelize.literal(`CURRENT_TIMESTAMP`),
+            soship_date: bodyHeader.shipment_date,
             soship_code: bodyHeader.shipment_code,
             soship_date: bodyHeader.shipment_date,
             soship_so_oid: bodyHeader.so_oid,
