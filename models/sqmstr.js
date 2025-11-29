@@ -142,6 +142,12 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'sq_oid',
         foreignKey: 'sqd_sq_oid'
       })
+
+      SqMstr.belongsTo(models.TranMstr, {
+        as: 'approval_relation',
+        targetKey: 'tran_id',
+        foreignKey: 'sq_tran_id'
+      })
     }
   }
   SqMstr.init({

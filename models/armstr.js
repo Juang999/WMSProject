@@ -16,7 +16,10 @@ module.exports = (sequelize, DataTypes) => {
   ArMstr.init({
     ar_oid: {
       type: DataTypes.UUID,
-      primaryKey: true
+      primaryKey: true,
+      validate: {
+        isUUID: true
+      }
     },
     ar_dom_id: DataTypes.INTEGER,
     ar_en_id: DataTypes.INTEGER,

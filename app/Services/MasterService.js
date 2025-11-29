@@ -1,7 +1,8 @@
 const {
-    CuMstr,
+    BkMstr,
     SiMstr, AcMstr, 
     SbMstr, CcMstr, 
+    CuMstr, TranMstr,
     EnMstr, PtCatMstr, 
     InvcdDet, LocsMstr, 
     Sequelize, AreaMstr,
@@ -179,6 +180,28 @@ class MasterService {
 
         return result;
     } 
+
+    retrieveDataApproval = async () => {
+        let result = await TranMstr.findAll({
+            attributes: ['tran_id', 'tran_name', 'tran_desc'],
+            order: [
+                ['tran_id', 'ASC']
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveDataBank = async () => {
+        let result = await BkMstr.findAll({
+            attributes: ['bk_id', 'bk_code', 'bk_name'],
+            order: [
+                ['bk_id', 'ASC']
+            ]
+        });
+
+        return result;
+    }
 }
 
 module.exports = new MasterService();

@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       SoMstr.belongsTo(models.LocMstr, {
         as: 'location_to',
         targetKey: 'loc_id',
-        foreignKey: 'so_loc_to_id'
+        foreignKey: 'so_ptsfr_loc_to_id'
       })
 
       SoMstr.belongsTo(models.TransStatus, {
@@ -45,7 +45,79 @@ module.exports = (sequelize, DataTypes) => {
         as: 'entity_relation',
         targetKey: 'en_id',
         foreignKey: 'so_en_id'
-      })
+      });
+
+      SoMstr.belongsTo(models.SiMstr, {
+        as: 'site_relation',
+        targetKey: 'si_id',
+        foreignKey: 'so_si_id'
+      });
+
+      SoMstr.belongsTo(models.AcMstr, {
+        as: 'account_relation',
+        targetKey: 'ac_id',
+        foreignKey: 'so_ar_ac_id'
+      });
+
+      SoMstr.belongsTo(models.SbMstr, {
+        as: 'subaccount_relation',
+        targetKey: 'sb_id',
+        foreignKey: 'so_ar_sb_id'
+      });
+
+      SoMstr.belongsTo(models.CcMstr, {
+        as: 'cost_center_relation',
+        targetKey: 'cc_id',
+        foreignKey: 'so_ar_cc_id'
+      });
+
+      SoMstr.belongsTo(models.CodeMstr, {
+        as: 'tax_class_relation',
+        targetKey: 'code_id',
+        foreignKey: 'so_tax_class'
+      });
+
+      SoMstr.belongsTo(models.CodeMstr, {
+        as: 'credit_terms_relation',
+        targetKey: 'code_id',
+        foreignKey: 'so_credit_term'
+      });
+
+      SoMstr.belongsTo(models.CuMstr, {
+        as: 'currency_relation',
+        targetKey: 'cu_id',
+        foreignKey: 'so_cu_id'
+      });
+
+      SoMstr.belongsTo(models.BkMstr, {
+        as: 'bank_relation',
+        targetKey: 'bk_id',
+        foreignKey: 'so_bk_id'
+      });
+
+      SoMstr.belongsTo(models.PiMstr, {
+        as: 'pricelist_relation',
+        targetKey: 'pi_id',
+        foreignKey: 'so_pi_id'
+      });
+
+      SoMstr.belongsTo(models.CodeMstr, {
+        as: 'payment_type_relation',
+        targetKey: 'code_id',
+        foreignKey: 'so_pay_type'
+      });
+
+      SoMstr.belongsTo(models.CodeMstr, {
+        as: 'payment_method_relation',
+        targetKey: 'code_id',
+        foreignKey: 'so_pay_method'
+      });
+
+      SoMstr.belongsTo(models.TranMstr, {
+        as: 'approval_relation',
+        targetKey: 'tran_id',
+        foreignKey: 'so_tran_id'
+      });
     }
   }
   SoMstr.init({
@@ -56,7 +128,12 @@ module.exports = (sequelize, DataTypes) => {
     so_dom_id: DataTypes.INTEGER,
     so_en_id: DataTypes.INTEGER,
     so_add_by: DataTypes.STRING,
-    so_add_date: DataTypes.DATE,
+    so_add_date: {
+      type: DataTypes.DATE,
+      validate: {
+        isDate: true
+      }
+    },
     so_upd_by: DataTypes.STRING,
     so_upd_date: DataTypes.DATE,
     so_code: DataTypes.STRING,
@@ -113,7 +190,8 @@ module.exports = (sequelize, DataTypes) => {
     so_total_final: DataTypes.INTEGER,
     confa_accunt: DataTypes.STRING,
     so_booking: DataTypes.STRING,
-    so_shipping_addressso_sq_ref_oid: DataTypes.UUID,
+    so_shipping_address: DataTypes.STRING,
+    so_sq_ref_oid: DataTypes.UUID,
     so_sq_ref_code: DataTypes.STRING,
     so_va: DataTypes.STRING,
     so_psn_ref_code: DataTypes.STRING,
@@ -130,7 +208,18 @@ module.exports = (sequelize, DataTypes) => {
     so_print: DataTypes.STRING,
     so_return: DataTypes.STRING,
     sqd_invc_oid: DataTypes.UUID,
-    so_wo_status: DataTypes.STRING
+    so_wo_status: DataTypes.STRING,
+    so_en_id_shipment: DataTypes.INTEGER,
+    so_ptnra_id: DataTypes.INTEGER,
+    so_inv_receipt: DataTypes.STRING,
+    so_status_packing: 'N',
+    so_packing_by: DataTypes.STRING,
+    so_delivery_receipt_number: DataTypes.STRING,
+    so_delivery_courier: DataTypes.STRING,
+    so_store_src_id: DataTypes.INTEGER,
+    so_store_id: DataTypes.INTEGER,
+    so_shipper_id: DataTypes.INTEGER,
+    so_midtrans_inv_number: DataTypes.STRING
   }, {
     sequelize,
     schema: 'public',

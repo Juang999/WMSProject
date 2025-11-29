@@ -305,6 +305,141 @@ class ProductService {
         return result;
     }
 
+    getPackageSalesQuotation = async ( search ) => {
+        const result = await PtMstr.findAll({
+            attributes: [
+                ['pt_id', 'product_id'],
+                ['pt_code', 'partnumber'],
+                ['pt_desc1', 'description1'],
+                ['pt_desc2', 'description2']
+            ],
+            where: {
+                
+                pt_um: 9970,
+                pt_desc1: {
+                    [Op.iLike]: `%${search}%`
+                }
+            }
+        });
+
+        return result;
+    }
+
+    getProductPackageSalesQuotation = async ( conditions ) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                'invcd_invc_oid',
+                [Sequelize.literal(`"product->data_entity"."en_desc"`), 'entity'],
+                [Sequelize.literal(`"product->site_product_relation"."si_desc"`), 'site'],
+                [Sequelize.literal(`"product->singular_relation_pricelist->header_pricelist"."pi_desc"`), 'pricelist'],
+                [Sequelize.col(`product.pt_id`), "product_id"],
+                [Sequelize.col(`product.pt_code`), "product_code"],
+                [Sequelize.col(`product.pt_desc1`), "description1"],
+                [Sequelize.col(`product.pt_desc2`), "description2"],
+                [Sequelize.literal(`(SELECT area_name FROM public.area_mstr WHERE area_id = :area_id)`), 'area'],
+                [Sequelize.literal(`"product->singular_relation_pricelist->singular_detail_pricelist"."pidd_oid"`), 'pidd_oid'],
+                [Sequelize.literal(`ROUND("product->singular_relation_pricelist->singular_detail_pricelist"."pidd_price", 2)`), 'price'],
+                [Sequelize.literal(`ROUND("product->singular_cost_product"."invct_cost", 2)`), 'cost'],
+                ['invcd_loc_id', 'location_id'],
+                [Sequelize.col(`location.loc_desc`), 'location_name'],
+                [Sequelize.literal(`COUNT(invcd_qty)`), 'qty_on_hand'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as:  'product',
+                    attributes: [],
+                    include: [
+                        {
+                            model: SiMstr,
+                            as: 'site_product_relation',
+                            attributes: []
+                        }, {
+                            model: EnMstr,
+                            as: 'data_entity',
+                            attributes: []
+                        }, {
+                            model: InvctTable,
+                            as: 'singular_cost_product',
+                            attributes: []
+                        }, {
+                            model: PidDet,
+                            as: 'singular_relation_pricelist',
+                            attributes: [],
+                            include: [
+                                {
+                                    model: PiMstr,
+                                    as: 'header_pricelist',
+                                    attributes: []
+                                }, {
+                                    model: PiddDet,
+                                    as: 'singular_detail_pricelist',
+                                    attributes: [], 
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.col(`product.pt_en_id`), {
+                    [Op.eq]: conditions.entity_id
+                }),
+                Sequelize.where(Sequelize.col(`invcd_loc_id`), {
+                    [Op.eq]: conditions.location_id
+                }),
+                Sequelize.where(Sequelize.col(`invcd_booking`), {
+                    [Op.eq]: null
+                }),
+                Sequelize.where(Sequelize.col(`invcd_qty`), {
+                    [Op.eq]: 1
+                }),
+                Sequelize.where(Sequelize.col(`invcd_status`), {
+                    [Op.in]: ['available', 'registered', 'hold']
+                }),
+                Sequelize.where(Sequelize.literal(`"product->singular_relation_pricelist->header_pricelist"."pi_id"`), {
+                    [Op.eq]: conditions.pricelist_id
+                }),
+                Sequelize.where(Sequelize.literal(`"product->singular_relation_pricelist->singular_detail_pricelist"."pidd_payment_type"`), {
+                    [Op.eq]: conditions.payment_type_id
+                }),
+                Sequelize.where(Sequelize.literal(`"product->singular_relation_pricelist->singular_detail_pricelist"."pidd_area_id"`), {
+                    [Op.eq]: conditions.area_id
+                }),
+                Sequelize.where(Sequelize.literal(`"product"."pt_id"`), {
+                    [Op.in]: Sequelize.literal(`(SELECT psd_pt_bom_id FROM public.psd_det WHERE psd_ps_oid = (SELECT ps_oid FROM public.ps_mstr WHERE ps_pt_bom_id = :product_id))`)
+                })
+            ],
+            replacements: {
+                product_id: conditions.product_id
+            },
+            group: [
+                'invcd_invc_oid',
+                'entity',
+                'site',
+                'pricelist',
+                'product_id',
+                'product_code',
+                'description1',
+                'description2',
+                'price',
+                'cost',
+                'location_id',
+                'location_name',
+                'pidd_oid'
+            ],
+            replacements: {
+                area_id: conditions.area_id
+            }
+        });
+
+        return result;
+    }
+
     retrieveCostProductsByProductId = async ( productId ) => {
         let result = await InvctTable.findAll({
             attributes: [
@@ -330,6 +465,121 @@ class ProductService {
             ],
             where: {
                 pt_id: productId
+            }
+        });
+
+        return result;
+    }
+
+    getConsigmentProduct = async ( conditions ) => {
+        let result = await InvcdDet.findAll({
+            attributes: [
+                'invcd_invc_oid',
+                [Sequelize.literal(`"product->data_entity"."en_desc"`), 'entity'],
+                [Sequelize.literal(`"product->site_product_relation"."si_desc"`), 'site'],
+                [Sequelize.literal(`"product->singular_relation_pricelist->header_pricelist"."pi_desc"`), 'pricelist'],
+                [Sequelize.col(`product.pt_id`), "product_id"],
+                [Sequelize.col(`product.pt_code`), "product_code"],
+                [Sequelize.col(`product.pt_desc1`), "description1"],
+                [Sequelize.col(`product.pt_desc2`), "description2"],
+                [Sequelize.literal(`(SELECT area_name FROM public.area_mstr WHERE area_id = :area_id)`), 'area'],
+                [Sequelize.literal(`"product->singular_relation_pricelist->singular_detail_pricelist"."pidd_oid"`), 'pidd_oid'],
+                [Sequelize.literal(`ROUND("product->singular_relation_pricelist->singular_detail_pricelist"."pidd_price", 2)`), 'price'],
+                [Sequelize.literal(`ROUND("product->singular_cost_product"."invct_cost", 2)`), 'cost'],
+                ['invcd_loc_id', 'location_id'],
+                [Sequelize.col(`location.loc_desc`), 'location_name'],
+                [Sequelize.literal(`COUNT(invcd_qty)`), 'qty_on_hand'],
+            ],
+            include: [
+                {
+                    model: PtMstr,
+                    as:  'product',
+                    attributes: [],
+                    include: [
+                        {
+                            model: SiMstr,
+                            as: 'site_product_relation',
+                            attributes: []
+                        }, {
+                            model: EnMstr,
+                            as: 'data_entity',
+                            attributes: []
+                        }, {
+                            model: InvctTable,
+                            as: 'singular_cost_product',
+                            attributes: []
+                        }, {
+                            model: PidDet,
+                            as: 'singular_relation_pricelist',
+                            attributes: [],
+                            include: [
+                                {
+                                    model: PiMstr,
+                                    as: 'header_pricelist',
+                                    attributes: []
+                                }, {
+                                    model: PiddDet,
+                                    as: 'singular_detail_pricelist',
+                                    attributes: [], 
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.col(`product.pt_en_id`), {
+                    [Op.eq]: conditions.entity_id
+                }),
+                Sequelize.where(Sequelize.col(`location.loc_desc`), {
+                    [Op.iLike]: `%${conditions.location_name}%`
+                }),
+                Sequelize.where(Sequelize.col(`location.loc_type`), {
+                    [Op.eq]: 99298
+                }),
+                Sequelize.where(Sequelize.col(`invcd_booking`), {
+                    [Op.eq]: null
+                }),
+                Sequelize.where(Sequelize.col(`invcd_qty`), {
+                    [Op.eq]: 1
+                }),
+                Sequelize.where(Sequelize.col(`invcd_status`), {
+                    [Op.in]: ['available', 'registered', 'hold']
+                }),
+                Sequelize.where(Sequelize.col('product.pt_desc1'), {
+                    [Op.iLike]: `%${conditions.description1}%`,
+                }),
+                Sequelize.where(Sequelize.literal(`"product->singular_relation_pricelist->header_pricelist"."pi_id"`), {
+                    [Op.eq]: conditions.pricelist_id
+                }),
+                Sequelize.where(Sequelize.literal(`"product->singular_relation_pricelist->singular_detail_pricelist"."pidd_payment_type"`), {
+                    [Op.eq]: conditions.payment_type_id
+                }),
+                Sequelize.where(Sequelize.literal(`"product->singular_relation_pricelist->singular_detail_pricelist"."pidd_area_id"`), {
+                    [Op.eq]: conditions.area_id
+                })
+            ],
+            group: [
+                'invcd_invc_oid',
+                'entity',
+                'site',
+                'pricelist',
+                'product_id',
+                'product_code',
+                'description1',
+                'description2',
+                'price',
+                'cost',
+                'location_id',
+                'location_name',
+                'pidd_oid'
+            ],
+            replacements: {
+                area_id: conditions.area_id
             }
         });
 

@@ -1,5 +1,4 @@
 const { 
-    InvctTable,
     LocMstr, AcMstr,
     SbMstr, CcMstr,
     SqMstr, SqdDet, 
@@ -10,6 +9,7 @@ const {
     Sequelize, PsMstr,
     PtMstr, SlsProgram,
     DbgGroup, PtnraAddr,
+    InvctTable, TranMstr,
 } = require('../../models');
 const { Op } = require('sequelize');
 const moment = require('moment');
@@ -304,7 +304,8 @@ class SalesQuotationService {
     retrieveDetailForUpdate = async ( salesQuotationOid ) => {
         let result = await SqMstr.findOne({
             attributes: [
-                'sq_oid',
+                ['sq_oid', 'header_sales_quotation_oid'],
+                'sq_code',
                 ['sq_en_id', 'entity_id'],
                 [Sequelize.col(`entity_relation.en_desc`), 'entity_desc'],
                 ['sq_si_id', 'site_id'],
@@ -315,15 +316,24 @@ class SalesQuotationService {
                 ['sq_dp', 'deposit'],
                 [`sq_ptnr_id_sold`, 'customer_id'],
                 [Sequelize.literal(`sold_to_relation.ptnr_name`), 'customer_name'],
+                [Sequelize.col(`sold_to_relation->singular_partner_address_relation.ptnra_line_1`), 'address_customer'],
+                [Sequelize.col(`sold_to_relation.ptnr_ptnrg_id`), 'partner_group_customer_id'],
                 ['sq_ar_ac_id', 'account_id'],
+                ['sq_trans_id', 'transaction_status'],
                 [Sequelize.col('account_relation.ac_name'), 'account_desc'],
                 ['sq_ar_sb_id', 'subaccount_id'],
                 [Sequelize.col(`subaccount_relation.sb_desc`), 'subaccount_name'],
                 ['sq_ar_cc_id', 'cost_center_id'],
+                [Sequelize.col(`cost_center_relation.cc_desc`), 'cost_center_name'],
+                ['sq_cu_id', 'currency_id'],
+                [Sequelize.col(`currency_relation.cu_symbol`), 'currency'],
+                ['sq_total_ppn', 'total_ppn'],
+                ['sq_total_pph', 'total_pph'],
+                ['sq_payment', 'payment'],
+                [Sequelize.fn('ROUND', Sequelize.col('sq_exc_rate'), 2), 'exchange_rate'],
                 ['sq_booking', 'is_booking'],
                 ['sq_book_start_date', 'start_date'],
                 ['sq_book_end_date', 'end_date'],
-                [Sequelize.col(`cost_center_relation.cc_desc`), 'cost_center_name'],
                 ['sq_ptsfr_loc_id', 'origin_location_id'],
                 [Sequelize.col(`origin_location.loc_desc`), 'origin_location_name'],
                 ['sq_ptsfr_loc_git', 'git_location_id'],
@@ -332,16 +342,23 @@ class SalesQuotationService {
                 [Sequelize.col(`destination_location.loc_desc`), 'destination_location_name'],
                 ['sq_pi_area_id', 'pricelist_area_id'],
                 [Sequelize.col('area_pricelist_relation.area_name'), 'pricelist_area_name'],
+                ['sq_pi_id', 'pricelist_id'],
+                [Sequelize.col(`pricelist_relation.pi_desc`), 'pricelist_name'],
+                ['sq_type', 'type_id'],
                 [Sequelize.literal(`CASE WHEN sq_type = 'R' THEN 'Regular' WHEN sq_type = 'P' THEN 'Personal Selling' WHEN sq_type = 'D' THEN 'Direct Selling' END`), 'type'],
-                ['sq_credit_term', 'credit_term_id'],
-                [Sequelize.col(`credit_term_relation.code_name`), 'credit_terms'],
                 ['sq_pay_type', 'payment_type_id'],
                 [Sequelize.col(`payment_type_relation.code_name`), 'payment_type'],
+                ['sq_credit_term', 'credit_term_id'],
+                [Sequelize.col(`credit_term_relation.code_name`), 'credit_terms'],
+                ['sq_payment_date', 'payment_date'],
                 ['sq_pay_method', 'payment_method_id'],
                 [Sequelize.col(`payment_method_relation.code_name`), 'payment_method'],
+                ['sq_tran_id', 'approval_type_id'],
+                [Sequelize.col(`approval_relation.tran_name`), 'approval_type'],
                 ['sq_need_date', 'need_date'],
                 ['sq_due_date', 'due_date'],
                 ['sq_trans_rmks', 'remarks'],
+                ['sq_is_package', 'is_package'],
                 [Sequelize.literal('ROUND(sq_total, 2)'), 'total_price'],
                 ['sq_terbilang', 'terbilang']
             ],
@@ -401,16 +418,39 @@ class SalesQuotationService {
                 }, {
                     model: PtnrMstr,
                     as: 'sold_to_relation',
+                    attributes: [],
+                    include: [
+                        {
+                            model: PtnraAddr,
+                            as: 'singular_partner_address_relation',
+                            attributes: []
+                        }
+                    ]
+                }, {
+                    model: CuMstr,
+                    as: 'currency_relation',
+                    attributes: []
+                }, {
+                    model: TranMstr,
+                    as: 'approval_relation',
+                    attributes: []
+                }, {
+                    model: PiMstr,
+                    as: 'pricelist_relation',
                     attributes: []
                 }, {
                     model: SqdDet,
                     as: 'detail_sales_quotation_relation',
                     attributes: [
-                        'sqd_oid',
-                        'sqd_en_id',
-                        [Sequelize.literal('"detail_sales_quotation_relation->entity_relation"."en_desc"'), 'entity_name'],
+                        ['sqd_oid', 'detail_sales_quotation_oid'],
+                        ['sqd_invc_oid', 'inventory_oid'],
+                        ['sqd_en_id', 'entity_id'],
+                        [Sequelize.literal('"detail_sales_quotation_relation->entity_relation"."en_desc"'), 'entity'],
+                        ['sqd_si_id', 'site_id'],
+                        [Sequelize.literal('"detail_sales_quotation_relation->site_relation"."si_desc"'), 'site'],
                         ['sqd_is_additional_charge', 'additional'],
                         ['sqd_pt_id', 'product_id'],
+                        [Sequelize.literal(`"detail_sales_quotation_relation->product_relation"."pt_code"`), 'partnumber'],
                         [Sequelize.literal(`"detail_sales_quotation_relation->product_relation"."pt_desc1"`), 'description1'],
                         [Sequelize.literal(`"detail_sales_quotation_relation->product_relation"."pt_desc2"`), 'description2'],
                         ['sqd_rmks', 'remarks'],
@@ -446,6 +486,10 @@ class SalesQuotationService {
                         {
                             model: EnMstr,
                             as: 'entity_relation',
+                            attributes: []
+                        }, {
+                            model: SiMstr,
+                            as: 'site_relation',
                             attributes: []
                         }, {
                             model: PtMstr,
@@ -543,8 +587,6 @@ class SalesQuotationService {
             ]
         });
 
-        console.info(result);
-
         return result;
     }
 
@@ -608,6 +650,7 @@ class SalesQuotationService {
             sq_ar_ac_id: dataUpdate.account_id || Sequelize.literal(`sq_ar_ac_id`),
             sq_ar_sb_id: dataUpdate.subaccount_id || Sequelize.literal(`sq_ar_sb_id`),
             sq_ar_cc_id: dataUpdate.cost_center_id || Sequelize.literal(`sq_ar_cc_id`),
+            sq_tran_id: dataUpdate.approval_id || Sequelize.literal(`sq_tran_id`),
             sq_trans_id: dataUpdate.transaction_status || Sequelize.literal(`sq_trans_id`),
             sq_ptsfr_loc_id: dataUpdate.origin_location_id || Sequelize.literal(`sq_ptsfr_loc_id`),
             sq_ptsfr_loc_to_id: dataUpdate.destination_location_id || Sequelize.literal(`sq_ptsfr_loc_to_id`),
@@ -624,7 +667,8 @@ class SalesQuotationService {
             sq_ref_po_code: dataUpdate.po_code || Sequelize.literal(`sq_ref_po_code`),
             sq_ref_po_oid: dataUpdate.po_oid || Sequelize.literal('sq_ref_po_oid'),
             sq_exc_rate: dataUpdate.exchange_rate || Sequelize.literal(`sq_exc_rate`),
-            sq_trans_rmks: dataUpdate.remarks || Sequelize.literal(`sq_trans_rmks`)
+            sq_trans_rmks: dataUpdate.remarks || Sequelize.literal(`sq_trans_rmks`),
+            sq_payment_date: dataUpdate.payment_date || Sequelize.literal(`sq_payment_date`)
         }, {
             where: {
                 sq_oid: headerSalesQuotationOid
@@ -668,8 +712,6 @@ class SalesQuotationService {
     }
 
     deleteDetailSqByOid = async ( detailSalesQuotationOid, transaction ) => {
-        console.info(detailSalesQuotationOid);
-
         await SqdDet.destroy({
             where: {
                 sqd_oid: detailSalesQuotationOid
@@ -688,6 +730,56 @@ class SalesQuotationService {
             },
             order: [
                 ['sqd_add_date', 'DESC']
+            ]
+        });
+
+        return result;
+    }
+
+    retrieveHeaderSalesQuotationByEntity = async ( conditions ) => {
+        let result = await SqMstr.findAll({
+            attributes: [
+                ['sq_oid', 'header_sales_quotation_oid'],
+                [Sequelize.col(`entity_relation.en_desc`), 'entity'],
+                ['sq_code', 'sq_number'],
+                ['sq_date', 'sq_date'],
+                [Sequelize.col(`sold_to_relation.ptnr_name`), 'customer'],
+                ['sq_ship_to', 'ship_to'],
+                [Sequelize.col(`site_relation.si_desc`), 'site'],
+                ['sq_cons', 'consigment'],
+                ['sq_dropshipper', 'dropship'],
+                ['sq_booking', 'booking'],
+                ['sq_alocated', 'pre-order'],
+                ['sq_trans_rmks', 'remarks']
+            ],
+            include: [
+                {
+                    model: EnMstr,
+                    as: 'entity_relation',
+                    attributes: []
+                }, {
+                    model: PtnrMstr,
+                    as: 'sold_to_relation',
+                    attributes: []
+                }, {
+                    model: SiMstr,
+                    as: 'site_relation',
+                    attributes: []
+                }
+            ],
+            where: [
+                // Sequelize.where(Sequelize.col(`sq_trans_id`), {
+                //     [Op.eq]: 'D'
+                // }),
+                Sequelize.where(Sequelize.col('sq_en_id'), {
+                    [Op.eq]: conditions.entity_id
+                }),
+                Sequelize.where(Sequelize.col(`sq_code`), {
+                    [Op.iLike]: `%${conditions.sq_code}%`
+                }),
+                Sequelize.where(Sequelize.fn('DATE', Sequelize.col('sq_add_date')), {
+                    [Op.between]: [conditions.start_date, conditions.end_date]
+                })
             ]
         });
 

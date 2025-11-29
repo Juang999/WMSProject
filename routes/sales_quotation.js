@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const router = Router();
 const { 
+    getHEaderSalesQuotationByEntity,
     updateDetailSalesQuotation, createDetailSalesQuotation,
     getHeaderSalesQuotationByDate, getDetailSalesQuotation, 
     createSalesQuotation, getDetailSalesQuotationForUpdate,
@@ -19,6 +20,7 @@ router.get('/:header_sales_quotation_oid/detail', [ authMiddleware ], getDetailS
 router.get('/type', [ authMiddleware ], getSalesQuotationType);
 router.get('/:entity_id/packages', [ authMiddleware ], getPackage);
 router.patch('/:header_sq_oid/cancel-sq', [ authMiddleware ], cancelSalesQuotation);
+router.get('/:entity_id/sales-quotation-by-entity', [authMiddleware], getHEaderSalesQuotationByEntity);
 router.get('/:sales_quotation_oid/detail-for-update', [ authMiddleware ], getDetailSalesQuotationForUpdate);
 router.post('/create-sales-quotation', [ authMiddleware, Requests.SalesQuotation.CreateSalesQuotationRequest ], createSalesQuotation);
 router.put('/:header_sq_oid/update-sq', [ authMiddleware, Requests.SalesQuotation.UpdateSalesQuotationRequest ], updateHeaderSalesQuotation);

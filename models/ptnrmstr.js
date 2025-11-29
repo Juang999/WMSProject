@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'so_ptnr_id_sold'
       })
 
-      PtnrMstr.hasMany(models.SoMstr, {
+      PtnrMstr.hasMany(models.PoMstr, {
         as: 'history_purchase_order',
         sourceKey: 'ptnr_id',
         foreignKey: 'po_ptnr_id'

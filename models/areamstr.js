@@ -16,7 +16,10 @@ module.exports = (sequelize, DataTypes) => {
   AreaMstr.init({
     area_oid: {
       type: DataTypes.UUID,
-      primaryKey: true
+      primaryKey: true,
+      validate: {
+        isUUID: true
+      }
     },
     area_dom_id: DataTypes.INTEGER,
     area_add_by: DataTypes.STRING,

@@ -5,6 +5,7 @@ let validation = joi.object({
     sales_person_id: joi.number().required(),
     account_id: joi.number().required(),
     po_customer_reff: joi.string().allow(null, '', '-'),
+    approval_id: joi.number().required(),
     subaccount_id: joi.number().required(),
     cost_center_id: joi.number().required(),
     git_location_id: joi.number().required(),

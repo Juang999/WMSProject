@@ -2,10 +2,15 @@
 const {Auth, Query} = require('../../helper/helper')
 const moment = require('moment')
 const {Op} = require('sequelize')
-const {InventoryService, SalesOrderService} = require('../Services/ServiceContainer')
+const {InventoryService, SalesOrderService, SalesQuotationService} = require('../Services/ServiceContainer')
 const {v4: uuidv4} = require('uuid');
+const { error: errorLog } = require('../../helper/Logging');
 // model
 const {SoMstr, SodDet, PtMstr, Sequelize, PtnrMstr, LocMstr, sequelize} = require('../../models')
+const TransactionCode = require('../../helper/TransactionCode');
+const Bilangan = require('../../helper/Bilangan');
+const { bookSerials, bookInventory, releaseSerials, releaseInventory } = require('./SalesQuotationController');
+const { isUUID } = require('validator');
 
 class SalesOrderController {
 	detailSalesOrder = (req, res) => {
@@ -315,8 +320,315 @@ class SalesOrderController {
 		})
 	}
 
+	getHeaderSalesOrder = async ( req, res ) => {
+		try {
+			let startDate = req.query.start_date || moment().format('YYYY-MM-DD');
+			let endDate = req.query.end_date || moment().format('YYYY-MM-DD');
+			let soCode = req.query.so_code || '';
+
+			let result = await SalesOrderService.retrieveAllSalesOrder({
+				start_date: startDate,
+				end_date: endDate,
+				so_code: soCode
+			});
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog(`'GET ALL HEADER SALES ORDER`, error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	getDetailSalesOrder = async ( req, res ) => {
+		try {
+			let headerSalesOrderOid = req.params.header_sales_order_oid;
+
+			let [data_detail, data_customer, data_account_receivable_ledger, data_assembly] = await Promise.all([
+				SalesOrderService.retrieveDetailProductSalesOrder(headerSalesOrderOid),
+				SalesOrderService.retrieveDataCustomer(headerSalesOrderOid),
+				SalesOrderService.retrieveAccountReceivableLedger(headerSalesOrderOid),
+				SalesOrderService.retrieveDetailAssembly(headerSalesOrderOid)
+			]);
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: {data_detail, data_customer, data_account_receivable_ledger, data_assembly},
+					error: null
+				})
+		} catch (error) {
+			await errorLog(`GET DETAIL SALES ORDER`, error.message);
+
+			res.status(500)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	createSalesOrder = async ( req, res ) => {
+		let transaction = await sequelize.transaction();
+		let token = req.headers['authorization'].split(" ")[1];
+		let dataUser = Auth.user(token);
+
+		try {
+			let sequenceSalesOrder = await SalesOrderService.retrieveTotalSalesOrderInAMonth();
+			let dataDetail = JSON.parse(req.body.detail_sales_order);
+			let totalPrice = this.sumTotalPrice(dataDetail);
+
+			if (isUUID(req.body.sales_quotation_oid, 4) == true && req.body.is_consigment == 'Y') {
+				res.status(400)
+					.json({
+						status: 'failed',
+						message: 'Sales Order yang memiliki referensi Sales Quotation tidak bisa dijadikan konsinyasi',
+						data: null,
+						error: null
+					})
+
+				return;
+			}
+
+			let headerSalesOrder = {
+				sales_order_oid: uuidv4(),
+				entity_id: req.body.entity_id,
+				reference_sq_code: req.body.sales_quotation_code || null,
+				reference_sq_oid: req.body.sales_quotation_oid || null,
+				so_code: await TransactionCode.generate('SO', req.body.entity_id, sequenceSalesOrder),
+				customer_id: req.body.customer_id,
+				date: req.body.date,
+				credit_term_id: req.body.credit_term_id,
+				sales_person_id: req.body.sales_person_id,
+				pricelist_id: req.body.pricelist_id,
+				payment_type_id: req.body.payment_type,
+				payment_method_id: req.body.payment_method,
+				account_id: req.body.account_id,
+				subaccount_id: req.body.subaccount_id,
+				cost_center_id: req.body.cost_center_id,
+				total: totalPrice,
+				payment_date: req.body.payment_date,
+				remarks: req.body.remarks,
+				currency_id: req.body.currency_id,
+				total_ppn: req.body.total_ppn,
+				total_pph: req.body.total_pph,
+				payment: req.body.payment,
+				exchange_rate: req.body.exchange_rate,
+				is_consigment: req.body.is_consigment,
+				terbilang: Bilangan.parse(totalPrice),
+				bank_id: req.body.bank_id,
+				preorder_code: (req.body.purchase_order_code == null || req.body.purchase_order_code == '' || req.body.purchase_order_code == '-') ? null : req.body.purchase_order_code,
+				preorder_oid: (req.body.purchase_order_oid == null || req.body.purchase_order_oid == '' || req.body.purchase_order_oid == '-') ? null : req.body.purchase_order_oid,
+				is_package: req.body.is_package,
+				shipping_charges: req.body.shipping_charges || null,
+				is_booking: req.body.is_booking,
+				origin_location_id: (req.body.is_consigment == 'Y') ? null : req.body.origin_location_id,
+				destination_location_id: (req.body.is_consigment == 'Y') ? null : req.body.destination_location_id,
+				git_location_id: (req.body.is_consigment == 'Y') ? null : req.body.git_location_id,
+				book_start_date: req.body.book_start_date,
+				book_end_date: req.body.book_end_date,
+				midtrans_invoice_number: req.body.invoice_number || null
+			}
+
+			let dataDetailSalesOrder = await this.generateDetailSalesOrder(dataDetail, headerSalesOrder, dataUser, transaction);
+
+			await SalesOrderService.inputHeaderSalesOrder(headerSalesOrder, dataUser, transaction);
+			await SalesOrderService.inputDetailSalesOrder(dataDetailSalesOrder, transaction);
+
+			if (isUUID(req.body.sales_quotation_oid, 4) == true && req.body.is_consigment == 'N') {
+				await SalesQuotationService.updateDataHeaderSq(req.body.sales_quotation_oid, dataUser, {
+					transaction_status: 'C',
+					close_date: moment().format('YYYY-MM-DD'),
+					payment_date: moment().format('YYYY-MM-DD')
+				}, transaction);
+			}
+
+			await transaction.commit();
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'created',
+					data: 'hello world',
+					error: null
+				})
+		} catch (error) {
+			await transaction.rollback();
+			await errorLog('CREATE SALES ORDER', error.message)
+
+			res.status(500)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	cancelSalesOrder = async ( req, res ) => {
+		let transaction = await sequelize.transaction();
+		let token = req.headers['authorization'].split(" ")[1];
+		let dataUser = Auth.user(token);
+		let headerSalesOrderOid = req.params.header_sales_order_oid;
+
+		try {
+			let [dataHeader, dataDetail] = await Promise.all([
+				SalesOrderService.findDataHeaderSalesOrder( headerSalesOrderOid ),
+				SalesOrderService.retrieveDetailProductSalesOrder(headerSalesOrderOid)
+			]);
+
+			if (dataHeader.dataValues.so_trans_id == 'C') {
+				await transaction.rollback()
+
+				return res.status(400)
+					.json({
+						status: 'failed',
+						message: 'Sales Order has been closed',
+						data: null,
+						error: 'Sales Order has been closed'
+					})
+			}
+
+			if (dataHeader.dataValues.so_trans_id == 'X') {
+				await transaction.rollback()
+
+				return res.status(400)
+					.json({
+						status: 'failed',
+						message: 'Sales Order has been canceled',
+						data: null,
+						error: 'Sales Order has been canceled'
+					})
+			}
+
+			await this.releaseQty(dataDetail, transaction);
+			await SalesOrderService.updateHeaderSalesOrder({
+				username: dataUser.usernama,
+				updated_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+				transaction_id: 'X'
+			}, headerSalesOrderOid, transaction);
+
+			await transaction.commit();
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'SO has been canceled',
+					data: true,
+					error: null
+				})
+		} catch (error) {
+			await transaction.rollback();
+			await errorLog('CANCEL SALES ORDER', error.message);
+
+			res.status(500)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
 	returnResponse = (code, status, message, data) => {
 		return {code, json: {status, message, data, error: null}}
+	}
+
+	generateDetailSalesOrder = async ( dataDetail, dataHeader, dataUser, transaction ) => {
+		let result = [];
+		let sequence = 0;
+
+		for (const singularDataDetail of dataDetail) {
+			if (dataHeader.is_consigment == 'Y') {
+				await Promise.all([
+					bookSerials(singularDataDetail.location_id, singularDataDetail.product_id, singularDataDetail.qty, transaction),
+					bookInventory(singularDataDetail.inventory_oid, singularDataDetail.qty, transaction)
+				])
+			}
+
+			result.push({
+				sod_oid: uuidv4(),
+				sod_dom_id: 1,
+				sod_en_id: singularDataDetail.entity_id,
+				sod_add_by: dataUser.usernama,
+				sod_add_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+				sod_so_oid: dataHeader.sales_order_oid,
+				sod_seq: sequence,
+				sod_is_additional_charge: singularDataDetail.additional_charge,
+				sod_si_id: 992,
+				sod_pt_id: singularDataDetail.product_id,
+				sod_rmks: singularDataDetail.remarks,
+				sod_qty: singularDataDetail.qty,
+				sod_qty_alocated: 0,
+				sod_um: 9964,
+				sod_cost: singularDataDetail.cost,
+				sod_price: singularDataDetail.price,
+				sod_disc: singularDataDetail.discount,
+				sod_sales_ac_id: dataHeader.account_id,
+				sod_sales_sb_id: dataHeader.subaccount_id,
+				sod_sales_cc_id: dataHeader.cost_center_id,
+				sod_um_conv: singularDataDetail.um_conversion,
+				sod_qty_real: singularDataDetail.qty,
+				sod_taxable: 'N',
+				sod_tax_inc: 'N',
+				sod_tax_class: 9949,
+				sod_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
+				sod_payment: singularDataDetail.payment,
+				sod_dp: singularDataDetail.prepayment,
+				sod_sales_unit: singularDataDetail.sales_unit,
+				sod_loc_id: singularDataDetail.location_id,
+				sod_ppn_type: 'E',
+				sod_invc_oid: singularDataDetail.inventory_oid,
+				sod_ppn: 0,
+				sod_pph: 0,
+				sod_sales_unit_total: 0,
+				sod_sqd_oid: (dataHeader.is_consigment == 'Y') ? null : singularDataDetail.detail_sales_quotation_oid,
+				sod_so_sq_ref_oid: dataHeader.reference_sq_oid,
+			});
+
+			sequence += 1;
+		}
+
+		return result;
+	}
+
+	sumTotalPrice = ( dataDetail ) => {
+		let total = 0;
+
+		for (const singularDataDetail of dataDetail) {
+			let qty = parseInt(singularDataDetail.qty);
+			let price = parseInt(singularDataDetail.price);
+			let discount = parseFloat(singularDataDetail.discount);
+
+			total += (price * qty) - (price * qty * discount);
+		};
+
+		return total;
+	}
+
+	releaseQty = async ( dataDetail, transaction ) => {
+		for (const {dataValues: singularDataDetail} of dataDetail) {
+			await Promise.all([
+				releaseSerials(singularDataDetail.location_id, singularDataDetail.product_id, singularDataDetail.quantity, transaction),
+				releaseInventory(singularDataDetail.inventory_oid, singularDataDetail.quantity, transaction)
+			])
+		}
 	}
 }
 

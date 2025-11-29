@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       LocMstr.hasMany(models.SoMstr, {
         as: 'location_sales_order',
         sourceKey: 'loc_oid',
-        foreignKey: 'locs_loc_id'
+        foreignKey: 'so_ptsfr_loc_to_id'
       })
 
       LocMstr.hasMany(models.RiudDet, {

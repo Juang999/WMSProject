@@ -14,6 +14,40 @@ const {
 const { messageSend } = require('../../helper/TelegramBot');
 
 class SalesQuotationController {
+    getHEaderSalesQuotationByEntity = async ( req, res ) => {
+        try {
+            let entityId = req.params.entity_id;
+            let startDate = (req.query.start_date) ? moment(req.query.start_date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+            let endDate = (req.query.end_date) ? moment(req.query.end_date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+            let sqCode = req.query.sq_code || '';
+
+            let result = await SalesQuotationService.retrieveHeaderSalesQuotationByEntity({
+                entity_id: entityId,
+                start_date: startDate,
+                end_date: endDate,
+                sq_code: sqCode
+            });
+
+            res.status(200)
+                .json({
+                    status: 'success',
+                    message: 'ok',
+                    data: result,
+                    error: null
+                })
+        } catch (error) {
+            await errorLog('GET HEADER SALES QUOTATION BY ENTITY', error.message);
+
+            res.status(500)
+                .json({
+                    status: 'failed',
+                    message: 'error',
+                    data: null,
+                    error: 'Internal Server Error!'
+                })
+        }
+    }
+
     getHeaderSalesQuotationByDate = async ( req, res ) => {
         try {
             let params = {
@@ -255,6 +289,7 @@ class SalesQuotationController {
                 account_id: req.body.account_id,
                 subaccount_id: req.body.subaccount_id,
                 cost_center_id: req.body.cost_center_id,
+                approval_id: req.body.approval_id,
                 destination_location_id: req.body.destination_location_id,
                 git_location_id: req.body.git_location_id,
                 pricelist_area_id: req.body.pricelist_area_id,
@@ -622,8 +657,8 @@ class SalesQuotationController {
                 sq_pay_type: bodyHeader.payment_type_id,
                 sq_pay_method: bodyHeader.payment_method_id,
                 sq_dp: bodyHeader.deposit,
-                sq_disc_header: dataGroceries[0]['discount'],
                 sq_total: additionalData.total_price,
+                sq_tran_id: bodyHeader.approval_id,
                 sq_trans_id: 'D',
                 sq_dt: moment().format('YYYY-MM-DD HH:mm:ss'),
                 sq_cu_id: bodyHeader.currency_id,

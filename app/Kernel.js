@@ -10,6 +10,9 @@ module.exports = {
         },
         SalesOrderShipment: {
             CreateSalesOrderShipmentRequest: require('./Request/SalesOrderShipment/CreateSalesOrderShipmentRequest')
+        },
+        SalesOrder: {
+            CreateSalesOrderRequest: require('./Request/SalesOrder/CreateSalesOrderRequest')
         }
     }
 }

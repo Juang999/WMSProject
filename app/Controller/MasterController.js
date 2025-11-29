@@ -457,6 +457,52 @@ class MasterController {
 				});
 		}
 	}
+
+	getApproval = async ( req, res ) => {
+		try {
+			let result = await MasterService.retrieveDataApproval();
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			res.status(500)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	getBank = async ( req, res ) => {
+		try {
+			let result = await MasterService.retrieveDataBank();
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET DATA BANK', error.message)
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
 }
 
 module.exports = new MasterController()

@@ -121,6 +121,71 @@ class ProductController {
 				})
 		}
 	}
+
+	getProductConsigmentSalesOrder = async ( req, res ) => {
+		try {
+			let conditions = {
+				entity_id: req.params.entity_id,
+				location_name: (req.query.location) ? req.query.location : '',
+				description1: (req.query.description1) ? req.query.description1 : '',
+				pricelist_id: req.query.pricelist_id,
+				area_id: req.query.area_id,
+				payment_type_id: req.query.payment_type_id
+			};
+
+			let result = await ProductService.getConsigmentProduct(conditions);
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET PRODUCT', error.message)
+
+			res.status(500)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error'
+				})
+		}
+	}
+
+	getProductForSalesQuotation = async ( req, res ) => {
+		try {
+			let conditions = {
+				entity_id: req.params.entity_id,
+				pricelist_id: req.query.pricelist_id,
+				area_id: req.query.area_id,
+				location_id: req.query.location_id,
+				payment_type_id: req.query.payment_type_id
+			}
+
+			let result = await ProductService.getProductSalesQuotation( conditions );
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET PRODUCT FOR SALES QUOTATION', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
 }
 
 module.exports = new ProductController()

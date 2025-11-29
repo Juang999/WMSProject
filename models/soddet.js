@@ -69,7 +69,45 @@ module.exports = (sequelize, DataTypes) => {
         as: 'unitmeasure_relation',
         targetKey: 'code_id',
         foreignKey: 'sod_um'
-      })
+      });
+
+      SodDet.belongsTo(models.EnMstr, {
+        as: 'entity_relation',
+        targetKey: 'en_id',
+        foreignKey: 'sod_en_id'
+      });
+
+      SodDet.belongsTo(models.AcMstr, {
+        as: 'account_relation',
+        targetKey: 'ac_id',
+        foreignKey: 'sod_sales_ac_id'
+      });
+
+      SodDet.belongsTo(models.SbMstr, {
+        as: 'subaccount_relation',
+        targetKey: 'sb_id',
+        foreignKey: 'sod_sales_sb_id'
+      });
+
+      SodDet.belongsTo(models.CcMstr, {
+        as: 'cost_center_relation',
+        targetKey: 'cc_id',
+        foreignKey: 'sod_sales_cc_id'
+      });
+
+      SodDet.belongsTo(models.AcMstr, {
+        as: 'account_disc_relation',
+        targetKey: 'ac_id',
+        foreignKey: 'sod_disc_ac_id'
+      });
+
+      SodDet.belongsTo(models.CodeMstr, {
+        as: 'tax_class_relation',
+        targetKey: 'code_id',
+        foreignKey: 'sod_tax_class'
+      });
+
+      
     }
   }
   SodDet.init({
@@ -137,7 +175,9 @@ module.exports = (sequelize, DataTypes) => {
     sod_invc_qty: DataTypes.INTEGER,
     sqd_invc_oid: DataTypes.UUID,
     sod_part: DataTypes.STRING,
-    sod_qty_checked: DataTypes.INTEGER
+    sod_qty_checked: DataTypes.INTEGER,
+    sod_locs_id: DataTypes.INTEGER,
+    sod_jbl_salesorder_id: DataTypes.STRING
   }, {
     sequelize,
     schema: 'public',

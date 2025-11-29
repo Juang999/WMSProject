@@ -15,6 +15,7 @@ let validation = joi.object({
     is_booking: joi.string().min(1).required(),
     currency_id: joi.number().required(),
     deposit: joi.number().default(0).allow(null, '-', ''),
+    approval_id: joi.number().required(),
     start_date_booking: joi.date().allow(null, '', '-'),
     end_date_booking: joi.date().allow(null, '', '-'),
     origin_location_id: joi.number().required(),

@@ -21,7 +21,10 @@ module.exports = (sequelize, DataTypes) => {
   AcMstr.init({
     ac_oid: {
       type: DataTypes.UUID,
-      primaryKey: true
+      primaryKey: true,
+      validate: {
+        isUUID: true
+      }
     },
     ac_dom_id: DataTypes.INTEGER,
     ac_add_by: DataTypes.STRING,
