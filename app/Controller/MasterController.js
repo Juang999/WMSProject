@@ -9,7 +9,7 @@ const {
 	PtnrgGrp, Sequelize
 } = require('../../models')
 
-const { MasterService, LocationService } = require('../Services/ServiceContainer');
+const { MasterService, PriceService, LocationService } = require('../Services/ServiceContainer');
 const {info, error: errorLog} = require('../../helper/Logging');
 
 /*
@@ -500,6 +500,33 @@ class MasterController {
 					message: 'error',
 					data: null,
 					error: 'Internal Server Error!'
+				})
+		}
+	}
+
+	getPriceList = async (req, res) => {
+		try {
+			let entityId = req.params.entity_id;
+			let search = (req.query.search) ? req.query.search : '';
+
+			let result = await PriceService.retrievePriceListName( entityId, search )
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET PRICELIST', error.message);
+
+			res.status(400)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error'
 				})
 		}
 	}

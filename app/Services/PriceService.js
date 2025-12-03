@@ -1,4 +1,4 @@
-const { PiddDet, Sequelize } = require('../../models');
+const { PiddDet, PiMstr, Sequelize } = require('../../models');
 const { Op } = require('sequelize');
 
 class PriceService {
@@ -12,6 +12,24 @@ class PriceService {
             where: {
                 pidd_oid: {
                     [Op.in]: detailPriceListOid
+                }
+            }
+        });
+
+        return result;
+    }
+
+    retrievePriceListName = async ( entityId, search ) => {
+        let result = await PiMstr.findAll({
+            attributes: [
+                ['pi_oid', 'pricelist_oid'],
+                ['pi_id', 'pricelist_id'],
+                ['pi_desc', 'pricelist_name']
+            ],
+            where: {
+                pi_en_id: entityId,
+                pi_desc: {
+                    [Op.iLike]: `%${search}%`
                 }
             }
         });

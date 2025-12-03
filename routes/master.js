@@ -22,5 +22,6 @@ router.get('/payment-method', [ authMiddleware ], MasterController.getPaymentMet
 router.get('/area-pricelist', [ authMiddleware ], MasterController.getAreaPriceListt);
 router.get('/sales-program', [ authMiddleware ], MasterController.getSalesProgramName);
 router.get('/:entity_id/location-sales-quotataion', [ authMiddleware ], MasterController.getLocationSalesQuotation);
+router.get('/:entity_id/price-list', [ authMiddleware ], MasterController.getPriceList);
 
 module.exports = router
