@@ -1371,8 +1371,9 @@ class InventoryService {
 
     bookQuantityInventory = async ( invcOid, dataQty, transaction ) => {
         await InvcMstr.update({
-            invc_qty_available: dataQty.qty_available,
-            invc_qty_booked: dataQty.qty_booked
+            invc_qty_available: (dataQty.qty_available) ? dataQty.qty_available : Sequelize.literal(`invc_qty_available`),
+            invc_qty_booked: (dataQty.qty_booked) ? dataQty.qty_booked : Sequelize.literal(`invc_qty_booked`),
+            invc_qty: (dataQty.qty_real) ? dataQty.qty_real : Sequelize.literal(`invc_qty`)
         }, {
             where: {
                 invc_oid: invcOid

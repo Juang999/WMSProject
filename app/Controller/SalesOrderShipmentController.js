@@ -5,7 +5,7 @@ const {
 } = require('../Services/ServiceContainer');
 const { info, error: errorLog } = require('../../helper/Logging');
 const moment = require('moment');
-const { sequelize } = require('../../models');
+const { sequelize, Sequelize } = require('../../models');
 const { v4: uuidv4 } = require('uuid');
 const TransactionCode = require('../../helper/TransactionCode');
 const Auth = require('../../helper/auth');
@@ -288,7 +288,11 @@ class SalesOrderShipmentController {
 
                 await Promise.all([
                     SalesOrderService.updateQtyShipmentSalesOrder(dataDetailSalesOrder.sod_oid, singularDetailSalesOrder.qty_shipment, transaction),
-                    SalesQuotationService.updateDataDetailSq(dataDetailSalesOrder.sod_sqd_oid, null, {qty_shipment: singularDetailSalesOrder.qty_shipment}, transaction)
+                    SalesQuotationService.updateDataDetailSq(dataDetailSalesOrder.sod_sqd_oid, null, {qty_shipment: singularDetailSalesOrder.qty_shipment}, transaction),
+                    InventoryService.bookQuantityInventory(dataDetailSalesOrder.sod_invc_oid, {
+                        qty_booked: Sequelize.literal(`invc_qty_booked - ${parseInt(singularDetailSalesOrder.qty_shipment)}`),
+                        qty_real: Sequelize.literal(`invc_qty - ${parseInt(singularDetailSalesOrder.qty_shipment)}`)
+                    }, transaction)
                 ]);
 
                 let bodyDetailShipment = {
