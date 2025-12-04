@@ -1,4 +1,4 @@
-const { PtnrMstr, PtnrgGrp, ArMstr, Sequelize } = require('../../models');
+const { PtnrMstr, PtnrgGrp, PtnraAddr, ArMstr, Sequelize } = require('../../models');
 const { Op } = require('sequelize');
 
 class PartnerService {
@@ -27,13 +27,21 @@ class PartnerService {
         let result = await PtnrMstr.findAll({
             attributes: [
                 ['ptnr_id', 'partner_id'],
+                ['ptnr_code', 'partner_code'],
                 ['ptnr_name', 'partner_name'],
+                [Sequelize.col(`group_partner.ptnrg_desc`), 'group'],
+                [Sequelize.col(`singular_partner_address_relation.ptnra_id`), 'address_id'],
+                [Sequelize.fn('CONCAT', Sequelize.col(`singular_partner_address_relation.ptnra_line_1`), ', ', Sequelize.col(`singular_partner_address_relation.ptnra_line_2`), ', ', Sequelize.col(`singular_partner_address_relation.ptnra_line_3`)), 'address'],
                 [Sequelize.literal(`CASE WHEN ptnr_limit_credit != 0 THEN ROUND(ptnr_limit_credit, 2) WHEN ROUND(ptnr_limit_credit, 2) = 0 THEN ROUND("group_partner"."ptnrg_limit_credit", 2) WHEN "group_partner"."ptnrg_limit_credit" = 0 THEN 0 END`), 'limit_credit']
             ],
             include: [
                 {
                     model: PtnrgGrp,
                     as: 'group_partner',
+                    attributes: []
+                }, {
+                    model: PtnraAddr,
+                    as: 'singular_partner_address_relation',
                     attributes: []
                 }
             ],

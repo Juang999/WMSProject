@@ -490,6 +490,7 @@ class SalesOrderService {
                 'sod_price', 
                 'sod_en_id', 
                 'sod_dom_id',
+                'sod_invc_oid',
                 [Sequelize.col(`header_sales_order.so_cu_id`), 'currency_id'],
                 [Sequelize.col(`header_sales_order.so_exc_rate`), 'exchange_rate'],
                 [Sequelize.col(`detail_product.pt_pl_id`), 'productline_id']
