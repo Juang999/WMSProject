@@ -305,6 +305,54 @@ class ProductService {
         return result;
     }
 
+    getProductAdditionalSalesQuotation = async ( conditions ) => {
+        const result = await InvcMstr.findAll({
+            attributes: [
+                ['invc_oid', 'inventory_oid'],
+                [Sequelize.col(`entity_relation.en_desc`), 'entity'],
+                ['invc_pt_id', 'product_id'],
+                [Sequelize.col('product_relation.pt_code'), 'product_code'],
+                [Sequelize.col('product_relation.pt_desc1'), 'product_name'],
+                ['invc_loc_id', 'location_id'],
+                [Sequelize.col(`location.loc_desc`), 'location_name'],
+                [Sequelize.fn('ROUND', Sequelize.col('invc_qty'), 2), 'qty']
+            ],
+            include: [
+                {
+                    model: EnMstr,
+                    as: 'entity_relation',
+                    attributes: []
+                },{
+                    model: PtMstr,
+                    as: 'product_relation',
+                    attributes: []
+                }, {
+                    model: LocMstr,
+                    as: 'location',
+                    attributes: []
+                }
+            ],
+            where: [
+                Sequelize.where(Sequelize.col(`invc_en_id`), {
+                    [Op.eq]: conditions.entity_id
+                }),
+                Sequelize.where(Sequelize.col('product_relation.pt_additional'), {
+                    [Op.eq]: 'Y'
+                }),
+                Sequelize.where(Sequelize.col('product_relation.pt_desc1'), {
+                    [Op.iLike]: `%${conditions.search_product}%`
+                }),
+                Sequelize.where(Sequelize.col('invc_qty'), {
+                    [Op.not]: null
+                })
+            ],
+            limit: 5000,
+            offset: 0
+        });
+
+        return result;
+    }
+
     getPackageSalesQuotation = async ( search ) => {
         const result = await PtMstr.findAll({
             attributes: [

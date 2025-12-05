@@ -122,6 +122,35 @@ class ProductController {
 		}
 	}
 
+	getAdditionalProductSalesQuotation = async ( req, res ) => {
+		try {
+			let entityId = req.params.entity_id;
+
+			let result = await ProductService.getProductAdditionalSalesQuotation({
+				entity_id: entityId,
+				search_product: req.query.search_product || ''
+			});
+
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'ok',
+					data: result,
+					error: null
+				})
+		} catch (error) {
+			await errorLog('GET ADDITIONAL PRODUCT SALES QUOTATION', error.message);
+
+			res.status(500)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				})
+		}
+	}
+
 	getProductConsigmentSalesOrder = async ( req, res ) => {
 		try {
 			let conditions = {

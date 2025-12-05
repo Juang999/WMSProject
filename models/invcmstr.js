@@ -15,6 +15,18 @@ module.exports = (sequelize, DataTypes) => {
         as: 'location',
         targetKey: 'loc_id',
         foreignKey: 'invc_loc_id'
+      });
+
+      InvcMstr.belongsTo(models.EnMstr, {
+        as: 'entity_relation',
+        targetKey: 'en_id',
+        foreignKey: 'invc_en_id'
+      });
+
+      InvcMstr.belongsTo(models.PtMstr, {
+        as: 'product_relation',
+        targetKey: 'pt_id',
+        foreignKey: 'invc_pt_id'
       })
     }
   }
