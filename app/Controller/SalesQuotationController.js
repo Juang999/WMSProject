@@ -833,9 +833,11 @@ class SalesQuotationController {
 
     bookSerials = async ( locationId, productId, limit, transaction ) => {
         let dataSerials = await InventoryService.retrieveSerialsOidByLimit(locationId, productId, null, limit);
-        let serialsOid = dataSerials.map(({dataValues: items}) => items.invcd_oid);
-
-        await InventoryService.bulkSerialBooking(serialsOid, true, transaction);
+        if (dataSerials.length > 0) {
+            let serialsOid = dataSerials.map(({dataValues: items}) => items.invcd_oid);
+    
+            await InventoryService.bulkSerialBooking(serialsOid, true, transaction);
+        }
     }
 
     bookInventory = async ( invcOid, qty, transaction ) => {
@@ -847,9 +849,12 @@ class SalesQuotationController {
 
     releaseSerials = async ( locationId, productId, limit, transaction ) => {
         let dataSerials = await InventoryService.retrieveSerialsOidByLimit(locationId, productId, true, limit);
-        let serialsOid = dataSerials.map(({dataValues: items}) => items.invcd_oid);
-
-        await InventoryService.bulkSerialBooking(serialsOid, null, transaction);
+        
+        if (dataSerials.length > 0) {
+            let serialsOid = dataSerials.map(({dataValues: items}) => items.invcd_oid);
+    
+            await InventoryService.bulkSerialBooking(serialsOid, null, transaction);
+        }
     }
 
     releaseInventory = async ( invcOid, qty, transaction ) => {
