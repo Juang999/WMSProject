@@ -298,7 +298,8 @@ class SalesQuotationController {
                 payment_method_id: req.body.payment_method_id,
                 is_consigment: req.body.is_consigment,
                 po_code: (dataPo != null) ? dataPo.dataValues.po_code : null,
-                po_oid: (dataPo != null) ? dataPo.dataValues.po_oid : null
+                po_oid: (dataPo != null) ? dataPo.dataValues.po_oid : null,
+                remarks: req.body.remarks
             };
 
             await SalesQuotationService.updateDataHeaderSq(headerSalesQuotationOId, dataUser, dataUpdate, transaction);
