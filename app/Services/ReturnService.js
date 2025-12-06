@@ -30,7 +30,7 @@ class ReturnService {
         let returnSeq = await this.lastReturnScanoutCode();
 
         let scCode = 'RSC';
-        let scEntity = `${entityId}0`;
+        let scEntity = (entityId) ? `${entityId}0` : '0';
         let seqNumber = (returnSeq != null) ? returnSeq.dataValues.scanout_seq + 1 : 1;
         let monthCode = '00';
         let serverCode = '02';

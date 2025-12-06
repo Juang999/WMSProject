@@ -550,7 +550,8 @@ class SalesQuotationController {
                 ppn_type: ppnType,
                 prepayment: prePayment,
                 payment,
-                sales_unit: salesUnit
+                sales_unit: salesUnit,
+                is_booking: headerSalesQuotation.dataValues.sq_booking
             }, transaction);
 
             await transaction.commit();

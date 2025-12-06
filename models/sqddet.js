@@ -70,6 +70,12 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'code_id',
         foreignKey: 'sqd_tax_class'
       });
+
+      SqdDet.belongsTo(models.InvcdDet, {
+        as: 'inventory_detail_relation',
+        targetKey: 'invcd_loc_id',
+        foreignKey: 'sqd_loc_id'
+      })
     }
   }
   SqdDet.init({

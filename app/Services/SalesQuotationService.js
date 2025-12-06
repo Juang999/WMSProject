@@ -1,7 +1,8 @@
 const { 
-    LocMstr, AcMstr,
+    InvcdDet,
     SbMstr, CcMstr,
     SqMstr, SqdDet, 
+    LocMstr, AcMstr,
     SiMstr, PtnrMstr, 
     AreaMstr, EnMstr, 
     PiMstr, CodeMstr,
@@ -455,6 +456,8 @@ class SalesQuotationService {
                         [Sequelize.literal(`"detail_sales_quotation_relation->product_relation"."pt_desc2"`), 'description2'],
                         ['sqd_rmks', 'remarks'],
                         [Sequelize.literal(`ROUND(sqd_qty, 2)`), 'qty'],
+                        ['sqd_qty_booking', 'qty_booked'],
+                        [Sequelize.literal(`COUNT("detail_sales_quotation_relation->inventory_detail_relation"."invcd_oid")`), 'qty_on_hand'],
                         ['sqd_um', 'um_id'],
                         [Sequelize.literal(`"detail_sales_quotation_relation->unitmeasure_relation"."code_name"`), 'um'],
                         ['sqd_loc_id', 'location_id'],
@@ -527,13 +530,68 @@ class SalesQuotationService {
                             model: CodeMstr,
                             as: 'tax_class_relation',
                             attributes: []
+                        }, {
+                            model: InvcdDet,
+                            as: 'inventory_detail_relation',
+                            attributes: [],
+                            where: [
+                                Sequelize.where(Sequelize.literal('"detail_sales_quotation_relation->inventory_detail_relation"."invcd_pt_id"'), {
+                                    [Op.eq]: Sequelize.literal(`"detail_sales_quotation_relation"."sqd_pt_id"`)
+                                }),
+                                Sequelize.where(Sequelize.literal(`"detail_sales_quotation_relation->inventory_detail_relation".invcd_booking`), {
+                                    [Op.eq]: null
+                                }),
+                                Sequelize.where(Sequelize.literal(`"detail_sales_quotation_relation->inventory_detail_relation"."invcd_qty"`), {
+                                    [Op.eq]: 1
+                                }),
+                                Sequelize.where(Sequelize.literal(`"detail_sales_quotation_relation->inventory_detail_relation"."invcd_status"`), {
+                                    [Op.in]: ['available', 'registered', 'hold']
+                                })
+                            ]
                         }
                     ]
                 }
             ],
             where: {
                 sq_oid: salesQuotationOid
-            }
+            },
+            group: [
+                'sq_oid',
+                'entity_desc',
+                'site_desc',
+                'sales_person',
+                'customer_name',
+                'address_customer',
+                'partner_group_customer_id',
+                'account_desc',
+                'subaccount_name',
+                'cost_center_name',
+                'currency',
+                'origin_location_name',
+                'git_location_name',
+                'destination_location_name',
+                'pricelist_area_name',
+                'pricelist_name',
+                'payment_type',
+                'credit_terms',
+                'payment_method',
+                'approval_type',
+                Sequelize.col('detail_sales_quotation_relation.sqd_oid'),
+                Sequelize.col('detail_sales_quotation_relation->entity_relation.en_desc'),
+                Sequelize.col('detail_sales_quotation_relation->site_relation.si_desc'),
+                Sequelize.col(`detail_sales_quotation_relation->product_relation.pt_code`),
+                Sequelize.col(`detail_sales_quotation_relation->product_relation.pt_desc1`),
+                Sequelize.col(`detail_sales_quotation_relation->product_relation.pt_desc2`),
+                Sequelize.col(`detail_sales_quotation_relation->unitmeasure_relation.code_name`),
+                Sequelize.col(`detail_sales_quotation_relation->location_relation.loc_desc`),
+                Sequelize.col(`detail_sales_quotation_relation->account_relation.ac_code`),
+                Sequelize.col(`detail_sales_quotation_relation->account_relation.ac_name`),
+                Sequelize.col(`detail_sales_quotation_relation->subaccount_relation.sb_desc`),
+                Sequelize.col(`detail_sales_quotation_relation->cost_center_relation.cc_desc`),
+                Sequelize.col(`detail_sales_quotation_relation->account_disc_relation.ac_code`),
+                Sequelize.col(`detail_sales_quotation_relation->account_disc_relation.ac_name`),
+                Sequelize.col(`detail_sales_quotation_relation->tax_class_relation.code_name`)
+            ]
         });
 
         return result;
@@ -682,6 +740,7 @@ class SalesQuotationService {
             sqd_upd_by: (dataUser) ? dataUser.usernama : Sequelize.literal('sqd_upd_by'),
             sqd_upd_date: (dataUser) ? Sequelize.literal(`CURRENT_TIMESTAMP`) : Sequelize.literal(`sqd_upd_date`),
             sqd_qty: dataUpdate.quantity,
+            sqd_qty_booking: (dataUpdate.is_booking == 'Y') ? dataUpdate.quantity : null,
             sqd_qty_real: dataUpdate.quantity,
             sqd_price: dataUpdate.price || Sequelize.literal(`sqd_price`),
             sqd_disc: dataUpdate.discount || Sequelize.literal(`sqd_disc`),
