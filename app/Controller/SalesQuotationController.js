@@ -489,6 +489,18 @@ class SalesQuotationController {
                 InventoryService.countSerialsOid(locationId, productId, null)
             ]);
 
+            if (!foundDataDetail) {
+                res.status(404)
+                    .json({
+                        status: 'bad request',
+                        message: 'not found',
+                        data: null,
+                        error: 'not found'
+                    });
+
+                return;
+            }
+
             let headerSalesQuotation = await SalesQuotationService.retrieveStatusSalesQuotationHeader(foundDataDetail.dataValues.sqd_sq_oid);
             // END: mengambil data yang diperlukan
 
