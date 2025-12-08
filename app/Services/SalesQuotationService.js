@@ -166,6 +166,15 @@ class SalesQuotationService {
                 Sequelize.where(Sequelize.col(`sq_code`), {
                     [Op.iLike]: `%${conditions.sales_quotation_code}%`
                 }),
+                Sequelize.where(Sequelize.col('sold_to_relation.ptnr_name'), {
+                    [Op.iLike]: `%${conditions.customer_name}%`
+                }),
+                Sequelize.where(Sequelize.col(`sales_person_relation.ptnr_name`), {
+                    [Op.iLike]: `%${conditions.sales_person}%`
+                }),
+                Sequelize.where(Sequelize.col(`sq_trans_id`), {
+                    [Op.in]: conditions.status
+                })
             ],
             order: [
                 ['sq_add_date', sort.date]

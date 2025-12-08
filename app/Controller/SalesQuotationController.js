@@ -54,7 +54,10 @@ class SalesQuotationController {
                 conditions: {
                     start_date: req.query.start_date || moment().startOf('months').format('YYYY-MM-DD'),
                     end_date: req.query.end_date || moment().endOf('months').format('YYYY-MM-DD'),
-                    sales_quotation_code: req.query.sq_code || ''
+                    sales_quotation_code: req.query.sq_code || '',
+                    customer_name: req.query.customer_name || '',
+                    sales_person: req.query.sales_person || '',
+                    status: (req.query.status != null) ? [req.query.status] : ['D', 'W', 'I', 'C', 'X', 'E'],
                 },
                 sort: {
                     date: req.query.date_sort || 'DESC'
