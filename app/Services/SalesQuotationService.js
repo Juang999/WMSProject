@@ -24,6 +24,7 @@ class SalesQuotationService {
                 'sq_oid', 
                 [Sequelize.col(`entity_relation.en_desc`), 'entity'],
                 ['sq_code', 'sq_number'],
+                ['sq_midtrans_inv_number', 'invoice_number'],
                 ['sq_need_date', 'effective_date'],
                 'sq_type',
                 [Sequelize.col(`site_relation.si_desc`), 'site'],
@@ -175,8 +176,8 @@ class SalesQuotationService {
                 Sequelize.where(Sequelize.col(`sq_trans_id`), {
                     [Op.in]: conditions.status
                 }),
-                Sequelize.where(Sequelize.col(`sq_midtrans_inv_number`), {
-                    [Op.iLike]: `${conditions.invoice_number}`
+                Sequelize.where(Sequelize.literal(`COALESCE(sq_midtrans_inv_number, '')`), {
+                    [Op.iLike]: `%${conditions.invoice_number}%`
                 }),
             ],
             order: [
