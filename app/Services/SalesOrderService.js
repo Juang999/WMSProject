@@ -194,7 +194,19 @@ class SalesOrderService {
     findDetailSalesOrder = async (sodOid) => {
         let {dataValues} = await SodDet.findOne({
             attributes: [
-                'sod_qty',
+                'sod_pt_id',
+                'sod_loc_id',
+                'sod_invc_oid',
+                'sod_so_oid',
+                [Sequelize.col(`header_sales_order.so_trans_id`), 'transaction_id'],
+                [Sequelize.literal('CAST(sod_qty AS INTEGER)'), 'sod_qty'],
+            ],
+            include: [
+                {
+                    model: SoMstr,
+                    as: 'header_sales_order',
+                    attributes: []
+                }
             ],
             where: {
                 sod_oid: sodOid
@@ -202,6 +214,28 @@ class SalesOrderService {
         })
 
         return dataValues;
+    }
+
+    deleteDetailSalesOrder = async (sodOid, transaction) => {
+        await SodDet.destroy({
+            where: {
+                sod_oid: sodOid
+            },
+            transaction
+        });
+    }
+
+    retrieveTotalPrice = async ( headerSalesOrderOid ) => {
+        let result = await SodDet.findAll({
+            attributes: [
+                [Sequelize.literal(`ROUND(SUM((sod_price * sod_qty) - (sod_price * sod_disc * sod_qty)), 2)`), 'total_price']
+            ],
+            where: {
+                sod_so_oid: headerSalesOrderOid
+            }
+        });
+
+        return result;
     }
 
     insertSerialSalesOrder = async (body, dataSerial, username, transaction) => {
@@ -532,7 +566,10 @@ class SalesOrderService {
             so_upd_by: (dataUpdate.username) ? dataUpdate.username : Sequelize.literal(`so_upd_by`),
             so_upd_date: (dataUpdate.updated_at) ? dataUpdate.updated_at : Sequelize.literal(`so_upd_date`),
             so_trans_id: (dataUpdate.transaction_id) ? dataUpdate.transaction_id : Sequelize.literal('so_trans_id'),
-            so_close_date: (dataUpdate.close_date) ? dataUpdate.close_date : Sequelize.literal(`so_close_date`)
+            so_close_date: (dataUpdate.close_date) ? dataUpdate.close_date : Sequelize.literal(`so_close_date`),
+            so_total: (dataUpdate.total) ? dataUpdate.total : Sequelize.literal(`so_total`),
+            so_total_final: (dataUpdate.total) ? dataUpdate.total : Sequelize.literal(`so_total_final`),
+            so_terbilang: (dataUpdate.terbilang) ? dataUpdate.terbilang : Sequelize.literal(`so_terbilang`),
         }, {
             where: {
                 so_oid: headerSalesOrderOid
@@ -558,6 +595,7 @@ class SalesOrderService {
                 ['so_oid', 'header_sales_order_oid'],
                 [Sequelize.col(`entity_relation.en_desc`), 'entity'],
                 ['so_code', 'so_number'],
+                ['so_midtrans_inv_number', 'invoice_number'],
                 ['so_date', 'effective_date'],
                 'so_type',
                 'so_indent',
@@ -704,6 +742,7 @@ class SalesOrderService {
     retrieveDetailProductSalesOrder = async ( headerSalesOrderOid ) => {
         let result = await SodDet.findAll({
             attributes: [
+                ['sod_oid', 'detail_sales_order_oid'],
                 [Sequelize.col(`entity_relation.en_desc`), 'entity'],
                 [Sequelize.col(`site_relation.si_desc`), 'site'],
                 ['sod_is_additional_charge', 'additional_charges'],

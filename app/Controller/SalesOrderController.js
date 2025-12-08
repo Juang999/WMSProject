@@ -546,6 +546,69 @@ class SalesOrderController {
 		}
 	}
 
+	deleteDetailSalesOrder = async ( req, res ) => {
+		let transaction = await sequelize.transaction();
+
+		try {
+			let dataDetailSalesOrder = await SalesOrderService.findDetailSalesOrder( req.params.detail_sales_order_oid );
+
+			if (!dataDetailSalesOrder) {
+				return res.status(404)
+					.json({
+						status: 'not found',
+						message: 'not found',
+						data: null,
+						error: 'not found'
+					})
+			}
+
+			if (dataDetailSalesOrder.dataValues.transaction_id == 'C' || dataDetailSalesOrder.dataValues.transaction_id == 'X') {
+				return res.status(400)
+						.json({
+							status: 'failed',
+							message: 'cannot delete detail sales order from closed or canceled sales order',
+							data: null,
+							error: 'cannot delete detail sales order from closed or canceled sales order'
+						})
+			}
+
+			await Promise.all([
+				this.releaseQty([
+					{
+						location_id: dataDetailSalesOrder.dataValues.sod_loc_id,
+						product_id: dataDetailSalesOrder.dataValues.sod_pt_id,
+						inventory_oid: dataDetailSalesOrder.dataValues.sod_invc_oid,
+						quantity: dataDetailSalesOrder.dataValues.sod_qty
+					}
+				]),
+				SalesOrderService.deleteDetailSalesOrder( req.params.detail_sales_order_oid, transaction )
+			])
+
+			await transaction.commit();
+
+			await this.updateTotalPrice( dataDetailSalesOrder.dataValues.sod_so_oid );
+			
+			res.status(200)
+				.json({
+					status: 'success',
+					message: 'detail sales order has been deleted',
+					data: true,
+					error: null
+				})
+		} catch (error) {
+			await transaction.rollback();
+			await errorLog('DELETE DETAIL SALES ORDER', error.message);
+
+			res.status(500)
+				.json({
+					status: 'failed',
+					message: 'error',
+					data: null,
+					error: 'Internal Server Error!'
+				});
+		}
+	}
+
 	returnResponse = (code, status, message, data) => {
 		return {code, json: {status, message, data, error: null}}
 	}
@@ -629,6 +692,17 @@ class SalesOrderController {
 				releaseInventory(singularDataDetail.inventory_oid, singularDataDetail.quantity, transaction)
 			])
 		}
+	}
+
+	updateTotalPrice = async ( headerSalesOrderOid ) => {
+		let totalPrice = await SalesOrderService.retrieveTotalPrice( headerSalesOrderOid );
+
+		let dataUpdate = {
+			total: totalPrice[0]['dataValues']['total_price'],
+			terbilang: Bilangan.parse(totalPrice[0]['dataValues']['total_price'])
+		};
+
+		await SalesOrderService.updateHeaderSalesOrder( dataUpdate, headerSalesOrderOid );
 	}
 }
 
