@@ -316,6 +316,7 @@ class SalesQuotationService {
             attributes: [
                 ['sq_oid', 'header_sales_quotation_oid'],
                 'sq_code',
+                ['sq_midtrans_inv_number', 'invoice_number'],
                 ['sq_en_id', 'entity_id'],
                 [Sequelize.col(`entity_relation.en_desc`), 'entity_desc'],
                 ['sq_si_id', 'site_id'],
