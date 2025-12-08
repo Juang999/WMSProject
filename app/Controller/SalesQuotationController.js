@@ -57,7 +57,7 @@ class SalesQuotationController {
                     sales_quotation_code: req.query.sq_code || '',
                     customer_name: req.query.customer_name || '',
                     sales_person: req.query.sales_person || '',
-                    status: (req.query.status != null) ? [req.query.status] : ['D', 'W', 'I', 'C', 'X', 'E'],
+                    status: (req.query.status != null && req.query.status != '') ? [req.query.status] : ['D', 'W', 'I', 'C', 'X', 'E'],
                 },
                 sort: {
                     date: req.query.date_sort || 'DESC'
