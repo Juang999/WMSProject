@@ -58,6 +58,7 @@ class SalesQuotationController {
                     customer_name: req.query.customer_name || '',
                     sales_person: req.query.sales_person || '',
                     status: (req.query.status != null && req.query.status != '') ? [req.query.status] : ['D', 'W', 'I', 'C', 'X', 'E'],
+                    invoice_number: (req.query.invoice_number != null && req.query.invoice_number != '') ? req.query.invoice_number : '',
                 },
                 sort: {
                     date: req.query.date_sort || 'DESC'

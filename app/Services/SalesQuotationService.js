@@ -174,7 +174,10 @@ class SalesQuotationService {
                 }),
                 Sequelize.where(Sequelize.col(`sq_trans_id`), {
                     [Op.in]: conditions.status
-                })
+                }),
+                Sequelize.where(Sequelize.col(`sq_midtrans_inv_number`), {
+                    [Op.iLike]: `${conditions.invoice_number}`
+                }),
             ],
             order: [
                 ['sq_add_date', sort.date]
