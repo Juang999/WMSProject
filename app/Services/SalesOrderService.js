@@ -729,7 +729,19 @@ class SalesOrderService {
                 }),
                 Sequelize.where(Sequelize.col(`so_code`), {
                     [Op.iLike]: `%${conditions.so_code}%`
-                })
+                }),
+                Sequelize.where(Sequelize.col(`buyer.ptnr_name`), {
+                    [Op.iLike]: `%${conditions.customer_name}%`
+                }),
+                Sequelize.where(Sequelize.col(`sales.ptnr_name`), {
+                    [Op.iLike]: `%${conditions.sales_person}%`
+                }),
+                Sequelize.where(Sequelize.col(`so_trans_id`), {
+                    [Op.in]: conditions.status
+                }),
+                Sequelize.where(Sequelize.literal(`COALESCE(so_midtrans_inv_number, '')`), {
+                    [Op.iLike]: `%${conditions.invoice_number}%`
+                }),
             ],
             order: [
                 ['so_add_date', 'DESC']

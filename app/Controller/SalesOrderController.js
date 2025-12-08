@@ -325,11 +325,19 @@ class SalesOrderController {
 			let startDate = req.query.start_date || moment().format('YYYY-MM-DD');
 			let endDate = req.query.end_date || moment().format('YYYY-MM-DD');
 			let soCode = req.query.so_code || '';
+			let customerName = (req.query.customer_name) ? req.query.customer_name : '';
+			let salesPerson = (req.query.sales_person) ? req.query.sales_person : '';
+			let status = (req.query.status != null && req.query.status != '') ? [req.query.status] : ['D', 'W', 'I', 'C', 'X', 'E'];
+			let invoiceNumber = (req.query.invoice_number) ? req.query.invoice_number : '';
 
 			let result = await SalesOrderService.retrieveAllSalesOrder({
 				start_date: startDate,
 				end_date: endDate,
-				so_code: soCode
+				so_code: soCode,
+				customer_name: customerName,
+				sales_person: salesPerson,
+				status: status,
+				invoice_number: invoiceNumber
 			});
 
 			res.status(200)
