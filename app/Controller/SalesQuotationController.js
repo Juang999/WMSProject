@@ -734,15 +734,17 @@ class SalesQuotationController {
                 break;
             }
 
-            let totalSerialAvailable = await InventoryService.countSerialsOid(additionalData.location_id, dataGrocery.product_id, null);
+            if (dataGrocery.additional_charge == 'N') {
+                let totalSerialAvailable = await InventoryService.countSerialsOid(additionalData.location_id, dataGrocery.product_id, null);
 
-            if (dataGrocery.qty > totalSerialAvailable) {
-                status = false;
-                dataDetail = [];
-                message = `jumlah pemesanan melebihi stok tersedia! [tersedia: ${totalSerialAvailable}, pesananmu: ${dataGrocery.qty}]`;
-                disallowProduct = await ProductService.retrieveDataProduct(dataGrocery.product_id);
+                if (dataGrocery.qty > totalSerialAvailable) {
+                    status = false;
+                    dataDetail = [];
+                    message = `jumlah pemesanan melebihi stok tersedia! [tersedia: ${totalSerialAvailable}, pesananmu: ${dataGrocery.qty}]`;
+                    disallowProduct = await ProductService.retrieveDataProduct(dataGrocery.product_id);
 
-                break;
+                    break;
+                }
             }
 
             if (additionalData.is_booking == 'Y') {
